@@ -1,4 +1,4 @@
-Home page
+Home inventory page
    -link to place a new order (create an order)
    -link to receiving
       -links to unreceived orders
@@ -26,23 +26,24 @@ Home page
       -links to each item
 
 
-Home page
-Create order
-Receiving general page
-Each order page
-Receive item(s) order-independent
-Inventory update page
-Order general page
-Each order receiving page
-Each order amending page
-Each order deleting page
-All items page (show in-stock, show on-order) arranged by category
-Each item page
-Each item amending page
-Each item deleting page
-Create new item page
-Create new category page
-Each category amending page
-Each category deleting page
-Each category viewing page
+Home page                              g  inventory/
+Create order                           gp inventory/order/create-new
+Receiving general page                 g  inventory/receiving
+Each order page                        g  inventory/order/<id>
+Receive item(s) order-independent      gp inventory/receiving/receive-items
+Inventory update page                  gp inventory/update
+Order general page                     g  inventory/orders
+Each order receiving page              gp inventory/receiving/<orderid>
+Each order amending page               gp inventory/order/<id>/update
+Each order deleting page               gp inventory/order/<id>/remove
+All items page                         g  inventory/items
+(show in-stock, on-order, arranged by category) 
+Each item page                         g  inventory/item/<id>
+Each item amending page                gp inventory/item/<id>/update
+Each item deleting page                gp inventory/item/<id>/remove
+Create new item page                   gp inventory/item/create-new
+Create new category page               gp inventory/category/create-new
+Each category amending page            gp inventory/category/<id>/update
+Each category deleting page            gp inventory/category/<id>/remove
+Each category viewing page             g  inventory/category/<id>
 
