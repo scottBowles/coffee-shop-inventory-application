@@ -5,12 +5,13 @@ const Schema = mongoose.Schema;
 const ItemSchema = new Schema(
    {
       name: {type: String, required: true, max: 40},
-      sku: {type: String, default: 'not marked for sale'},
-      forsale: {type: Boolean, required: true},
-      price: {type: Number},
       description: {type: String, max: 256},
-      category: {type: Schema.Types.ObjectId, ref: 'Category', required: true},
-      maxShelfLifeInDays: {type: Number}
+      category: {type: Schema.Types.ObjectId, ref: 'Category'},
+      sku: {type: String, default: 'Not marked for sale'},
+      price: {type: Number},
+      quantityInStock: {type: Number, required: true},
+      quantityOnOrder: {type: Number, default: 0},
+      lastUpdated: {type: Date, required: true, default: Date.now}
    }
 );
 
@@ -20,4 +21,10 @@ ItemSchema
    return '/inventory/item/' + this._id;
 });
 
-module.exports = mongoose.model('Item', ItemSchema);
+ItemSchema
+.virtual('forSale')
+.get(function () {
+   return this.sku !== 'Not marked for sale';
+});
+
+module.exports = mongoose.model('Item', ItemSchema)

@@ -1,0 +1,46 @@
+Home page
+   -link to place a new order (create an order)
+   -link to receiving
+      -links to unreceived orders
+      -link to receive order-independent
+   -link to view orders
+      -links to each order
+         -link to receive order if unreceived
+         -link to unreceive order if received
+         -link to amend order
+         -link to delete order
+      -link to place a new order
+   -link to view all items
+      -link to each item
+         -link to amend an item
+         -link to delete an item
+         -link to start a new order
+      -link to create new item
+      -link to create new category
+      -link to amend a category
+         -link to delete category
+   -link to view items by category (link for each category)
+      -link to amend category
+      -link to delete category
+      -links to each item
+
+
+Home page
+Create order
+Receiving general page
+Each order page
+Receive item(s) order-independent
+Order general page
+Each order receiving page
+Each order amending page
+Each order deleting page
+All items page (show in-stock, show on-order) arranged by category
+Each item page
+Each item amending page
+Each item deleting page
+Create new item page
+Create new category page
+Each category amending page
+Each category deleting page
+Each category viewing page
+

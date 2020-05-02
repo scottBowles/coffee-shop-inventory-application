@@ -74,7 +74,7 @@ function categoryCreate(name, description, cb) {
 
 
 
-function createStocks(cb) {
+function createStocks(cb) { 
     async.series([
         function(callback) {
           stockCreate(items[1], 'ordered', undefined, undefined, callback);
