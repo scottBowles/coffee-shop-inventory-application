@@ -3,6 +3,7 @@ Home page
    -link to receiving
       -links to unreceived orders
       -link to receive order-independent
+   -link to inventory count (update inventory)
    -link to view orders
       -links to each order
          -link to receive order if unreceived
@@ -30,6 +31,7 @@ Create order
 Receiving general page
 Each order page
 Receive item(s) order-independent
+Inventory update page
 Order general page
 Each order receiving page
 Each order amending page

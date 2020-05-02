@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 
-console.log('This script populates some test books, authors, genres and bookinstances to your database. Specified database as argument - e.g.: populatedb mongodb+srv://cooluser:coolpassword@cluster0-mbdj7.mongodb.net/local_library?retryWrites=true');
+console.log('This script populates some test orders, items, and categories to your database. Specified database as argument - e.g.: populatedb mongodb+srv://cooluser:coolpassword@cluster0-mbdj7.mongodb.net/local_library?retryWrites=true');
 
 // Get arguments passed on command line
 var userArgs = process.argv.slice(2);
@@ -11,7 +11,7 @@ if (!userArgs[0].startsWith('mongodb')) {
 }
 */
 var async = require('async')
-var Stock = require('./models/stock')
+var Order = require('./models/order')
 var Item = require('./models/item')
 var Category = require('./models/category')
 
@@ -23,30 +23,33 @@ mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-var stockitems = []
+var orders = []
 var items = []
 var categories = []
 
-function stockCreate(item, status, expirationDate, receivedDate, cb) {
-  stockdetail = { item: item, status: status }
-  if (expirationDate != false) stockdetail.expirationDate = expirationDate
-  if (receivedDate != false) stockdetail.receivedDate = receivedDate
-  
-  var stock = new Stock(stockdetail);
+function orderCreate(orderDate, deliveryDate, received, orderedItems, cb) {
+  const order = new Order({ orderDate, deliveryDate, received, orderedItems });
        
-  stock.save(function (err) {
+  order.save(function (err) {
     if (err) {
       cb(err, null)
       return
     }
-    console.log('New Stock: ' + stock);
-    stockitems.push(stock)
-    cb(null, stock)
+    console.log('New Order: ' + order);
+    orders.push(order)
+    cb(null, order)
   }  );
 }
 
-function itemCreate(name, forsale, category, sku, price, description, maxShelfLifeInDays, cb) {
-  var item = new Item({ name: name, forsale: forsale, category: category, sku: sku, price: price, description: description, maxShelfLifeInDays: maxShelfLifeInDays });
+function itemCreate(name, quantityInStock, lastUpdated, category, sku, price, description, quantityOnOrder, cb) {
+  const itemdetail = { name: name, quantityInStock: quantityInStock, lastUpdated: lastUpdated };
+  if (category != false) itemdetail.category = category
+  if (sku != false) itemdetail.sku = sku
+  if (price != false) itemdetail.price = price
+  if (description != false) itemdetail.description = description
+  if (quantityOnOrder != false) itemdetail.quantityOnOrder = quantityOnOrder
+
+  var item = new Item(itemdetail);
        
   item.save(function (err) {
     if (err) {
@@ -74,57 +77,46 @@ function categoryCreate(name, description, cb) {
 
 
 
-function createStocks(cb) { 
+function createOrders(cb) { 
     async.series([
         function(callback) {
-          stockCreate(items[1], 'ordered', undefined, undefined, callback);
+          orderCreate(2020-04-24, 2020-04-28, true, [{item: items[6], quantity: 8}], callback);
         },
         function(callback) {
-          stockCreate(items[2], 'received', undefined, undefined, callback);
+          orderCreate(2020-04-20, 2020-04-24, true, [{item: items[1], quantity: 6}, {item: items[4], quantity: 6}, {item: items[5], quantity: 4}], callback);
         },
         function(callback) {
-          stockCreate(items[3], 'received', 2020-09-25, 2020-03-25, callback);
-        },
-        function(callback) {
-          stockCreate(items[4], 'received', 2020-06-18, 2020-03-18, callback);
-        },
-        function(callback) {
-          stockCreate(items[5], 'ordered', undefined, undefined, callback);
-        },
-        function(callback) {
-          stockCreate(items[6], 'ordered', undefined, undefined, callback);
-        },
-        function(callback) {
-          stockCreate(items[0], 'ordered', undefined, undefined, callback);
-        },
+          orderCreate(2020-05-01, 2020-05-05, false, [{item: items[2], quantity: 4}, {item: items[3], quantity: 8}], callback);
+        }
         ],
         // optional callback
         cb);
 }
 
-
+// name, quantityInStock, lastUpdated, category, sku, 
+// price, description, quantityOnOrder
 function createItems(cb) {
     async.parallel([
         function(callback) {
-          itemCreate('Napkins', false, categories[3], 0007, undefined, 'Napkins - 1000ea', 720, callback);
+          itemCreate('Napkins', 8, 2020-03-25, categories[3], 'Not marked for sale', undefined, 'Napkins - 1000ea', undefined, callback);
         },
         function(callback) {
-          itemCreate('Caramel Syrup', true, categories[0], 0001, 5.20, 'Caramel Syrup 750 ml/25.4 oz', 180, callback);
+          itemCreate('Caramel Syrup', 4, 2020-04-24, categories[0], 0001, 5.20, 'Caramel Syrup 750 ml/25.4 oz', 6, callback);
         },
         function(callback) {
-          itemCreate('Dark Roast 5lb', false, categories[1], 0002, undefined, 'Dark Roast 5lb Bullet for Brewed Coffee', 90, callback);
+          itemCreate('Dark Roast 5lb', 4, 2020-04-09, categories[1], 'Not marked for sale', undefined, 'Dark Roast 5lb Bullet for Brewed Coffee', 4, callback);
         },
         function(callback) {
-          itemCreate('Espresso 5lb', false, categories[1], 0003, undefined, 'Espresso 5lb Bullet for Espresso Machine', 90, callback);
+          itemCreate('Espresso 5lb', 6, 2020-04-09, categories[1], 'Not marked for sale', undefined, 'Espresso 5lb Bullet for Espresso Machine', 4, callback);
         },
         function(callback) {
-          itemCreate('Vanilla Syrup', true, categories[0], 0004, 5.20, 'Vanilla Syrup 750 ml/25.4 oz', 180, callback);
+          itemCreate('Vanilla Syrup', 8, 2020-04-24, categories[0], 0004, 5.20, 'Vanilla Syrup 750 ml/25.4 oz', 6, callback);
         },
         function(callback) {
-          itemCreate('Decaf Espresso 5lb', false, categories[1], 0005, undefined, 'Decaf Espresso 5lb Bullet for Espresso Machine', 90, callback);
+          itemCreate('Decaf Espresso 5lb', 3, 2020-04-24, categories[1], 'Not marked for sale', undefined, 'Decaf Espresso 5lb Bullet for Espresso Machine', 4, callback);
         },
         function(callback) {
-          itemCreate('Milk Whole', false, categories[2], 0006, undefined, 'Whole Milk for Beverages', 14, callback);
+          itemCreate('Milk Whole', 8, 2020-04-28, categories[2], 0006, 3.90, 'Whole Milk for Beverages', 8, callback);
         }
         ],
         // optional callback
@@ -156,7 +148,7 @@ function createCategories(cb) {
 async.series([
     createCategories,
     createItems,
-    createStocks
+    createOrders
 ],
 // Optional callback
 function(err, results) {
@@ -164,13 +156,10 @@ function(err, results) {
         console.log('FINAL ERR: '+err);
     }
     else {
-        console.log('Stocks: '+stockitems);
+        console.log('Orders: '+orders);
         
     }
     // All done, disconnect from database
     mongoose.connection.close();
 });
-
-
-
 
