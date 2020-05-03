@@ -1,5 +1,5 @@
 exports.index = function (req, res, next) {
-   res.send('NOT IMPLEMENTED: Site home page');
+   res.render('index', {title: 'Inventory', current: 'inventory'})
 };
 
 exports.receiving_home = function (req, res, next) {

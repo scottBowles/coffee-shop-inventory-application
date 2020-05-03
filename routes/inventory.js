@@ -27,10 +27,10 @@ router.get('/receiving/:id', inventory_controller.receive_order_get);
 router.get('/receiving/:id', inventory_controller.receive_order_post);
 
 // GET request for updating inventory
-router.get('/update', inventory_controller.update_inventory_get);
+router.get('/inventory-count', inventory_controller.update_inventory_get);
 
 // POST request for updating inventory
-router.post('/update', inventory_controller.update_inventory_post);
+router.post('/inventory-count', inventory_controller.update_inventory_post);
 
 /// ITEM ROUTES ///
 

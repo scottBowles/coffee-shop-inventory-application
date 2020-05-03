@@ -25,6 +25,46 @@ Home inventory page
       -link to delete category
       -links to each item
 
+   Inventory Home
+   Orders
+      Place an Order
+      View Orders
+   Receiving
+   Inventory
+      
+   Items
+      All
+      <Category1>
+      <Category2>
+
+      
+   Orders
+   Receiving
+   Items
+     <Category1>
+     <Category2>
+     ...
+   
+   Place an Order
+   Start an Inventory Count
+     Full
+     <Category1>
+     <Category2>
+     ...   
+   
+   New Order
+   Orders
+   Receiving
+   Start an Inventory Count
+     Full
+     <Category1>
+     <Category2>
+     ...
+   View All Items
+     <Category1>
+     <Category2>
+     ...
+
 
 Home page                              g  inventory/
 Create order                           gp inventory/order/create-new
