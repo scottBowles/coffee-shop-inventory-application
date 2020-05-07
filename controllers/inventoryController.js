@@ -1,5 +1,5 @@
 exports.index = function (req, res, next) {
-   res.render('index', {title: 'Inventory', current: 'inventory'})
+   res.render('index', {title: 'Caf\351 Corcovado Inventory', current: 'inventory'})
 };
 
 exports.receiving_home = function (req, res, next) {

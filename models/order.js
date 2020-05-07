@@ -5,8 +5,8 @@ const Schema = mongoose.Schema;
 const OrderSchema = new Schema(
    {
       orderDate: {type: Date, required: true, default: Date.now},
-      deliveryDate: {type: Date, required: true},
-      received: {type:Boolean, required: true, default: false},
+      deliveryDate: {type: Date},
+      status: {type: String, required: true, enum: ['Saved', 'Ordered', 'Received'], default: 'Saved'},
       orderedItems: [{
          item: Schema.Types.ObjectId,
          quantity: Number,
