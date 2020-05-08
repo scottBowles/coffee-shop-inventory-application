@@ -16,6 +16,8 @@ var async = require('async')
 var Order = require('./models/order')
 var Item = require('./models/item')
 var Category = require('./models/category')
+var Receipt = require('./models/receipt')
+var Count = require('./models/inventoryCount')
 
 
 var mongoose = require('mongoose');
@@ -28,6 +30,43 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 var orders = []
 var items = []
 var categories = []
+var receipts = []
+var counts = []
+
+function receiptCreate(dateInitiated, receivedItems, dateSubmitted, orderReceived, cb) {
+  const receiptdetail = { dateInitiated, receivedItems };
+  if (dateSubmitted != false) receiptdetail.dateSubmitted = dateSubmitted;
+  if (orderReceived != false) receiptdetail.orderReceived = orderReceived;
+
+  const receipt = new Receipt(receiptdetail);
+       
+  receipt.save(function (err) {
+    if (err) {
+      cb(err, null)
+      return
+    }
+    console.log('New Receipt: ' + receipt);
+    receipts.push(receipt)
+    cb(null, receipt)
+  }  );
+}
+
+function countCreate(dateInitiated, countedQuantities, type, dateSubmitted, cb) {
+  const countdetail = { dateInitiated, countedQuantities, type };
+  if (dateSubmitted != false) countdetail.dateSubmitted = dateSubmitted;
+
+  const count = new Count(countdetail);
+       
+  count.save(function (err) {
+    if (err) {
+      cb(err, null)
+      return
+    }
+    console.log('New Count: ' + count);
+    counts.push(count)
+    cb(null, count)
+  }  );
+}
 
 function orderCreate(orderDate, status, orderedItems, deliveryDate, cb) {
   const orderdetail = { orderDate, status, orderedItems };
@@ -63,7 +102,7 @@ function itemCreate(name, quantityInStock, qtyLastUpdated, category, sku, price,
     console.log('New Item: ' + item);
     items.push(item)
     cb(null, item);
-  }   );
+  }  );
 }
 
 function categoryCreate(name, description, cb) {
@@ -149,12 +188,53 @@ function createCategories(cb) {
         cb);
 }
 
+// dateInitiated, receivedItems, dateSubmitted, orderReceived
+function createReceipts(cb) {
+  async.parallel([
+      function(callback) {
+        receiptCreate(2020-04-28, [{item: items[6], quantity: 8}], 2020-04-28, orders[0], callback)
+      },
+      function(callback) {
+        receiptCreate(2020-04-24, [{item: items[1], quantity: 6}, {item: items[4], quantity: 6}, {item: items[5], quantity: 4}], 2020-04-24, orders[1], callback)
+      },
+      function(callback) {
+        receiptCreate(2020-05-01, [{item: items[6], quantity: 4}], 2020-05-02, undefined, callback)
+      },
+      function(callback) {
+        receiptCreate(2020-05-07, [{item: items[4], quantity: 6}, {item: items[5], quantity: 2}], undefined, undefined, callback)
+      }
+      ],
+      // Optional callback
+      cb);
+}
+
+// dateInititated, countedQuantities, type, dateSubmitted
+function createCounts(cb) {
+  async.parallel([
+      function(callback) {
+        countCreate(2020-04-24, [{item: items[0], quantity: 4}, {item: items[1], quantity: 4}, {item: items[2], quantity: 4}, {item: items[3], quantity: 8}, {item: items[4], quantity: 4}, {item: items[5], quantity: 4}], 'Full', 2020-04-24, callback)
+      },
+      function(callback) {
+        countCreate(2020-04-26, [{item: items[0], quantity: 5}, {item: items[1], quantity: 4}, {item: items[2], quantity: 3}, {item: items[3], quantity: 6}, {item: items[5], quantity: 4}, {item: items[6], quantity: 3}], 'Full', 2020-04-27, callback)
+      },
+      function(callback) {
+        countCreate(2020-04-29, [{item: items[6], quantity: 4}, {item: items[4], quantity: 10}], 'By Category', 2020-04-29, callback)
+      },
+      function(callback) {
+        countCreate(2020-05-07, [{item: items[3], quantity: 5}], 'Ad Hoc', undefined, callback)
+      }
+      ],
+      // Optional callback
+      cb);
+}
 
 
 async.series([
     createCategories,
     createItems,
-    createOrders
+    createOrders,
+    createReceipts,
+    createCounts
 ],
 // Optional callback
 function(err, results) {

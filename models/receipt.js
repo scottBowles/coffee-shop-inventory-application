@@ -20,7 +20,7 @@ ReceivingSchema
    return !!this.dateSubmitted;
 });
 
-ReceiptSchema
+ReceivingSchema
 .virtual('url')
 .get(function () {
    return '/inventory/receiving/' + this._id;
