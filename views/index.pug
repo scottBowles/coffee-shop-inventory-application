@@ -2,17 +2,32 @@ extends layout
 
 block content
   h1= title
-  h2 #{a(href="/inventory/orders") ORDERS}
-    table(class="table table-striped")
-      caption Open Orders
-      thead
+  h2 #[a(href="/inventory/orders") Orders]
+  table(class="table table-striped")
+    caption Open Orders
+    thead
+      tr
+        th(scope="col") Order Date
+        th(scope="col") Status
+        th(scope="col") Expected Delivery
+        th(scope="col") 
+    tbody
+      if orders.length === 0
         tr
-          th(scope="col") Order Date
-          th(scope="col") Status
-          th(scope="col") Expected Delivery
-          th(scope="col") Receive
-      tbody
-        tr
-          th 
-      
+          td No open orders
+      each order in orders.slice(0, 5)
+        if order
+          tr
+            td #[a(href=order.url)= order.orderDateFormatted]
+            td= order.status
+            if order.deliveryDate
+              td= order.deliveryDateFormatted
+              td #[a(href="NEED TO IMPLEMENT WITH POST") Receive]
+            else
+              td Order not yet submitted
+              td #[a(href="order.url") Place order]
+            
+  if orders.length > 5
+    a(href="/inventory/orders") See More
+
 

@@ -1,3 +1,4 @@
+const moment = require('moment');
 const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
@@ -10,10 +11,22 @@ const ItemSchema = new Schema(
       sku: {type: String, default: 'Not marked for sale'},
       price: {type: Number},
       quantityInStock: {type: Number, required: true},
-      qtyLastUpdated: {type: Date, required: true, default: Date.now},
-      itemLastUpdated: {type: Date, required: true, default: Date.now}
+      qtyLastUpdated: {type: Date, required: true, default: Date.now()},
+      itemLastUpdated: {type: Date, required: true, default: Date.now()}
    }
 );
+
+ItemSchema
+.virtual('qtyLastUpdatedFormatted')
+.get(function () {
+   return moment(this.qtyLastUpdated).format('MMMM Do, YYYY');
+});
+
+ItemSchema
+.virtual('itemLastUpdatedFormatted')
+.get(function () {
+   return moment(this.itemLastUpdated).format('MMMM Do, YYYY');
+});
 
 ItemSchema
 .virtual('url')

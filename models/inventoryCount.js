@@ -1,10 +1,11 @@
+const moment = require('moment');
 const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
 const InventoryCountSchema = new Schema(
    {
-      dateInitiated: { type: Date, required: true, default: Date.now },
+      dateInitiated: { type: Date, required: true, default: Date.now() },
       dateSubmitted: { type: Date },
       countedQuantities: [{
          item: { type: Schema.Types.ObjectId, ref: 'Item' },
@@ -18,6 +19,18 @@ InventoryCountSchema
 .virtual('submitted')
 .get(function () {
    return !!this.dateSubmitted;
+});
+
+InventoryCountSchema
+.virtual('dateInitiatedFormatted')
+.get(function () {
+   return moment(this.dateInitiated).format('MMMM Do, YYYY');
+});
+
+InventoryCountSchema
+.virtual('dateSubmittedFormatted')
+.get(function () {
+   return moment(this.dateSubmitted).format('MMMM Do, YYYY');
 });
 
 InventoryCountSchema

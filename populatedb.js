@@ -122,16 +122,16 @@ function categoryCreate(name, description, cb) {
 function createOrders(cb) { 
     async.series([
         function(callback) {
-          orderCreate(2020-04-24, 'Received', [{item: items[6], quantity: 8}], 2020-04-28, 2020-04-28, callback);
+          orderCreate("2020-04-24", 'Received', [{item: items[6], quantity: 8}], "2020-04-28", "2020-04-28", callback);
         },
         function(callback) {
-          orderCreate(2020-04-20, 'Received', [{item: items[1], quantity: 6}, {item: items[4], quantity: 6}, {item: items[5], quantity: 4}], 2020-04-24, 2020-04-24, callback);
+          orderCreate("2020-04-20", 'Received', [{item: items[1], quantity: 6}, {item: items[4], quantity: 6}, {item: items[5], quantity: 4}], "2020-04-24", "2020-04-24", callback);
         },
         function(callback) {
-          orderCreate(2020-05-01, 'Ordered', [{item: items[2], quantity: 4}, {item: items[3], quantity: 8}], 2020-05-05, 2020-05-07, callback);
+          orderCreate("2020-05-01", 'Ordered', [{item: items[2], quantity: 4}, {item: items[3], quantity: 8}], "2020-05-05", "2020-05-07", callback);
         },
         function(callback) {
-          orderCreate(2020-05-05, 'Saved', [{item: items[1], quantity: 6}, {item: items[4], quantity: 6}, {item: items[5], quantity: 4}], undefined, 2020-05-05, callback);
+          orderCreate("2020-05-05", 'Saved', [{item: items[1], quantity: 6}, {item: items[4], quantity: 6}, {item: items[5], quantity: 4}], undefined, "2020-05-05", callback);
         }
         ],
         // optional callback
@@ -143,25 +143,25 @@ function createOrders(cb) {
 function createItems(cb) {
     async.parallel([
         function(callback) {
-          itemCreate('Napkins', 8, 2020-03-25, categories[3], 'Not marked for sale', undefined, 'Napkins - 1000ea', 2020-02-27, callback);
+          itemCreate('Napkins', 8, "2020-03-25", categories[3], 'Not marked for sale', undefined, 'Napkins - 1000ea', "2020-02-27", callback);
         },
         function(callback) {
-          itemCreate('Caramel Syrup', 4, 2020-04-24, categories[0], 0001, 5.20, 'Caramel Syrup 750 ml/25.4 oz', 2020-03-25, callback);
+          itemCreate('Caramel Syrup', 4, "2020-04-24", categories[0], 0001, 5.20, 'Caramel Syrup 750 ml/25.4 oz', "2020-03-25", callback);
         },
         function(callback) {
-          itemCreate('Dark Roast 5lb', 4, 2020-04-09, categories[1], 'Not marked for sale', undefined, 'Dark Roast 5lb Bullet for Brewed Coffee', 2020-02-27, callback);
+          itemCreate('Dark Roast 5lb', 4, "2020-04-09", categories[1], 'Not marked for sale', undefined, 'Dark Roast 5lb Bullet for Brewed Coffee', "2020-02-27", callback);
         },
         function(callback) {
-          itemCreate('Espresso 5lb', 6, 2020-04-09, categories[1], 'Not marked for sale', undefined, 'Espresso 5lb Bullet for Espresso Machine', 2020-02-27, callback);
+          itemCreate('Espresso 5lb', 6, "2020-04-09", categories[1], 'Not marked for sale', undefined, 'Espresso 5lb Bullet for Espresso Machine', "2020-02-27", callback);
         },
         function(callback) {
-          itemCreate('Vanilla Syrup', 8, 2020-04-24, categories[0], 0004, 5.20, 'Vanilla Syrup 750 ml/25.4 oz', 2020-03-25, callback);
+          itemCreate('Vanilla Syrup', 8, "2020-04-24", categories[0], 0004, 5.20, 'Vanilla Syrup 750 ml/25.4 oz', "2020-03-25", callback);
         },
         function(callback) {
-          itemCreate('Decaf Espresso 5lb', 3, 2020-04-24, categories[1], 'Not marked for sale', undefined, 'Decaf Espresso 5lb Bullet for Espresso Machine', 2020-02-27, callback);
+          itemCreate('Decaf Espresso 5lb', 3, "2020-04-24", categories[1], 'Not marked for sale', undefined, 'Decaf Espresso 5lb Bullet for Espresso Machine', "2020-02-27", callback);
         },
         function(callback) {
-          itemCreate('Milk Whole', 8, 2020-04-28, categories[2], 0006, 3.90, 'Whole Milk for Beverages', 2020-03-27, callback);
+          itemCreate('Milk Whole', 8, "2020-04-28", categories[2], 0006, 3.90, 'Whole Milk for Beverages', "2020-03-27", callback);
         }
         ],
         // optional callback
@@ -192,16 +192,16 @@ function createCategories(cb) {
 function createReceipts(cb) {
   async.parallel([
       function(callback) {
-        receiptCreate(2020-04-28, [{item: items[6], quantity: 8}], 2020-04-28, orders[0], callback)
+        receiptCreate("2020-04-28", [{item: items[6], quantity: 8}], "2020-04-28", orders[0], callback)
       },
       function(callback) {
-        receiptCreate(2020-04-24, [{item: items[1], quantity: 6}, {item: items[4], quantity: 6}, {item: items[5], quantity: 4}], 2020-04-24, orders[1], callback)
+        receiptCreate("2020-04-24", [{item: items[1], quantity: 6}, {item: items[4], quantity: 6}, {item: items[5], quantity: 4}], "2020-04-24", orders[1], callback)
       },
       function(callback) {
-        receiptCreate(2020-05-01, [{item: items[6], quantity: 4}], 2020-05-02, undefined, callback)
+        receiptCreate("2020-05-01", [{item: items[6], quantity: 4}], "2020-05-02", undefined, callback)
       },
       function(callback) {
-        receiptCreate(2020-05-07, [{item: items[4], quantity: 6}, {item: items[5], quantity: 2}], undefined, undefined, callback)
+        receiptCreate("2020-05-07", [{item: items[4], quantity: 6}, {item: items[5], quantity: 2}], undefined, undefined, callback)
       }
       ],
       // Optional callback
@@ -212,16 +212,16 @@ function createReceipts(cb) {
 function createCounts(cb) {
   async.parallel([
       function(callback) {
-        countCreate(2020-04-24, [{item: items[0], quantity: 4}, {item: items[1], quantity: 4}, {item: items[2], quantity: 4}, {item: items[3], quantity: 8}, {item: items[4], quantity: 4}, {item: items[5], quantity: 4}], 'Full', 2020-04-24, callback)
+        countCreate("2020-04-24", [{item: items[0], quantity: 4}, {item: items[1], quantity: 4}, {item: items[2], quantity: 4}, {item: items[3], quantity: 8}, {item: items[4], quantity: 4}, {item: items[5], quantity: 4}], 'Full', "2020-04-24", callback)
       },
       function(callback) {
-        countCreate(2020-04-26, [{item: items[0], quantity: 5}, {item: items[1], quantity: 4}, {item: items[2], quantity: 3}, {item: items[3], quantity: 6}, {item: items[5], quantity: 4}, {item: items[6], quantity: 3}], 'Full', 2020-04-27, callback)
+        countCreate("2020-04-26", [{item: items[0], quantity: 5}, {item: items[1], quantity: 4}, {item: items[2], quantity: 3}, {item: items[3], quantity: 6}, {item: items[5], quantity: 4}, {item: items[6], quantity: 3}], 'Full', "2020-04-27", callback)
       },
       function(callback) {
-        countCreate(2020-04-29, [{item: items[6], quantity: 4}, {item: items[4], quantity: 10}], 'By Category', 2020-04-29, callback)
+        countCreate("2020-04-29", [{item: items[6], quantity: 4}, {item: items[4], quantity: 10}], 'By Category', "2020-04-29", callback)
       },
       function(callback) {
-        countCreate(2020-05-07, [{item: items[3], quantity: 5}], 'Ad Hoc', undefined, callback)
+        countCreate("2020-05-07", [{item: items[3], quantity: 5}], 'Ad Hoc', undefined, callback)
       }
       ],
       // Optional callback

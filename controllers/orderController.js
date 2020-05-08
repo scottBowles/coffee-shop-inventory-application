@@ -9,11 +9,27 @@ exports.index = function (req, res, next) {
 
    async.parallel({
 
-      
+      orders: function(callback) {
+         Order.find({ 'status': {$in: ['Saved', 'Ordered']} }, 'orderDate deliveryDate status lastUpdated')
+        .sort([['lastUpdated', 'descending']])
+        .exec(callback);
+      },
+      counts: function(callback) {
+         InventoryCount.find({ 'dateSubmitted': undefined }, 'dateInitiated dateSubmitted type')
+         .sort([['dateInitiated', 'descending']])
+         .exec(callback);
+      },
+      items: function(callback) {
+         Item.find()
+         .populate('category')
+         .sort([['itemLastUpdated', 'descending']])
+         .exec(callback);
+      }
 
    }, function(err, results) {
-      res.render('index', { title: 'Caf\351 Corcovado Inventory', current: 'inventory' })
-   })
+      if (err) { return next(err); }
+      res.render('index', { title: 'Caf\351 Corcovado Inventory', orders: results.orders, counts: results.counts, items: results.items });
+   });
 
 };
 
