@@ -10,7 +10,8 @@ const ItemSchema = new Schema(
       sku: {type: String, default: 'Not marked for sale'},
       price: {type: Number},
       quantityInStock: {type: Number, required: true},
-      qtyLastUpdated: {type: Date, required: true, default: Date.now}
+      qtyLastUpdated: {type: Date, required: true, default: Date.now},
+      itemLastUpdated: {type: Date, required: true, default: Date.now}
    }
 );
 
