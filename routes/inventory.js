@@ -5,6 +5,7 @@ const category_controller = require('../controllers/categoryController');
 const item_controller = require('../controllers/itemController');
 const order_controller = require('../controllers/orderController');
 const receiving_controller = require('../controllers/receivingController');
+const inventory_count_controller = require('../controllers/inventoryCountController');
 
 // GET inventory home page
 router.get('/', order_controller.index);
