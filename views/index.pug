@@ -30,4 +30,23 @@ block content
   if orders.length > 5
     a(href="/inventory/orders") See More
 
-
+  h2 #[a(href="/inventory/counts") Inventory Counts]
+  table(class="table table-striped")
+    caption Open Inventory Counts
+    thead
+      tr
+        th(scope="col") Date Initiated
+        th(scope="col") Count Type
+        th(scope="col") 
+    tbody
+      if counts.length === 0
+        tr
+          td No open inventory counts
+      each count in counts.slice(0, 5)
+        if count
+          tr
+            td #[a(href=count.url)= count.dateInitiatedFormatted]
+            td= count.type
+            td #[a(href=count.url) Continue count]
+  if counts.length > 5
+    a(href="/inventory/counts") See More
