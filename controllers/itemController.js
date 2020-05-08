@@ -1,7 +1,7 @@
 const Item = require('../models/item');
 
-exports.item_list = function (req, res, next) {
-   res.send('NOT IMPLEMENTED: Item list');
+exports.item_home = function (req, res, next) {
+   res.send('NOT IMPLEMENTED: Item home');
 };
 
 exports.item_detail = function (req, res, next) {

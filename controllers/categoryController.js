@@ -1,7 +1,7 @@
 const Category = require('../models/category');
 
-exports.category_list = function (req, res, next) {
-   res.send('NOT IMPLEMENTED: Category list');
+exports.category_home = function (req, res, next) {
+   res.send('NOT IMPLEMENTED: Category home');
 };
 
 exports.category_detail = function (req, res, next) {

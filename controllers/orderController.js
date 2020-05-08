@@ -1,7 +1,11 @@
 const Order = require('../models/order');
 
-exports.order_list = function (req, res, next) {
-   res.send('NOT IMPLEMENTED: Order list');
+exports.index = function (req, res, next) {
+   res.render('index', {title: 'Caf\351 Corcovado Inventory', current: 'inventory'})
+};
+
+exports.order_home = function (req, res, next) {
+   res.send('NOT IMPLEMENTED: Order home');
 };
 
 exports.order_detail = function (req, res, next) {
