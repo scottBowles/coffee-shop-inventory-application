@@ -4,13 +4,14 @@ const Schema = mongoose.Schema;
 
 const OrderSchema = new Schema(
    {
-      orderDate: { type: Date, required: true, default: Date.now },
+      orderDate: { type: Date },
       deliveryDate: { type: Date },
       status: { type: String, required: true, enum: ['Saved', 'Ordered', 'Received'], default: 'Saved' },
       orderedItems: [{
          item: { type: Schema.Types.ObjectId, ref: 'Item' },
          quantity: { type: Number },
       }],
+      lastUpdated: { type: Date, required: true, default: Date.now },
    }
 );
 

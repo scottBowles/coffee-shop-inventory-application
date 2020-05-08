@@ -68,8 +68,8 @@ function countCreate(dateInitiated, countedQuantities, type, dateSubmitted, cb) 
   }  );
 }
 
-function orderCreate(orderDate, status, orderedItems, deliveryDate, cb) {
-  const orderdetail = { orderDate, status, orderedItems };
+function orderCreate(orderDate, status, orderedItems, deliveryDate, lastUpdated, cb) {
+  const orderdetail = { orderDate, status, orderedItems, lastUpdated };
   if (deliveryDate != false) orderdetail.deliveryDate = deliveryDate;
 
   const order = new Order(orderdetail);
@@ -85,8 +85,8 @@ function orderCreate(orderDate, status, orderedItems, deliveryDate, cb) {
   }  );
 }
 
-function itemCreate(name, quantityInStock, qtyLastUpdated, category, sku, price, description, cb) {
-  const itemdetail = { name: name, quantityInStock: quantityInStock, qtyLastUpdated: qtyLastUpdated };
+function itemCreate(name, quantityInStock, qtyLastUpdated, category, sku, price, description, itemLastUpdated, cb) {
+  const itemdetail = { name: name, quantityInStock: quantityInStock, qtyLastUpdated: qtyLastUpdated, itemLastUpdated: itemLastUpdated };
   if (category != false) itemdetail.category = category
   if (sku != false) itemdetail.sku = sku
   if (price != false) itemdetail.price = price
@@ -118,20 +118,20 @@ function categoryCreate(name, description, cb) {
   }  );
 }
 
-// orderDate, status, orderedItems, deliveryDate
+// orderDate, status, orderedItems, deliveryDate, lastUpdated
 function createOrders(cb) { 
     async.series([
         function(callback) {
-          orderCreate(2020-04-24, 'Received', [{item: items[6], quantity: 8}], 2020-04-28, callback);
+          orderCreate(2020-04-24, 'Received', [{item: items[6], quantity: 8}], 2020-04-28, 2020-04-28, callback);
         },
         function(callback) {
-          orderCreate(2020-04-20, 'Received', [{item: items[1], quantity: 6}, {item: items[4], quantity: 6}, {item: items[5], quantity: 4}], 2020-04-24, callback);
+          orderCreate(2020-04-20, 'Received', [{item: items[1], quantity: 6}, {item: items[4], quantity: 6}, {item: items[5], quantity: 4}], 2020-04-24, 2020-04-24, callback);
         },
         function(callback) {
-          orderCreate(2020-05-01, 'Ordered', [{item: items[2], quantity: 4}, {item: items[3], quantity: 8}], 2020-05-05, callback);
+          orderCreate(2020-05-01, 'Ordered', [{item: items[2], quantity: 4}, {item: items[3], quantity: 8}], 2020-05-05, 2020-05-07, callback);
         },
         function(callback) {
-          orderCreate(2020-05-05, 'Saved', [{item: items[1], quantity: 6}, {item: items[4], quantity: 6}, {item: items[5], quantity: 4}], undefined, callback);
+          orderCreate(2020-05-05, 'Saved', [{item: items[1], quantity: 6}, {item: items[4], quantity: 6}, {item: items[5], quantity: 4}], undefined, 2020-05-05, callback);
         }
         ],
         // optional callback
@@ -139,29 +139,29 @@ function createOrders(cb) {
 }
 
 // name, quantityInStock, qtyLastUpdated, category, sku, 
-// price, description, quantityOnOrder
+// price, description, itemLastUpdated
 function createItems(cb) {
     async.parallel([
         function(callback) {
-          itemCreate('Napkins', 8, 2020-03-25, categories[3], 'Not marked for sale', undefined, 'Napkins - 1000ea', callback);
+          itemCreate('Napkins', 8, 2020-03-25, categories[3], 'Not marked for sale', undefined, 'Napkins - 1000ea', 2020-02-27, callback);
         },
         function(callback) {
-          itemCreate('Caramel Syrup', 4, 2020-04-24, categories[0], 0001, 5.20, 'Caramel Syrup 750 ml/25.4 oz', callback);
+          itemCreate('Caramel Syrup', 4, 2020-04-24, categories[0], 0001, 5.20, 'Caramel Syrup 750 ml/25.4 oz', 2020-03-25, callback);
         },
         function(callback) {
-          itemCreate('Dark Roast 5lb', 4, 2020-04-09, categories[1], 'Not marked for sale', undefined, 'Dark Roast 5lb Bullet for Brewed Coffee', callback);
+          itemCreate('Dark Roast 5lb', 4, 2020-04-09, categories[1], 'Not marked for sale', undefined, 'Dark Roast 5lb Bullet for Brewed Coffee', 2020-02-27, callback);
         },
         function(callback) {
-          itemCreate('Espresso 5lb', 6, 2020-04-09, categories[1], 'Not marked for sale', undefined, 'Espresso 5lb Bullet for Espresso Machine', callback);
+          itemCreate('Espresso 5lb', 6, 2020-04-09, categories[1], 'Not marked for sale', undefined, 'Espresso 5lb Bullet for Espresso Machine', 2020-02-27, callback);
         },
         function(callback) {
-          itemCreate('Vanilla Syrup', 8, 2020-04-24, categories[0], 0004, 5.20, 'Vanilla Syrup 750 ml/25.4 oz', callback);
+          itemCreate('Vanilla Syrup', 8, 2020-04-24, categories[0], 0004, 5.20, 'Vanilla Syrup 750 ml/25.4 oz', 2020-03-25, callback);
         },
         function(callback) {
-          itemCreate('Decaf Espresso 5lb', 3, 2020-04-24, categories[1], 'Not marked for sale', undefined, 'Decaf Espresso 5lb Bullet for Espresso Machine', callback);
+          itemCreate('Decaf Espresso 5lb', 3, 2020-04-24, categories[1], 'Not marked for sale', undefined, 'Decaf Espresso 5lb Bullet for Espresso Machine', 2020-02-27, callback);
         },
         function(callback) {
-          itemCreate('Milk Whole', 8, 2020-04-28, categories[2], 0006, 3.90, 'Whole Milk for Beverages', callback);
+          itemCreate('Milk Whole', 8, 2020-04-28, categories[2], 0006, 3.90, 'Whole Milk for Beverages', 2020-03-27, callback);
         }
         ],
         // optional callback

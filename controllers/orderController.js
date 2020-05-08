@@ -1,8 +1,22 @@
 const Order = require('../models/order');
+const InventoryCount = require('../models/inventoryCount');
+const Item = require('../models/item');
+
+const async = require('async');
+
 
 exports.index = function (req, res, next) {
-   res.render('index', {title: 'Caf\351 Corcovado Inventory', current: 'inventory'})
+
+   async.parallel({
+
+      
+
+   }, function(err, results) {
+      res.render('index', { title: 'Caf\351 Corcovado Inventory', current: 'inventory' })
+   })
+
 };
+
 
 exports.order_home = function (req, res, next) {
    res.send('NOT IMPLEMENTED: Order home');
