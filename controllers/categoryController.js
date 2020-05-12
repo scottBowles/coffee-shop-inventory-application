@@ -1,7 +1,13 @@
 const Category = require('../models/category');
 
 exports.category_home = function categoryHome(req, res, next) {
-  res.send('NOT IMPLEMENTED: Category home');
+  Category.find()
+    .populate('numItems')
+    .sort({ name: 'ascending' })
+    .exec((err, categories) => {
+      if (err) { return next(err); }
+      res.render('categoriesHome', { title: 'Categories', categories });
+    });
 };
 
 exports.category_detail = function categoryDetail(req, res, next) {

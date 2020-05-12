@@ -10,6 +10,23 @@ const CategorySchema = new Schema(
 );
 
 CategorySchema
+  .virtual('items', {
+    ref: 'Item',
+    localField: '_id',
+    foreignField: 'category',
+    justOne: false,
+    options: { sort: { name: 'ascending' } },
+  });
+
+CategorySchema
+  .virtual('numItems', {
+    ref: 'Item',
+    localField: '_id',
+    foreignField: 'category',
+    count: true,
+  });
+
+CategorySchema
   .virtual('url')
   .get(function () {
     return `/inventory/category/${this._id}`;

@@ -85,8 +85,8 @@ Each item deleting page                gp inventory/item/<id>/remove
 Create new item page                   gp inventory/item/create-new
 
 >>> CATEGORIES <<<
-Categories home page                   g  inventory/categories
-Each category viewing page             g  inventory/category/<id>
+Categories home page                   g  inventory/categories                Static done
+Each category viewing page             g  inventory/category/<id>             
 Each category amending page            gp inventory/category/<id>/update
 Each category deleting page            gp inventory/category/<id>/remove
 Create new category page               gp inventory/category/create-new
