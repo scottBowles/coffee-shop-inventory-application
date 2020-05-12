@@ -18,25 +18,25 @@ const ItemSchema = new Schema(
 
 ItemSchema
   .virtual('qtyLastUpdatedFormatted')
-  .get(function () {
+  .get(function lastQtyUpdateFormatted() {
     return moment(this.qtyLastUpdated).format('MMMM Do, YYYY');
   });
 
 ItemSchema
   .virtual('itemLastUpdatedFormatted')
-  .get(function () {
+  .get(function lastItemUpdateFormatted() {
     return moment(this.itemLastUpdated).format('MMMM Do, YYYY');
   });
 
 ItemSchema
   .virtual('url')
-  .get(function () {
+  .get(function itemUrl() {
     return `/inventory/item/${this._id}`;
   });
 
 ItemSchema
   .virtual('forSale')
-  .get(function () {
+  .get(function itemSku() {
     return this.sku !== 'Not marked for sale';
   });
 

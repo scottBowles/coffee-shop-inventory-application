@@ -22,6 +22,7 @@ block content
             td= order.status
             if order.deliveryDate
               td= order.deliveryDateFormatted
+              // TODO
               td #[a(href="NEED TO IMPLEMENT WITH POST") Receive]
             else
               td Order not yet submitted
@@ -29,6 +30,8 @@ block content
             
   if orders.length > 5
     a(href="/inventory/orders") See More
+  h6 #[a(href="/inventory/order/create-new") Start an Order]
+  h6 #[a(href="/inventory/receiving/create-new") Receive New Product]
 
   h2 #[a(href="/inventory/counts") Inventory Counts]
   table(class="table table-striped")
@@ -50,3 +53,36 @@ block content
             td #[a(href=count.url) Continue count]
   if counts.length > 5
     a(href="/inventory/counts") See More
+  h6 Start a New Inventory Count
+  ul
+    li
+      // TODO - BUTTONS FOR NEW FULL, CATEGORY, AND AD HOC COUNTS
+
+  h2 #[a(href="/inventory/items") Items]
+  table(class="table table-striped")
+    caption Recently Updated
+    thead
+      tr
+        th(scope="col") Name
+        th(scope="col") Quantity in Stock
+        th(scope="col") Category
+        th(scope="col") Last Updated
+        th(scope="col") 
+      tbody
+        if items.length === 0
+          tr
+            td No items to display
+        each item in items.slice(0, 5)
+          if item
+            tr
+              td #[a(href=item.url)= item.name]
+              td= item.quantityInStock
+              td #[a(href=item.category.url)= item.category.name]
+              td= item.itemLastUpdatedFormatted
+              // TODO - IMPLEMENT UPDATE BUTTON (CREATE NEW COUNT WITH ITEM)
+              td #[button Update]
+  if items.length > 5
+    a(href="/inventory/items") See More
+  h6 #[a(href="/inventory/item/create-new") Add a New Item]
+  h6 #[a(href="/inventory/category/create-new") Add a New Category]
+  
