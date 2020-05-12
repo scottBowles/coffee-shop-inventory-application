@@ -1,0 +1,45 @@
+extends layout
+
+block content
+  h1= title
+  h6 #[a(href="/inventory/order/create-new") Open New Order]
+  ul(class="nav nav-tabs")
+    li(class="nav-item")
+      a(class=(filter==='Open' || filter===undefined) ? "nav-link active" : "nav-link" href="/inventory/orders/?filter=open") Open
+    li(class="nav-item")
+      a(class=filter==='Saved' ? "nav-link active" : "nav-link" href="/inventory/orders/?filter=saved") Saved
+    li(class="nav-item")
+      a(class=filter==='Ordered' ? "nav-link active" : "nav-link" href="/inventory/orders/?filter=ordered") Ordered
+    li(class="nav-item")
+      a(class=filter==='Received' ? "nav-link active" : "nav-link" href="/inventory/orders/?filter=received") Received
+    li(class="nav-item")
+      a(class=filter==='All' ? "nav-link active" : "nav-link" href="/inventory/orders/?filter=all") All
+  
+  table(class="table table-striped")
+    caption #{filter} Orders
+    thead
+      tr
+        th(scope="col") Order Date
+        th(scope="col") Status
+        th(scope="col") Last Updated
+        th(scope="col") Expected Delivery
+        th(scope="col") 
+    tbody
+      if orders.length === 0
+        tr
+          td No orders to display
+      each order in orders
+        if order
+          tr
+            td #[a(href=order.url)= order.orderDateFormatted]
+            td= order.status
+            td= order.lastUpdatedFormatted
+            if order.status === 'Received'
+              td= order.deliveryDateFormatted
+            else if order.status === 'Ordered'
+              td= order.deliveryDateFormatted
+              // TODO
+              td #[a(href="NEED TO IMPLEMENT WITH POST") Receive]
+            else
+              td Order not yet submitted
+              td #[a(href="order.url") Place order]

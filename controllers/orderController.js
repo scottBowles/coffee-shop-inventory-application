@@ -37,7 +37,33 @@ exports.index = function inventoryHome(req, res, next) {
 
 
 exports.order_home = function orderHome(req, res, next) {
-  res.send('NOT IMPLEMENTED: Order home');
+  async.waterfall([
+    function getFilter(callback) {
+      let { filter } = req.query;
+      filter = filter ? filter.charAt(0).toUpperCase() + filter.slice(1) : 'Open';
+      let queryFilter;
+      if (filter === 'All') {
+        queryFilter = ['Saved', 'Ordered', 'Received'];
+      } else if (['Saved', 'Ordered', 'Received'].includes(filter)) {
+        queryFilter = Array(filter);
+      } else {
+        filter = 'Open';
+        queryFilter = ['Saved', 'Ordered'];
+      }
+      callback(null, queryFilter, filter);
+    },
+    function getOrders(queryFilter, filter, callback) {
+      Order.find({ status: { $in: queryFilter } }, 'orderDate deliveryDate status lastUpdated')
+        .sort([['lastUpdated', 'descending']])
+        .exec((err, filteredOrders) => {
+          if (err) { return next(err); }
+          callback(null, { filter, filteredOrders });
+        });
+    },
+  ], (err, results) => {
+    if (err) { return next(err); }
+    res.render('ordersHome', { filter: results.filter, orders: results.filteredOrders, title: 'Orders' });
+  });
 };
 
 exports.order_detail = function orderDetail(req, res, next) {
