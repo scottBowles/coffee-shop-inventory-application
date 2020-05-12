@@ -71,8 +71,8 @@ Home inventory page
 Home page                              g  inventory/                          Static done
 
 >>> ORDERS <<<
-Orders home page                       g  inventory/orders
-Each order page                        g  inventory/order/<id>
+Orders home page                       g  inventory/orders                    Static done
+Each order page                        g  inventory/order/<id>                Static done
 Each order amending page               gp inventory/order/<id>/update
 Each order deleting page               gp inventory/order/<id>/remove
 Create order                           gp inventory/order/create-new

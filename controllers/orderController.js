@@ -3,6 +3,7 @@ const async = require('async');
 const Order = require('../models/order');
 const InventoryCount = require('../models/inventoryCount');
 const Item = require('../models/item');
+const Receipt = require('../models/receipt');
 
 exports.index = function inventoryHome(req, res, next) {
   async.parallel({
@@ -67,7 +68,26 @@ exports.order_home = function orderHome(req, res, next) {
 };
 
 exports.order_detail = function orderDetail(req, res, next) {
-  res.send(`NOT IMPLEMENTED: Order detail: ${req.params.id}`);
+  // Need 'order', 'receipt' if received, populate orderedItems->item, populate orderItems->item->category. Organize items by category then alpha?
+  async.parallel({
+    order(callback) {
+      Order.findById(req.params.id)
+        .populate({
+          path: 'orderedItems.item',
+          populate: {
+            path: 'category',
+          },
+        })
+        .exec(callback);
+    },
+    receipt(callback) {
+      Receipt.findOne({ orderReceived: req.params.id })
+        .exec(callback);
+    },
+  }, (err, results) => {
+    if (err) { return next(err); }
+    res.render('orderDetail', { order: results.order, receipt: results.receipt, title: 'Order Details' });
+  });
 };
 
 exports.order_create_get = function orderCreateGet(req, res, next) {

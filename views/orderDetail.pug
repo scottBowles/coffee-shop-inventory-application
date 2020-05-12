@@ -1,0 +1,50 @@
+extends layout
+
+block content
+  h1= title
+  h6= order.status
+  ul
+    if order.status === 'Saved'
+      li Last Updated: #{order.lastUpdatedFormatted}
+    if order.status === 'Ordered'
+      li Ordered: #{order.orderDateFormatted}
+      li Delivery Date: #{order.deliveryDateFormatted}
+    if order.status === 'Received'
+      li Ordered: #{order.orderDateFormatted}
+      li Received: #{receipt.dateSubmittedFormatted}
+  
+  ul
+    if order.status === 'Saved'
+      // TODO Implement buttons (mirrored below)
+      li #[button Place Order]
+      li #[button Change Order]
+    if order.status === 'Ordered'
+      li #[button Receive]
+
+  table(class="table table-striped")
+    caption Items
+    thead
+      tr
+        th(scope="col") Qty Ordered
+        th(scope="col") Name
+        th(scope="col") SKU
+        th(scope="col") Category
+    tbody
+      if order.orderedItems.length === 0
+        tr
+          td No items to display
+      each orderedItem in order.orderedItems
+        if orderedItem
+          tr
+            td= orderedItem.quantity
+            td= orderedItem.item.name
+            td= orderedItem.item.sku
+            td= orderedItem.item.category.name
+
+  ul
+    if order.status === 'Saved'
+      // TODO Implement buttons (mirrored above)
+      li #[button Place Order]
+      li #[button Change Order]
+    if order.status === 'Ordered'
+      li #[button Receive]
