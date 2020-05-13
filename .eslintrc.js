@@ -5,20 +5,20 @@ module.exports = {
     node: true,
   },
   extends: [
-    'plugin:vue/essential',
-    'airbnb-base',
+    "plugin:vue/essential",
+    "airbnb-base",
+    "prettier",
+    "prettier/vue",
+    "prettier/react",
   ],
   globals: {
-    Atomics: 'readonly',
-    SharedArrayBuffer: 'readonly',
+    Atomics: "readonly",
+    SharedArrayBuffer: "readonly",
   },
   parserOptions: {
     ecmaVersion: 11,
-    sourceType: 'module',
+    sourceType: "module",
   },
-  plugins: [
-    'vue',
-  ],
-  rules: {
-  },
+  plugins: ["vue"],
+  rules: {},
 };
