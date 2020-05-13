@@ -15,6 +15,10 @@ const ReceivingSchema = new Schema({
   orderReceived: { type: Schema.Types.ObjectId, ref: "Order" },
 });
 
+ReceivingSchema.virtual("orderReceivedUrl").get(function () {
+  return `/inventory/order/${this.orderReceived}`;
+});
+
 ReceivingSchema.virtual("totalQuantityInItems").get(function () {
   return this.receivedItems.reduce((total, item) => total + item.quantity, 0);
 });

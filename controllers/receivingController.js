@@ -46,7 +46,22 @@ exports.receiving_home = function receivingHome(req, res, next) {
 };
 
 exports.receipt_detail = function receiptDetail(req, res, next) {
-  res.send(`NOT IMPLEMENTED: Receipt detail: ${req.params.id}`);
+  Receipt.findById(req.params.id)
+    .populate({
+      path: "receivedItems.item",
+      select: "category name",
+      populate: {
+        path: "category",
+        select: "name",
+      },
+    })
+    .exec((err, receipt) => {
+      if (err) {
+        return next(err);
+      }
+      receipt.receivedItems.sort((a, b) => b.item.name - a.item.name);
+      res.render("receiptDetail", { title: "Receipt", receipt });
+    });
 };
 
 exports.receipt_create_get = function receiptCreateGet(req, res, next) {

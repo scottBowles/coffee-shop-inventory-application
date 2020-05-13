@@ -1,0 +1,28 @@
+extends layout
+
+block content
+  h1= title
+  h6= receipt.submitted ? "Submitted " + receipt.dateSubmittedFormatted : 'Open'
+  h6 Initiated #{receipt.dateInitiatedFormatted}
+  if receipt.orderReceived
+    h6 #[a(href=receipt.orderReceivedUrl) Order Received]
+  else
+    h6 Ad Hoc
+
+  h4 Items
+  table(class="table table-striped")
+    caption #{receipt.receivedItems.length} Line Items / #{receipt.totalQuantityInItems} Items Received
+    thead
+      tr
+        th(scope="col") Category
+        th(scope="col") Item
+        th(scope="col") Quantity Received
+    tbody
+      if receipt.receivedItems.length === 0
+        tr
+          td No items to display
+      each receivedItem in receipt.receivedItems
+        tr
+          td= receivedItem.item.category.name
+          td= receivedItem.item.name
+          td= receivedItem.quantity
