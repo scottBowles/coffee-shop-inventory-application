@@ -1,3 +1,4 @@
+const async = require('async');
 const Category = require('../models/category');
 
 exports.category_home = function categoryHome(req, res, next) {
@@ -11,7 +12,12 @@ exports.category_home = function categoryHome(req, res, next) {
 };
 
 exports.category_detail = function categoryDetail(req, res, next) {
-  res.send(`NOT IMPLEMENTED: Category detail: ${req.params.id}`);
+  Category.findById(req.params.id)
+    .populate('items')
+    .exec((err, category) => {
+      if (err) { return next(err); }
+      res.render('categoryDetail', { title: category.name, category });
+    });
 };
 
 exports.category_create_get = function categoryCreateGet(req, res, next) {
