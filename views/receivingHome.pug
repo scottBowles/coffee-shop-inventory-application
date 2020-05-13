@@ -1,0 +1,51 @@
+extend layout
+
+block content
+  h1= title
+  h6 #[a(href="inventory/receiving/create-new") Create New Receipt]
+
+  table(class="table table-striped")
+    caption Orders Awaiting Receipt
+    thead
+      tr
+        th(scope="col") Order Date
+        th(scope="col") Expected Delivery
+        th(scope="col") Receive
+    tbody
+      if orders.length === 0
+        tr
+          td No orders to display
+      each order in orders
+        tr
+          td= order.orderDateFormatted
+          td= order.deliveryDateFormatted
+          // TODO - Implement button
+          td #[button Receive]
+
+  ul(class="nav nav-tabs")
+    li(class="nav-item")
+      a(class=filter==="recent" ? "nav-link active" : "nav-link" href="/inventory/receiving/?filter=recent") Recent Receipts
+    li(class="nav-item")
+      a(class=filter==="all" ? "nav-link active" : "nav-link" href="/inventory/receiving/?filter=all") All Receipts
+  
+  table(class="table table-striped")
+    thead
+      tr
+        th(scope="col") Status/Date
+        th(scope="col") Quantity of Items
+        th(scope="col")
+    tbody
+      if receipts.length === 0
+        tr
+          td No receipts to display
+      each receipt in receipts
+        tr
+          if receipt.submitted
+            td Received #{receipt.dateSubmittedFormatted}
+            td= receipt.totalQuantityInItems
+            td #[a(href=receipt.url) View Receipt]
+          else
+            td Opened #{receipt.dateInitiatedFormatted}
+            td= receipt.totalQuantityInItems
+            td #[a(href=receipt.url) View Receipt]
+      

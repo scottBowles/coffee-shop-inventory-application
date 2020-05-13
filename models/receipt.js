@@ -16,6 +16,12 @@ const ReceivingSchema = new Schema(
 );
 
 ReceivingSchema
+  .virtual('totalQuantityInItems')
+  .get(function () {
+    return this.receivedItems.reduce((total, item) => total + item.quantity, 0);
+  });
+
+ReceivingSchema
   .virtual('dateInitiatedFormatted')
   .get(function () {
     return moment(this.dateInitiated).format('MMMM Do, YYYY');

@@ -86,13 +86,13 @@ Create new item page                   gp inventory/item/create-new
 
 >>> CATEGORIES <<<
 Categories home page                   g  inventory/categories                Static done
-Each category viewing page             g  inventory/category/<id>             
+Each category viewing page             g  inventory/category/<id>             Static done
 Each category amending page            gp inventory/category/<id>/update
 Each category deleting page            gp inventory/category/<id>/remove
 Create new category page               gp inventory/category/create-new
 
 >>> RECEIVING <<<
-Receiving home page                    g  inventory/receiving
+Receiving home page                    g  inventory/receiving                 Static done
 Each receipt page                      g  inventory/receiving/<id>
 Each receipt amending page             gp inventory/receiving/<id>/update
 Each receipt deleting page             gp inventory/receiving/<id>/remove
@@ -105,3 +105,9 @@ Each inventory count amending page     gp inventory/count/<id>/update
 Each inventory count deleting page     gp inventory/count/<id>/remove
    (only deletable if not yet submitted)
 Create new inventory count             gp inventory/count/create-new
+
+
+
+STILL NEED TO:
+
+FIGURE OUT HOW TO GET DATES TO WORK RIGHT AND NOT OFFSET BY ONE (MDN MENTIONED TIME-ZONE-RELATED)

@@ -1,7 +1,40 @@
+const async = require('async');
 const Receipt = require('../models/receipt');
+const Order = require('../models/order');
 
 exports.receiving_home = function receivingHome(req, res, next) {
-  res.send('NOT IMPLEMENTED');
+  async.auto({
+    receiptsFilter(callback) {
+      const { filter } = req.query;
+      const filterSanitized = filter === 'all' ? 'all' : 'recent';
+      callback(null, filterSanitized);
+    },
+    orders(callback) {
+      Order.find({ status: 'Ordered' })
+        .sort({ deliveryDate: 'descending' })
+        .exec(callback);
+    },
+    receipts: ['receiptsFilter', function (results, callback) {
+      if (results.receiptsFilter === 'all') {
+        Receipt.find({})
+          .sort({ submitted: 'descending', dateInitiated: 'descending' })
+          .exec(callback);
+      } else {
+        Receipt.find({})
+          .sort({ submitted: 'descending', dateInitiated: 'descending' })
+          .limit(5)
+          .exec(callback);
+      }
+    }],
+  }, (err, results) => {
+    if (err) { return next(err); }
+    res.render('receivingHome', {
+      title: 'Receiving',
+      orders: results.orders,
+      filter: results.receiptsFilter,
+      receipts: results.receipts,
+    });
+  });
 };
 
 exports.receipt_detail = function receiptDetail(req, res, next) {
