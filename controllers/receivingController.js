@@ -3,22 +3,18 @@ const Receipt = require("../models/receipt");
 const Order = require("../models/order");
 
 exports.receiving_home = function receivingHome(req, res, next) {
-  async.auto(
-    {
-      receiptsFilter(callback) {
-        const { filter } = req.query;
-        const filterSanitized = filter === "all" ? "all" : "recent";
-        callback(null, filterSanitized);
-      },
-      orders(callback) {
-        Order.find({ status: "Ordered" })
-          .sort({ deliveryDate: "descending" })
-          .exec(callback);
-      },
-      receipts: [
-        "receiptsFilter",
-        (results, callback) => {
-          if (results.receiptsFilter === "all") {
+  if (["all", "recent", undefined].includes(req.query.filter) === false) {
+    res.redirect("/inventory/receiving");
+  } else {
+    async.parallel(
+      {
+        orders(callback) {
+          Order.find({ status: "Ordered" })
+            .sort({ deliveryDate: "descending" })
+            .exec(callback);
+        },
+        receipts(callback) {
+          if (req.query.filter === "all") {
             Receipt.find({})
               .sort({ submitted: "descending", dateInitiated: "descending" })
               .exec(callback);
@@ -29,20 +25,24 @@ exports.receiving_home = function receivingHome(req, res, next) {
               .exec(callback);
           }
         },
-      ],
-    },
-    (err, results) => {
-      if (err) {
-        return next(err);
+        filter(callback) {
+          const filter = req.query.filter || "recent";
+          callback(null, filter);
+        },
+      },
+      (err, results) => {
+        if (err) {
+          return next(err);
+        }
+        res.render("receivingHome", {
+          title: "Receiving",
+          orders: results.orders,
+          filter: results.filter,
+          receipts: results.receipts,
+        });
       }
-      res.render("receivingHome", {
-        title: "Receiving",
-        orders: results.orders,
-        filter: results.receiptsFilter,
-        receipts: results.receipts,
-      });
-    }
-  );
+    );
+  }
 };
 
 exports.receipt_detail = function receiptDetail(req, res, next) {
