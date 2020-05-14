@@ -85,7 +85,14 @@ exports.item_home = function itemHome(req, res, next) {
 };
 
 exports.item_detail = function itemDetail(req, res, next) {
-  // res.send(`NOT IMPLEMENTED: Item detail: ${req.params.id}`);
+  Item.findById(req.params.id)
+    .populate("category")
+    .exec((err, item) => {
+      if (err) {
+        return next(err);
+      }
+      res.render("itemDetail", { item });
+    });
 };
 
 exports.item_create_get = function itemCreateGet(req, res, next) {
