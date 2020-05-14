@@ -45,14 +45,8 @@ exports.item_home = function itemHome(req, res, next) {
         "items",
         (results, callback) => {
           const { items } = results;
-          Order.find({ status: "Ordered" }, "orderedItems")
-            .populate({
-              path: "orderedItems.item",
-              populate: {
-                path: "category",
-              },
-            })
-            .exec((err, orders) => {
+          Order.find({ status: "Ordered" }, "orderedItems").exec(
+            (err, orders) => {
               if (err) {
                 return next(err);
               }
@@ -60,24 +54,18 @@ exports.item_home = function itemHome(req, res, next) {
               items.forEach((item) => {
                 const itemQty = orders.reduce((total, order) => {
                   const itemInOrder = order.orderedItems.find((orderedItem) => {
-                    return String(orderedItem.item._id) === String(item._id);
+                    return item._id.equals(orderedItem.item);
                   });
                   const quantityInOrder = itemInOrder
                     ? itemInOrder.quantity
                     : 0;
                   return total + quantityInOrder;
-                  // const itemInOrder = order.orderedItems.find(
-                  //   (orderedItem) => orderedItem.item == item._id
-                  // );
-                  // const quantityInOrder = itemInOrder
-                  //   ? itemInOrder.quantity
-                  //   : 0;
-                  // return total + quantityInOrder;
                 }, 0);
                 quantities[item] = itemQty;
               });
               callback(null, quantities);
-            });
+            }
+          );
         },
       ],
     },

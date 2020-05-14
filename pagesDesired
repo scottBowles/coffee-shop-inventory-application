@@ -78,7 +78,7 @@ Each order deleting page               gp inventory/order/<id>/remove
 Create order                           gp inventory/order/create-new
 
 >>> ITEMS <<<
-Items home page                        g  inventory/items
+Items home page                        g  inventory/items                     Static done
 Each item page                         g  inventory/item/<id>
 Each item amending page                gp inventory/item/<id>/update
 Each item deleting page                gp inventory/item/<id>/remove
