@@ -1,7 +1,53 @@
+const async = require("async");
 const InventoryCount = require("../models/inventoryCount");
 
 exports.count_home = function countHome(req, res, next) {
-  res.send("NOT IMPLEMENTED");
+  if (
+    ["all", "unsubmitted", "recent", undefined].includes(req.query.filter) ===
+    false
+  ) {
+    res.redirect("/inventory/counts");
+  } else {
+    async.auto(
+      {
+        countsFilter(callback) {
+          const { filter } = req.query;
+          const filterSanitized = filter || "recent";
+          callback(null, filterSanitized);
+        },
+        counts: [
+          "countsFilter",
+          (results, callback) => {
+            const { countsFilter } = results;
+            if (countsFilter === "all") {
+              InventoryCount.find({})
+                .sort({ dateInitiated: "descending" })
+                .exec(callback);
+            } else if (countsFilter === "recent") {
+              InventoryCount.find({})
+                .sort({ dateInitiated: "descending" })
+                .limit(5)
+                .exec(callback);
+            } else {
+              InventoryCount.find({ dateSubmitted: undefined })
+                .sort({ dateInitiated: "descending" })
+                .exec(callback);
+            }
+          },
+        ],
+      },
+      (err, results) => {
+        if (err) {
+          return next(err);
+        }
+        res.render("countsHome", {
+          title: "Inventory Counts",
+          filter: results.countsFilter,
+          counts: results.counts,
+        });
+      }
+    );
+  }
 };
 
 exports.count_detail = function countDetail(req, res, next) {
