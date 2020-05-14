@@ -1,15 +1,107 @@
+const async = require("async");
 const Item = require("../models/item");
+const Category = require("../models/category");
+const Order = require("../models/order");
 
 exports.item_home = function itemHome(req, res, next) {
-  res.send("NOT IMPLEMENTED: Item home");
+  async.auto(
+    {
+      categories(callback) {
+        Category.find({}, "name").sort({ name: "descending" }).exec(callback);
+      },
+      queryFilter: [
+        "categories",
+        (results, callback) => {
+          const { filter } = req.query;
+          const categoryNames = results.categories.map(
+            (category) => category.name
+          );
+          const sanitizedFilter = categoryNames.includes(filter)
+            ? filter
+            : "All";
+          callback(null, sanitizedFilter);
+        },
+      ],
+      items: [
+        "queryFilter",
+        "categories",
+        (results, callback) => {
+          const { categories, queryFilter } = results;
+          if (queryFilter !== "All") {
+            const category = categories.find((cat) => cat.name === queryFilter);
+            Item.find({ category: category._id })
+              .sort({ sku: "ascending", name: "ascending" })
+              .populate("category")
+              .exec(callback);
+          } else {
+            Item.find({})
+              .sort({ sku: "ascending", name: "ascending" })
+              .populate("category")
+              .exec(callback);
+          }
+        },
+      ],
+      orderedQuantities: [
+        "items",
+        (results, callback) => {
+          const { items } = results;
+          Order.find({ status: "Ordered" }, "orderedItems")
+            .populate({
+              path: "orderedItems.item",
+              populate: {
+                path: "category",
+              },
+            })
+            .exec((err, orders) => {
+              if (err) {
+                return next(err);
+              }
+              const quantities = {};
+              items.forEach((item) => {
+                const itemQty = orders.reduce((total, order) => {
+                  const itemInOrder = order.orderedItems.find((orderedItem) => {
+                    return String(orderedItem.item._id) === String(item._id);
+                  });
+                  const quantityInOrder = itemInOrder
+                    ? itemInOrder.quantity
+                    : 0;
+                  return total + quantityInOrder;
+                  // const itemInOrder = order.orderedItems.find(
+                  //   (orderedItem) => orderedItem.item == item._id
+                  // );
+                  // const quantityInOrder = itemInOrder
+                  //   ? itemInOrder.quantity
+                  //   : 0;
+                  // return total + quantityInOrder;
+                }, 0);
+                quantities[item] = itemQty;
+              });
+              callback(null, quantities);
+            });
+        },
+      ],
+    },
+    (err, results) => {
+      if (err) {
+        return next(err);
+      }
+      res.render("itemsHome", {
+        title: "Items",
+        orderedQty: results.orderedQuantities,
+        items: results.items,
+        categories: results.categories,
+        filter: results.queryFilter,
+      });
+    }
+  );
 };
 
 exports.item_detail = function itemDetail(req, res, next) {
-  res.send(`NOT IMPLEMENTED: Item detail: ${req.params.id}`);
+  // res.send(`NOT IMPLEMENTED: Item detail: ${req.params.id}`);
 };
 
 exports.item_create_get = function itemCreateGet(req, res, next) {
-  res.send("NOT IMPLEMENTED: Item create GET");
+  // res.send("NOT IMPLEMENTED: Item create GET");
 };
 
 exports.item_create_post = function itemCreatePost(req, res, next) {
