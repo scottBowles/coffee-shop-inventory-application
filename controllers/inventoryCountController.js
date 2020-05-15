@@ -51,7 +51,23 @@ exports.count_home = function countHome(req, res, next) {
 };
 
 exports.count_detail = function countDetail(req, res, next) {
-  res.send(`NOT IMPLEMENTED: Inventory count detail: ${req.params.id}`);
+  InventoryCount.findById(req.params.id)
+    .populate({
+      path: "countedQuantities.item",
+      populate: "category",
+    })
+    .exec((err, count) => {
+      if (err) {
+        return next(err);
+      }
+      count.countedQuantities.sort((a, b) => {
+        if (a.item.sku !== b.item.sku) {
+          return a.item.sku > b.item.sku ? 1 : -1;
+        }
+        return a.item.name > b.item.name ? 1 : -1;
+      });
+      res.render("countDetail", { title: "Count Detail", count });
+    });
 };
 
 exports.count_create_get = function countCreateGet(req, res, next) {
