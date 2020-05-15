@@ -7,7 +7,7 @@ exports.item_home = function itemHome(req, res, next) {
   async.auto(
     {
       categories(callback) {
-        Category.find({}, "name").sort({ name: "descending" }).exec(callback);
+        Category.find({}, "name").sort({ name: "ascending" }).exec(callback);
       },
       queryFilter: [
         "categories",

@@ -23,6 +23,6 @@ block content
           td No items to display
       each receivedItem in receipt.receivedItems
         tr
-          td= receivedItem.item.category.name
-          td= receivedItem.item.name
+          td #[a(href=receivedItem.item.category.url)= receivedItem.item.category.name]
+          td #[a(href=receivedItem.item.url)= receivedItem.item.name]
           td= receivedItem.quantity

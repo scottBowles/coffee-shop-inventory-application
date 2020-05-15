@@ -1,3 +1,4 @@
+const validator = require("express-validator");
 const Category = require("../models/category");
 
 exports.category_home = function categoryHome(req, res, next) {
@@ -24,12 +25,51 @@ exports.category_detail = function categoryDetail(req, res, next) {
 };
 
 exports.category_create_get = function categoryCreateGet(req, res, next) {
-  res.send("NOT IMPLEMENTED: Category create GET");
+  res.render("categoryForm", { title: "Create New Category" });
 };
 
-exports.category_create_post = function categoryCreatePost(req, res, next) {
-  res.send("NOT IMPLEMENTED: Category create POST");
-};
+exports.category_create_post = [
+  validator.body("name", "Category name required").trim().isLength({ min: 1 }),
+  validator
+    .body("description", "Category description required")
+    .trim()
+    .isLength({ min: 1 }),
+  validator.sanitizeBody("name").escape(),
+  validator.sanitizeBody("description").escape(),
+
+  (req, res, next) => {
+    const errors = validator.validationResult(req);
+
+    const category = new Category({
+      name: req.body.name,
+      description: req.body.description,
+    });
+
+    if (!errors.isEmpty()) {
+      res.render("categoryForm", {
+        title: "Create New Category",
+        category,
+        errors: errors.array(),
+      });
+    } else {
+      Category.findOne({ name: req.body.name }).exec((err, foundCategory) => {
+        if (err) {
+          return next(err);
+        }
+        if (foundCategory) {
+          res.redirect(foundCategory.url);
+        } else {
+          category.save((categorySaveError) => {
+            if (categorySaveError) {
+              return next(categorySaveError);
+            }
+            res.redirect(category.url);
+          });
+        }
+      });
+    }
+  },
+];
 
 exports.category_update_get = function categoryUpdateGet(req, res, next) {
   res.send("NOT IMPLEMENTED: Category update GET");

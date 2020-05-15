@@ -28,7 +28,7 @@ block content
           tr
             td #[a(href=item.url)= item.name]
             if (filter === 'All')
-              td= item.category.name
+              td #[a(href=item.category.url)= item.category.name]
             td= item.sku
             td= item.quantityInStock
             td= orderedQty[item]

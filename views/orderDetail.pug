@@ -37,9 +37,9 @@ block content
         if orderedItem
           tr
             td= orderedItem.quantity
-            td= orderedItem.item.name
+            td #[a(href=orderedItem.item.url)= orderedItem.item.name]
             td= orderedItem.item.sku
-            td= orderedItem.item.category.name
+            td #[a(href=orderedItem.item.category.url)= orderedItem.item.category.name]
 
   ul
     if order.status === 'Saved'

@@ -27,8 +27,8 @@ block content
           td No items counted
       each countedQuantity in count.countedQuantities
         tr
-          td= countedQuantity.item.name
+          td #[a(href=countedQuantity.item.url)= countedQuantity.item.name]
           td= countedQuantity.quantity
           td= countedQuantity.item.sku
           if count.type !== "By Category"
-            td= countedQuantity.item.category.name
+            td #[a(href=countedQuantity.item.category.url)= countedQuantity.item.category.name]

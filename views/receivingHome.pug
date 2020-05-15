@@ -10,6 +10,7 @@ block content
       tr
         th(scope="col") Order Date
         th(scope="col") Expected Delivery
+        th(scope="col") View
         th(scope="col") Receive
     tbody
       if orders.length === 0
@@ -19,6 +20,7 @@ block content
         tr
           td= order.orderDateFormatted
           td= order.deliveryDateFormatted
+          td #[a(href=order.url) View Order]
           // TODO - Implement button
           td #[button Receive]
 
