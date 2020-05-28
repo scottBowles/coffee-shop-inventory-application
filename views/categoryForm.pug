@@ -7,6 +7,7 @@ block content
     div.form-group
       label(for="name") Name: 
       input#name.form-control(type="text", placeholder="Name", name="name", value=(undefined === category ? "" : category.name))
+    div.form-group
       label(for="description") Description: 
       input#description.form-control(type="text", placeholder="Description", name="description", value=(undefined === category ? "" : category.description))
     button.btn.btn-primary(type="submit") Submit

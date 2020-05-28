@@ -96,11 +96,18 @@ exports.item_detail = function itemDetail(req, res, next) {
 };
 
 exports.item_create_get = function itemCreateGet(req, res, next) {
-  // res.send("NOT IMPLEMENTED: Item create GET");
+  Category.find({}).exec((err, categories) => {
+    if (err) {
+      return next(err);
+    }
+    res.render("itemForm", { title: "Create New Item", categories });
+  });
 };
 
 exports.item_create_post = function itemCreatePost(req, res, next) {
   res.send("NOT IMPLEMENTED: Item create POST");
+  // Remember to check whether quantityInStock has been updated, and if so, create an Ad Hoc count
+  // Remember to change qtyLastUpdated if quantityInStock changes
 };
 
 exports.item_update_get = function itemUpdateGet(req, res, next) {
