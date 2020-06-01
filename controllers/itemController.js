@@ -1,4 +1,5 @@
 const async = require("async");
+const validator = require("express-validator");
 const Item = require("../models/item");
 const Category = require("../models/category");
 const Order = require("../models/order");
@@ -104,11 +105,70 @@ exports.item_create_get = function itemCreateGet(req, res, next) {
   });
 };
 
-exports.item_create_post = function itemCreatePost(req, res, next) {
+exports.item_create_post = [
+  validator.body("name", "Item name required").trim().isLength({ min: 1 }),
+  validator.sanitizeBody("name").escape(),
+  validator.sanitizeBody("description").escape(),
+  validator.sanitizeBody("sku").escape(),
+  validator.sanitizeBody("price").escape(),
+  validator.sanitizeBody("quantityInStock").escape(),
+  validator.sanitizeBody("category").escape(),
+  validator.sanitizeBody("itemLastUpdated").escape(),
+
+  (req, res, next) => {
+    const errors = validator.validationResult(req);
+
+    const item = new Item({
+      name: req.body.name,
+      description: req.body.description,
+      sku: req.body.sku || undefined,
+      price: req.body.price || undefined,
+      quantityInStock: req.body.quantityInStock || 0,
+      category: req.body.category || undefined,
+    });
+
+    if (!errors.isEmpty()) {
+      Category.find({}).exec((err, categories) => {
+        if (err) {
+          return next(err);
+        }
+        res.render("itemForm", {
+          item,
+          categories,
+          title: "Create New Item",
+          errors: errors.array(),
+        });
+      });
+    } else {
+      Item.findOne({ name: req.body.name }).exec((err, foundItem) => {
+        if (err) {
+          return next(err);
+        }
+        if (foundItem) {
+          res.redirect(foundItem.url);
+        } else {
+          item.save((itemSaveError) => {
+            if (itemSaveError) {
+              return next(itemSaveError);
+            }
+            res.redirect(item.url);
+          });
+        }
+      });
+    }
+  },
+];
+// Validate form data
+// Sanitize form data
+// Handle validation / sanitizing errors (render itemForm with sanitized data)
+// If no errors, create new Item and redirect to the new item's page
+
+function itemCreatePost(req, res, next) {
   res.send("NOT IMPLEMENTED: Item create POST");
   // Remember to check whether quantityInStock has been updated, and if so, create an Ad Hoc count
   // Remember to change qtyLastUpdated if quantityInStock changes
-};
+  // Consider adding "Initial" count type
+}
 
 exports.item_update_get = function itemUpdateGet(req, res, next) {
   res.send("NOT IMPLEMENTED: Item update GET");
