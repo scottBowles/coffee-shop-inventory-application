@@ -163,12 +163,8 @@ exports.item_create_post = [
 // Handle validation / sanitizing errors (render itemForm with sanitized data)
 // If no errors, create new Item and redirect to the new item's page
 
-function itemCreatePost(req, res, next) {
-  res.send("NOT IMPLEMENTED: Item create POST");
-  // Remember to check whether quantityInStock has been updated, and if so, create an Ad Hoc count
-  // Remember to change qtyLastUpdated if quantityInStock changes
-  // Consider adding "Initial" count type
-}
+// Remember to check whether quantityInStock has been updated, and if so, create an Ad Hoc count
+// Remember to change qtyLastUpdated if quantityInStock changes
 
 exports.item_update_get = function itemUpdateGet(req, res, next) {
   res.send("NOT IMPLEMENTED: Item update GET");
@@ -176,6 +172,8 @@ exports.item_update_get = function itemUpdateGet(req, res, next) {
 
 exports.item_update_post = function itemUpdatePost(req, res, next) {
   res.send("NOT IMPLEMENTED: Item update POST");
+  // Remember to check whether quantityInStock has been updated, and if so, create an Ad Hoc count
+  // Remember to change qtyLastUpdated if quantityInStock changes
 };
 
 exports.item_delete_get = function itemDeleteGet(req, res, next) {

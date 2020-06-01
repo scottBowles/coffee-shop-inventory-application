@@ -15,7 +15,7 @@ const InventoryCountSchema = new Schema({
   type: {
     type: String,
     required: true,
-    enum: ["Full", "By Category", "Ad Hoc"],
+    enum: ["Full", "By Category", "Ad Hoc", "Initial"],
     default: "Ad Hoc",
   },
 });
