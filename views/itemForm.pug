@@ -37,6 +37,9 @@ block content
       input#itemLastUpdated.form-control(type="hidden", name="itemLastUpdated", value=Date.now())
     button.btn.btn-primary(type="submit") Submit
   
+  if foundItem
+    div Item already exists. Change item name or go to #[a(href=foundItem.url) existing item].
+
   if errors
     ul
       for error in errors

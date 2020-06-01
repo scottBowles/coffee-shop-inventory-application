@@ -2,7 +2,7 @@ extends layout
 
 block content
   h1=title
-  a(href="inventory/item/create-new") Create a New Item
+  a(href="item/create-new") Create a New Item
   ul(class="nav nav-tabs")
     li(class="nav-item")
       a(class=(filter==='All' || filter===undefined) ? "nav-link active" : "nav-link" href="/inventory/items/?filter=all") All

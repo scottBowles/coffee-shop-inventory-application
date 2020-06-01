@@ -145,7 +145,17 @@ exports.item_create_post = [
           return next(err);
         }
         if (foundItem) {
-          res.redirect(foundItem.url);
+          Category.find({}).exec((categoryFindErr, categories) => {
+            if (categoryFindErr) {
+              return next(categoryFindErr);
+            }
+            res.render("itemForm", {
+              item,
+              categories,
+              foundItem,
+              title: "Create New Item",
+            });
+          });
         } else {
           item.save((itemSaveError) => {
             if (itemSaveError) {
@@ -158,12 +168,8 @@ exports.item_create_post = [
     }
   },
 ];
-// Validate form data
-// Sanitize form data
-// Handle validation / sanitizing errors (render itemForm with sanitized data)
-// If no errors, create new Item and redirect to the new item's page
 
-// Remember to check whether quantityInStock has been updated, and if so, create an Ad Hoc count
+// Remember to check whether quantityInStock has been updated, and if so, create an Initial count
 // Remember to change qtyLastUpdated if quantityInStock changes
 
 exports.item_update_get = function itemUpdateGet(req, res, next) {
