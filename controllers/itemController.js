@@ -3,6 +3,7 @@ const validator = require("express-validator");
 const Item = require("../models/item");
 const Category = require("../models/category");
 const Order = require("../models/order");
+const InventoryCount = require("../models/inventoryCount");
 
 exports.item_home = function itemHome(req, res, next) {
   async.auto(
@@ -127,11 +128,12 @@ exports.item_create_post = [
       category: req.body.category || undefined,
     });
 
+    // If there are errors, re-render the form with the errors
     if (!errors.isEmpty()) {
+      // Get categories for the form
       Category.find({}).exec((err, categories) => {
-        if (err) {
-          return next(err);
-        }
+        if (err) return next(err);
+        // Render
         res.render("itemForm", {
           item,
           categories,
@@ -140,7 +142,10 @@ exports.item_create_post = [
         });
       });
     } else {
-      Item.findOne({ name: req.body.name }).exec((err, foundItem) => {
+      // Check whether the item name or sku already exists. If so, re-render with foundItem
+      Item.findOne({
+        $or: [{ name: req.body.name }, { sku: req.body.sku }],
+      }).exec((err, foundItem) => {
         if (err) {
           return next(err);
         }
@@ -157,12 +162,34 @@ exports.item_create_post = [
             });
           });
         } else {
-          item.save((itemSaveError) => {
-            if (itemSaveError) {
-              return next(itemSaveError);
+          // Given no errors and no duplicate exists, save item, create an initial count, and redirect
+          async.parallel(
+            {
+              savedItem(callback) {
+                item.save((itemSaveError) => {
+                  if (itemSaveError) return next(itemSaveError);
+                  callback(null, item);
+                });
+              },
+              newCount(callback) {
+                const count = new InventoryCount({
+                  dateSubmitted: Date.now(),
+                  countedQuantities: [
+                    { item: item._id, quantity: item.quantityInStock },
+                  ],
+                  type: "Initial",
+                });
+                count.save((countSaveError) => {
+                  if (countSaveError) return next(countSaveError);
+                  callback(null, count);
+                });
+              },
+            },
+            (saveErrors, results) => {
+              if (saveErrors) return next(saveErrors);
+              res.redirect(results.savedItem.url);
             }
-            res.redirect(item.url);
-          });
+          );
         }
       });
     }

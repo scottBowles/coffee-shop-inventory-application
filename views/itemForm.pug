@@ -38,7 +38,10 @@ block content
     button.btn.btn-primary(type="submit") Submit
   
   if foundItem
-    div Item already exists. Change item name or go to #[a(href=foundItem.url) existing item].
+    if foundItem.name === item.name
+      div Item already exists. Change item name or go to #[a(href=foundItem.url) existing item].
+    else
+      div Item already exists. Change item sku or go to #[a(href=foundItem.url) existing item].
 
   if errors
     ul
