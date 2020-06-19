@@ -200,7 +200,25 @@ exports.item_create_post = [
 // Remember to change qtyLastUpdated if quantityInStock changes
 
 exports.item_update_get = function itemUpdateGet(req, res, next) {
-  res.send("NOT IMPLEMENTED: Item update GET");
+
+  const fetchItem = Item.findById(req.params.id).exec();
+  const fetchCategories = Category.find({}).exec();
+
+  Promise.all([fetchItem, fetchCategories])
+    .catch(error => next(error))
+    .then(([item, categories]) => {
+      if (item === null || categories === null) {
+        const notFoundError = new Error("Item not found");
+        notFoundError.status = 404;
+        return next(notFoundError);
+      }
+      res.render("itemForm", {
+        title: `Update Item: ${item.name}`,
+        item,
+        categories,
+      })
+    })
+
 };
 
 exports.item_update_post = function itemUpdatePost(req, res, next) {

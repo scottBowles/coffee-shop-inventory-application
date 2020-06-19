@@ -80,9 +80,9 @@ Create order                           gp inventory/order/create-new
 >>> ITEMS <<<
 Items home page                        g  inventory/items                     Static done
 Each item page                         g  inventory/item/<id>                 Static done
-Each item amending page                gp inventory/item/<id>/update
+Each item amending page                gp inventory/item/<id>/update          Get done -- Post still needs to be done
 Each item deleting page                gp inventory/item/<id>/remove
-Create new item page                   gp inventory/item/create-new
+Create new item page                   gp inventory/item/create-new           Done
 
 >>> CATEGORIES <<<
 Categories home page                   g  inventory/categories                Static done
