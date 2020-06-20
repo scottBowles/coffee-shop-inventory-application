@@ -4,12 +4,12 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const ItemSchema = new Schema({
-  name: { type: String, required: true, max: 40 },
-  description: { type: String, max: 256 },
+  name: { type: String, required: true, maxlength: 40 },
+  description: { type: String, maxlength: 256 },
   category: { type: Schema.Types.ObjectId, ref: "Category" },
-  sku: { type: String, default: "Not marked for sale" },
-  price: { type: Number },
-  quantityInStock: { type: Number, required: true },
+  sku: { type: String, default: "Not marked for sale", maxlength: 24 },
+  price: { type: Number, max: 9999999 },
+  quantityInStock: { type: Number, required: true, max: 9999999 },
   qtyLastUpdated: { type: Date, required: true, default: Date.now() },
   itemLastUpdated: { type: Date, required: true, default: Date.now() },
 });

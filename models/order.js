@@ -15,7 +15,7 @@ const OrderSchema = new Schema({
   orderedItems: [
     {
       item: { type: Schema.Types.ObjectId, ref: "Item" },
-      quantity: { type: Number },
+      quantity: { type: Number, max: 9999999 },
     },
   ],
   lastUpdated: { type: Date, required: true, default: Date.now() },

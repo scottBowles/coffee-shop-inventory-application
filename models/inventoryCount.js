@@ -9,7 +9,7 @@ const InventoryCountSchema = new Schema({
   countedQuantities: [
     {
       item: { type: Schema.Types.ObjectId, ref: "Item" },
-      quantity: { type: Number },
+      quantity: { type: Number, max: 9999999 },
     },
   ],
   type: {

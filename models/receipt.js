@@ -9,7 +9,7 @@ const ReceivingSchema = new Schema({
   receivedItems: [
     {
       item: { type: Schema.Types.ObjectId, ref: "Item", required: true },
-      quantity: { type: Number, required: true },
+      quantity: { type: Number, required: true, max: 9999999 },
     },
   ],
   orderReceived: { type: Schema.Types.ObjectId, ref: "Order" },
