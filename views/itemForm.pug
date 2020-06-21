@@ -18,9 +18,12 @@ block content
         label(for="price") Price (Leave empty if not for sale):
       div.input-group
         span(class="input-group-addon") $
-        input#price.form-control.currency(type="number", placeholder="Price", name="price", value=(item === undefined ? 0 : item.price) step="0.01" data-number-to-fixed="2" data-number-stepfactor="100")
+        input#price.form-control.currency.two-decimal(type="number", placeholder="Price", name="price", value=(item === undefined ? 0 : item.price) step="0.01" data-number-to-fixed="2" data-number-stepfactor="100")
     div.form-group
-      label(for="quantityInStock") Quantity In Stock
+      if item
+        label(for="quantityInStock") Quantity In Stock -- Note: if changed, an ad hoc count will be created:
+      else
+        label(for="quantityInStock") Quantity In Stock:
       input#quantityInStock.form-control(type="number", placeholder="Quantity", name="quantityInStock", value=(item === undefined ? 0 : item.quantityInStock) required)
     div.form-group
       label(for="category") Category: 

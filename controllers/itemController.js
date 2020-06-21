@@ -219,11 +219,100 @@ exports.item_update_get = function itemUpdateGet(req, res, next) {
     });
 };
 
-exports.item_update_post = function itemUpdatePost(req, res, next) {
-  res.send("NOT IMPLEMENTED: Item update POST");
-  // Remember to check whether quantityInStock has been updated, and if so, create an Ad Hoc count
-  // Remember to change qtyLastUpdated if quantityInStock changes
-};
+exports.item_update_post = [
+  validator
+    .body("name")
+    .trim()
+    .isLength({ min: 1 })
+    .withMessage("Item name required")
+    .isLength({ max: 40 })
+    .withMessage("Item name max of 40 characters exceeded")
+    .escape(),
+  validator
+    .body("description", "Description max of 256 characters exceeded")
+    .optional({ checkFalsy: true })
+    .isLength({ max: 256 })
+    .escape(),
+  validator
+    .body("sku", "SKU must be 24 characters or less")
+    .optional({ checkFalsy: true })
+    .isLength({ max: 24 })
+    .escape(),
+  validator
+    .body("price", "We could never charge that much!")
+    .optional({ checkFalsy: true })
+    .isFloat({ min: 0, max: 9999999 }),
+  validator
+    .body(
+      "quantityInStock",
+      "Quantity must be an integer between 0 and 9999999 (but it's inclusive at least!)"
+    )
+    .isInt({ min: 0, max: 9999999 })
+    .toInt(),
+  validator.body("category").optional({ checkFalsy: true }),
+  validator
+    .body(
+      "itemLastUpdated",
+      "ItemLastUpdated must be a valid date. (If you are seeing this as an end user, please report this error.)"
+    )
+    .toDate(),
+
+  async function itemUpdatePost(req, res, next) {
+    const errors = validator.validationResult(req);
+
+    const existingItem = await Item.findById(req.params.id).exec();
+
+    const updatedItem = {
+      name: req.body.name,
+      description: req.body.description,
+      sku: req.body.sku,
+      price: req.body.price,
+      quantityInStock: req.body.quantityInStock,
+      category: req.body.category,
+      itemLastUpdated: req.body.itemLastUpdated,
+      _id: req.params.id,
+    };
+
+    let newCount;
+
+    if (existingItem.quantityInStock !== updatedItem.quantityInStock) {
+      updatedItem.qtyLastUpdated = Date.now();
+
+      newCount = new InventoryCount({
+        dateInitiated: Date.now(),
+        dateSubmitted: Date.now(),
+        countedQuantities: [
+          { item: updatedItem._id, quantity: updatedItem.quantityInStock },
+        ],
+        type: "Ad Hoc",
+      });
+    }
+
+    const item = new Item(updatedItem);
+
+    if (!errors.isEmpty()) {
+      const categories = await Category.find({}).exec();
+      res.render("itemForm", {
+        title: `Update Item: ${req.body.name}`,
+        item,
+        categories,
+        errors: errors.array(),
+      });
+    } else {
+      Item.findByIdAndUpdate(req.params.id, item).exec((err, newItem) => {
+        if (err) {
+          return next(err);
+        }
+        if (newCount) {
+          newCount.save((saveCountError) => {
+            if (saveCountError) return next(saveCountError);
+          });
+        }
+        res.redirect(newItem.url);
+      });
+    }
+  },
+];
 
 exports.item_delete_get = function itemDeleteGet(req, res, next) {
   res.send("NOT IMPLEMENTED: Item delete GET");
