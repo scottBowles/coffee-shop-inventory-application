@@ -274,7 +274,6 @@ exports.item_update_post = [
     };
 
     let newCount;
-
     if (existingItem.quantityInStock !== updatedItem.quantityInStock) {
       updatedItem.qtyLastUpdated = Date.now();
 

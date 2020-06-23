@@ -1,5 +1,8 @@
 const async = require("async");
+const validator = require("express-validator");
 const InventoryCount = require("../models/inventoryCount");
+const Item = require("../models/item");
+const Category = require("../models/category");
 
 exports.count_home = function countHome(req, res, next) {
   if (
@@ -70,13 +73,49 @@ exports.count_detail = function countDetail(req, res, next) {
     });
 };
 
-exports.count_create_get = function countCreateGet(req, res, next) {
-  res.send("NOT IMPLEMENTED");
+exports.count_create_get = async function countCreateGet(req, res, next) {
+  const fetchItems = Item.find(
+    {},
+    "name description category sku quantityInStock"
+  )
+    .populate("category")
+    .exec();
+
+  const fetchCategories = Category.find({}, "name").exec();
+
+  const [items, categories] = await Promise.all([
+    fetchItems,
+    fetchCategories,
+  ]).catch((err) => next(err));
+
+  res.render("countForm", { title: "Create New Count", items, categories });
 };
 
-exports.count_create_post = function countCreatePost(req, res, next) {
-  res.send("NOT IMPLEMENTED");
-};
+exports.count_create_post = [
+  // validate and sanitize input
+  function countCreatePost(req, res, next) {
+    // grab errors
+    const errors = validator.validationResult(req);
+    // create new Count
+    const count = new InventoryCount({
+      dateInitiated: req.body.dateInitiated,
+      dateSubmitted: req.body.dateSubmitted || undefined,
+      countedQuantities: req.body.countedQuantities,
+      type: req.body.dateSubmitted,
+    });
+    // errors? rerender with items modified by count
+    if (!errors.isEmpty()) {
+      // rerender with items modified by count
+    }
+    // save count
+
+    // update all of the items in count
+  },
+];
+
+// function countCreatePost(req, res, next) {
+//   res.send("NOT IMPLEMENTED");
+// };
 
 exports.count_update_get = function countUpdateGet(req, res, next) {
   res.send("NOT IMPLEMENTED");
