@@ -1,35 +1,36 @@
 extends layout
 
 block content
-  h1= title
-  h6 #[a(href="count/create-new") Create New Count]
+  .container
+    h1.mt-3= title
+    a(href="count/create-new") Create New Count
 
-  ul(class="nav nav-tabs")
-    li(class="nav-item")
-      a(class=filter==="recent" ? "nav-link active" : "nav-link" href="/inventory/counts/?filter=recent") Recent Counts
-    li(class="nav-item")
-      a(class=filter==="all" ? "nav-link active" : "nav-link" href="/inventory/counts/?filter=all") All Counts
-    li(class="nav-item")
-      a(class=filter==="unsubmitted" ? "nav-link active" : "nav-link" href="/inventory/counts/?filter=unsubmitted") Unsubmitted Counts
-  
-  table(class="table table-striped")
-    thead
-      tr
-        th(scope="col") Type
-        th(scope="col") Items Counted
-        th(scope="col") Status
-        th(scope="col")
-    tbody
-      if counts.length === 0
+    ul(class="nav nav-tabs mt-4")
+      li(class="nav-item")
+        a(class=filter==="recent" ? "nav-link active" : "nav-link" href="/inventory/counts/?filter=recent") Recent Counts
+      li(class="nav-item")
+        a(class=filter==="all" ? "nav-link active" : "nav-link" href="/inventory/counts/?filter=all") All Counts
+      li(class="nav-item")
+        a(class=filter==="unsubmitted" ? "nav-link active" : "nav-link" href="/inventory/counts/?filter=unsubmitted") Unsubmitted Counts
+    
+    table(class="table table-striped")
+      thead
         tr
-          td No counts to display
-      each count in counts
-        tr
-          td= count.type
-          td= count.countedQuantities.length
-          if count.submitted
-            td Submitted #{count.dateSubmittedFormatted}
-          else
-            td Initiated #{count.dateInitiatedFormatted}
-          td #[a(href=count.url) View Count]
-          
+          th(scope="col") Type
+          th(scope="col") Items Counted
+          th(scope="col") Status
+          th(scope="col")
+      tbody
+        if counts.length === 0
+          tr
+            td No counts to display
+        each count in counts
+          tr
+            td= count.type
+            td= count.countedQuantities.length
+            if count.submitted
+              td Submitted #{count.dateSubmittedFormatted}
+            else
+              td Initiated #{count.dateInitiatedFormatted}
+            td #[a(href=count.url) View Count]
+            

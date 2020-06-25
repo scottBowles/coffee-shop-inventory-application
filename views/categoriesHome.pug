@@ -1,23 +1,24 @@
 extends layout
 
 block content
-  h1= title
-  
-  table(class="table table-striped")
-    thead
-      tr
-        th(scope="col") Name
-        th(scope="col") Number of Items
-        th(scope="col") Description
-    tbody
-      if categories.length === 0
+  .container
+    h1.mt-3= title
+    
+    table(class="table table-striped mt-4")
+      thead
         tr
-          td No categories to display
-      each category in categories
-        if category
+          th(scope="col") Name
+          th(scope="col") Number of Items
+          th(scope="col") Description
+      tbody
+        if categories.length === 0
           tr
-            td #[a(href=category.url)= category.name]
-            td= category.numItems
-            td= category.description
+            td No categories to display
+        each category in categories
+          if category
+            tr
+              td #[a(href=category.url)= category.name]
+              td= category.numItems
+              td= category.description
 
   p #[a(href="/inventory/category/create-new") Create New Category]

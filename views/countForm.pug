@@ -3,70 +3,38 @@ extends layout
 block content
   h1= title
 
-  //- ul(class="nav nav-pills")
-  //-   li(class="nav-item")
-  //-     a(class="nav-link" href="#") Full
-  //-   li(class="nav-item dropdown")
-  //-     a(class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false") By Category
-  //-     div(class="dropdown-menu")
-  //-       for category in categories
-  //-         a(class="dropdown-item" href="#") #{category.name}
-  //-   li(class="nav-item")
-  //-     a(class="nav-link" href="#") Ad Hoc
+  if !count && !filter
+    div.btn-group-vertical#typeSelector(role="group" aria-label="Button group with nested dropdown")
+      a#test.btn.btn-outline-secondary(role="button" value="Full" href="/inventory/count/create-new?filter=Full") Full
+      div.btn-group.dropright(role="group")
+        button.btn.btn-outline-secondary.dropdown-toggle#dropdownMenu2(type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") By Category
+        div.dropdown-menu(aria-labelledby="dropdownMenu2")
+          for category in categories
+            a.dropdown-item(role="button" href=`/inventory/count/create-new?filter=${category.name}`) #{category.name}
+      a.btn.btn-outline-secondary(role="button" value="Ad Hoc" href="/inventory/count/create-new?filter=AdHoc") Ad Hoc
 
-  div(class="btn-group-vertical" role="group" aria-label="Button group with nested dropdown")
-    button(type="button" class="btn btn-outline-secondary") Full
-    div(class="btn-group dropright" role="group")
-      button(class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") By Category
-      div(class="dropdown-menu" aria-labelledby="dropdownMenu2")
-        for category in categories
-          button(class="dropdown-item" type="button") #{category.name}
-    button(type="button" class="btn btn-outline-secondary") Ad Hoc
-
-  form(method="POST" action="")
-    div.form-group
-      label(for="name") Name:
-      input#name.form-control(type="text", placeholder="Name", name="name", value=(item === undefined ? "" : item.name) required)
-    div.form-group
-      label(for="description") Description:
-      input#description.form-control(type="text", placeholder="Description", name="description", value=(item === undefined ? "" : item.description))
-    div.form-group
-      label(for="sku") SKU (Leave empty if not for sale):
-      input#sku.form-control(type="text", placeholder="SKU", name="sku", value=(item === undefined ? "" : item.sku))
-    div.form-group
-      div.form-row
-        label(for="price") Price (Leave empty if not for sale):
-      div.input-group
-        span(class="input-group-addon") $
-        input#price.form-control.currency.two-decimal(type="number", placeholder="Price", name="price", value=(item === undefined ? 0 : item.price) step="0.01" data-number-to-fixed="2" data-number-stepfactor="100")
-    div.form-group
-      if item
-        label(for="quantityInStock") Quantity In Stock -- Note: if changed, an ad hoc count will be created:
-      else
-        label(for="quantityInStock") Quantity In Stock:
-      input#quantityInStock.form-control(type="number", placeholder="Quantity", name="quantityInStock", value=(item === undefined ? 0 : item.quantityInStock) required)
-    div.form-group
-      label(for="category") Category: 
-      select#category.form-control(type="select", placeholder="Select Category", name="category")
-        - categories.sort((a, b) => a.name.toUpperCase() < b.name.toUpperCase() ? -1 : 1)
-        for category in categories
-          if item
-            option(value=category._id selected=(category._id.toString()==item.category ? "selected" : false) ) #{category.name}
-            // Do I need to use the .equals() method to compare ._id?
-          else
-            option(value=category._id) #{category.name}
-      a(href="../category/create-new") Create a New Category
-    div.form-group
-      input#itemLastUpdated.form-control(type="hidden", name="itemLastUpdated", value=Date.now())
-    button.btn.btn-primary(type="submit") Submit
+  //- we need to filter the items according to count type
+  //- we need to be able to put together an item with its value in a saved count and change 'value' in form below
   
-  if foundItem
-    if foundItem.name === item.name
-      div Item already exists. Change item name or go to #[a(href=foundItem.url) existing item].
-    else
-      div Item already exists. Change item sku or go to #[a(href=foundItem.url) existing item].
+  if filter !== undefined
+    form(method="POST" action="")
+      for item in items 
+        .form-group.d-flex.align-items-center.justify-content-start
+          input.w-25.form-control.mr-3(id=item.name, type="number", value=item.quantityInStock)
+          label(for=item.name)= item.name
+      .d-flex.w-25.justify-content-between
+        button.btn.btn-primary.mr-3(type="submit" formaction="/save") Save
+        button.btn.btn-primary(type="submit" formaction="/submit") Submit
+    //- need submit and save buttons
+  
+  
+  //- if foundItem
+  //-   if foundItem.name === item.name
+  //-     div Item already exists. Change item name or go to #[a(href=foundItem.url) existing item].
+  //-   else
+  //-     div Item already exists. Change item sku or go to #[a(href=foundItem.url) existing item].
 
-  if errors
-    ul
-      for error in errors
-        li!= error.msg
+  //- if errors
+  //-   ul
+  //-     for error in errors
+  //-       li!= error.msg

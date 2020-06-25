@@ -74,6 +74,7 @@ exports.count_detail = function countDetail(req, res, next) {
 };
 
 exports.count_create_get = async function countCreateGet(req, res, next) {
+  const { filter } = req.query || undefined;
   const fetchItems = Item.find(
     {},
     "name description category sku quantityInStock"
@@ -88,11 +89,22 @@ exports.count_create_get = async function countCreateGet(req, res, next) {
     fetchCategories,
   ]).catch((err) => next(err));
 
-  res.render("countForm", { title: "Create New Count", items, categories });
+  const filteredItems =
+    filter === "Full" || filter === "AdHoc"
+      ? items
+      : items.filter((item) => item.category.name === filter);
+
+  res.render("countForm", {
+    title: "Create New Count",
+    items: filteredItems,
+    categories,
+    filter,
+  });
 };
 
 exports.count_create_post = [
   // validate and sanitize input
+
   function countCreatePost(req, res, next) {
     // grab errors
     const errors = validator.validationResult(req);
@@ -113,9 +125,9 @@ exports.count_create_post = [
   },
 ];
 
-// function countCreatePost(req, res, next) {
-//   res.send("NOT IMPLEMENTED");
-// };
+function countCreatePost(req, res, next) {
+  res.send("NOT IMPLEMENTED");
+}
 
 exports.count_update_get = function countUpdateGet(req, res, next) {
   res.send("NOT IMPLEMENTED");

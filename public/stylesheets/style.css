@@ -1,12 +1,15 @@
 body {
-  padding: 50px;
-
+  padding: 65px;
 }
 
 a {
-  color: #00B7FF;
+  color: #00b7ff;
 }
 
 caption {
   caption-side: top;
+}
+
+.hidden {
+  display: none;
 }

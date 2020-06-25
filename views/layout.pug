@@ -7,24 +7,25 @@ html(lang='en')
     link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css' integrity='sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh' crossorigin='anonymous')
     link(rel='stylesheet', href='/stylesheets/style.css')
   body
-    nav(class="navbar navbar-expand-md fixed-top navbar-light bg-light")
-      a(class="navbar-brand col-3" href="/") Caf&eacute; Corcovado
-      button(class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation")
-        span(class="navbar-toggler-icon")
-      div(class="collapse navbar-collapse col-9 justify-content-end" id="navbarNav")
-        ul(class="navbar-nav")
-          li(class="nav-item")
-            a(class="nav-link" href="/inventory") Inventory Home
-          li(class="nav-item")
-            a(class="nav-link" href="/inventory/orders") Orders
-          li(class="nav-item")
-            a(class="nav-link" href="/inventory/receiving") Receiving
-          li(class="nav-item")
-            a(class="nav-link" href="/inventory/counts") Inventory Counts
-          li(class="nav-item")
-            a(class="nav-link" href="/inventory/items") Items
-          li(class="nav-item")
-            a(class="nav-link" href="/inventory/categories") Categories 
+    div(class="container")
+      nav(class="navbar navbar-expand-md fixed-top navbar-light bg-light")
+        a(class="navbar-brand col-3" href="/") Caf&eacute; Corcovado
+        button(class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation")
+          span(class="navbar-toggler-icon")
+        div(class="collapse navbar-collapse col-9 justify-content-end" id="navbarNav")
+          ul(class="navbar-nav")
+            li(class="nav-item")
+              a(class="nav-link" href="/inventory") Inventory Home
+            li(class="nav-item")
+              a(class="nav-link" href="/inventory/orders") Orders
+            li(class="nav-item")
+              a(class="nav-link" href="/inventory/receiving") Receiving
+            li(class="nav-item")
+              a(class="nav-link" href="/inventory/counts") Inventory Counts
+            li(class="nav-item")
+              a(class="nav-link" href="/inventory/items") Items
+            li(class="nav-item")
+              a(class="nav-link" href="/inventory/categories") Categories 
 
     block content
 

@@ -1,37 +1,41 @@
 extends layout
 
 block content
-  h1=title
-  a(href="item/create-new") Create a New Item
-  ul(class="nav nav-tabs")
-    li(class="nav-item")
-      a(class=(filter==='All' || filter===undefined) ? "nav-link active" : "nav-link" href="/inventory/items/?filter=all") All
-    each category in categories  
+  div.container
+    h1.mt-3=title
+    a(href="item/create-new") Create a New Item
+    ul(class="nav nav-tabs mt-4")
       li(class="nav-item")
-        a(class=filter===category.name ? "nav-link active" : "nav-link" href=`/inventory/items/?filter=${category.name}`)= category.name
-  
-  table(class="table table-striped")
-    thead
-      tr
-        th(scope="col") Name
-        if (filter === 'All')
-          th(scope="col") Category
-        th(scope="col") SKU
-        th(scope="col") In Stock
-        th(scope="col") Ordered
-    tbody
-      if items.length === 0
-        tr
-          td No orders to display
-      each item in items
-        if item
-          tr
-            td #[a(href=item.url)= item.name]
-            if (filter === 'All')
-              td #[a(href=item.category.url)= item.category.name]
-            td= item.sku
-            td= item.quantityInStock
-            td= orderedQty[item]
-  
-  a(href="item/create-new") Create a New Item
-  
+        a(class=(filter==='All' || filter===undefined) ? "nav-link active" : "nav-link" href="/inventory/items/?filter=all") All
+      each category in categories  
+        li(class="nav-item")
+          a(class=filter===category.name ? "nav-link active" : "nav-link" href=`/inventory/items/?filter=${category.name}`)= category.name
+    
+    .container
+      .row
+
+        table(class="table table-striped")
+          thead
+            tr
+              th(scope="col") Name
+              if (filter === 'All')
+                th(scope="col") Category
+              th(scope="col") SKU
+              th(scope="col") In Stock
+              th(scope="col") Ordered
+          tbody
+            if items.length === 0
+              tr
+                td No orders to display
+            each item in items
+              if item
+                tr
+                  td #[a(href=item.url)= item.name]
+                  if (filter === 'All')
+                    td #[a(href=item.category.url)= item.category.name]
+                  td= item.sku
+                  td= item.quantityInStock
+                  td= orderedQty[item]
+    
+    a(href="item/create-new") Create a New Item
+    
