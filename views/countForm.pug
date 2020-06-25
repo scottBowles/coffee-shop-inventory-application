@@ -20,14 +20,16 @@ block content
     form(method="POST" action="")
       for item in items 
         .form-group.d-flex.align-items-center.justify-content-start
-          input.w-25.form-control.mr-3(id=item.name, type="number", value=item.quantityInStock)
-          label(for=item.name)= item.name
-      .d-flex.w-25.justify-content-between
-        button.btn.btn-primary.mr-3(type="submit" formaction="/save") Save
-        button.btn.btn-primary(type="submit" formaction="/submit") Submit
+          label(for=item._id)= item.name
+          input.w-25.form-control.mr-3(id=item._id, type="number", value=item.quantityInStock)
+      button.btn.btn-primary(type="submit") Submit
+      //- .d-flex.w-25.justify-content-between
+        //- button.btn.btn-primary.mr-3(type="submit" formaction="/save") Save
+      
     //- need submit and save buttons
-  
-  
+
+
+
   //- if foundItem
   //-   if foundItem.name === item.name
   //-     div Item already exists. Change item name or go to #[a(href=foundItem.url) existing item].
