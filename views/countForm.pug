@@ -21,7 +21,7 @@ block content
       for item in items 
         .form-group.d-flex.align-items-center.justify-content-start
           label(for=item._id)= item.name
-          input.w-25.form-control.mr-3(id=item._id, type="number", value=item.quantityInStock)
+          input.w-25.form-control.mr-3(name=item._id id=item._id, type="number", value=item.quantityInStock)
       button.btn.btn-primary(type="submit") Submit
       //- .d-flex.w-25.justify-content-between
         //- button.btn.btn-primary.mr-3(type="submit" formaction="/save") Save
