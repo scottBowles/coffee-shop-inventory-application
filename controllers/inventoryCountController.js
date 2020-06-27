@@ -104,6 +104,7 @@ exports.count_create_get = async function countCreateGet(req, res, next) {
 
 exports.count_create_post = function (req, res, next) {
   console.log(JSON.stringify(req.body));
+  console.log(JSON.stringify(req.params.submitType));
   res.send({ status: "success" });
 };
 // [
