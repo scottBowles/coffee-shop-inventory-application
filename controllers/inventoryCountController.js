@@ -102,33 +102,42 @@ exports.count_create_get = async function countCreateGet(req, res, next) {
   });
 };
 
-exports.count_create_post = function (req, res, next) {
-  console.log(JSON.stringify(req.body));
-  console.log(JSON.stringify(req.params.submitType));
-  res.send({ status: "success" });
-};
-// [
-//   // validate and sanitize input
+exports.count_create_post = [
+  // For testing
+  function (req, res, next) {
+    console.log(JSON.stringify(req.body));
+    console.log(JSON.stringify(req.params.submitType));
+    res.send({ status: "success" });
+  },
+  // // zero empty items
+  // function (req, res, next) {
+  //   for (let item in req.body) {
+  //     if (req.body[item] === "") req.body[item] = 0
+  //   }
+  //   next()
+  // }
+  // // validate and sanitize input
+  // validator.body('*').
 
-//   function countCreatePost(req, res, next) {
-//     // grab errors
-//     const errors = validator.validationResult(req);
-//     // create new Count
-//     const count = new InventoryCount({
-//       dateInitiated: req.body.dateInitiated,
-//       dateSubmitted: req.body.dateSubmitted || undefined,
-//       countedQuantities: req.body.countedQuantities,
-//       type: req.body.dateSubmitted,
-//     });
-//     // errors? rerender with items modified by count
-//     if (!errors.isEmpty()) {
-//       // rerender with items modified by count
-//     }
-//     // save count
+  // function countCreatePost(req, res, next) {
+  //   // grab errors
+  //   const errors = validator.validationResult(req);
+  //   // create new Count
+  //   const count = new InventoryCount({
+  //     dateInitiated: req.body.dateInitiated,
+  //     dateSubmitted: req.body.dateSubmitted || undefined,
+  //     countedQuantities: req.body.countedQuantities,
+  //     type: req.body.dateSubmitted,
+  //   });
+  //   // errors? rerender with items modified by count
+  //   if (!errors.isEmpty()) {
+  //     // rerender with items modified by count
+  //   }
+  //   // save count
 
-//     // update all of the items in count
-//   },
-// ];
+  //   // update all of the items in count
+  // },
+];
 
 function countCreatePost(req, res, next) {
   res.send("NOT IMPLEMENTED");

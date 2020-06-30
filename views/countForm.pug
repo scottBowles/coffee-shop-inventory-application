@@ -17,14 +17,14 @@ block content
   //- we need to be able to put together an item with its value in a saved count and change 'value' in form below
   
   if filter !== undefined
-    form(method="POST" action="")
+    form(action="")
       for item in items 
         .form-group.d-flex.align-items-center.justify-content-start
-          input.w-25.form-control.mr-3(name=item._id id=item._id, type="number", value=item.quantityInStock)
+          input.w-25.form-control.mr-3.item-quantity(name=item._id id=item._id, type="number", value=item.quantityInStock)
           label(for=item._id)= item.name
       .d-flex.w-25.justify-content-between
-        button.btn.btn-primary(type="submit" method="POST" formaction="create-new/submit") Submit
-        button.btn.btn-primary.mr-3(type="submit" formaction="create-new/save") Save
+        button.btn.btn-primary.submit-button Submit
+        button.btn.btn-primary.mr-3.save-button Save
       
 
 
