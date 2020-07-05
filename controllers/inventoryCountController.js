@@ -104,39 +104,43 @@ exports.count_create_get = async function countCreateGet(req, res, next) {
 
 exports.count_create_post = [
   // For testing
-  function (req, res, next) {
-    console.log(JSON.stringify(req.body));
+  function testCreatePostData(req, res, next) {
+    console.log(req.body.items.filter((item) => item.quantity !== null));
+    console.log(req.body);
     console.log(JSON.stringify(req.params.submitType));
     res.send({ status: "success" });
   },
-  // // zero empty items
-  // function (req, res, next) {
-  //   for (let item in req.body) {
-  //     if (req.body[item] === "") req.body[item] = 0
-  //   }
-  //   next()
-  // }
-  // // validate and sanitize input
-  // validator.body('*').
+  // zero empty items
+  function removeEmptyItems(req, res, next) {
+    req.body.items = req.body.items.filter((item) => item.quantity !== null);
+    next();
+  },
+  // validate and sanitize input
+  validator.body("items.*.id").escape(),
+  validator.body("items.*.quantity").isInt({ lt: 10000000 }).escape(),
+  validator.body("filter").escape(),
 
-  // function countCreatePost(req, res, next) {
-  //   // grab errors
-  //   const errors = validator.validationResult(req);
-  //   // create new Count
-  //   const count = new InventoryCount({
-  //     dateInitiated: req.body.dateInitiated,
-  //     dateSubmitted: req.body.dateSubmitted || undefined,
-  //     countedQuantities: req.body.countedQuantities,
-  //     type: req.body.dateSubmitted,
-  //   });
-  //   // errors? rerender with items modified by count
-  //   if (!errors.isEmpty()) {
-  //     // rerender with items modified by count
-  //   }
-  //   // save count
+  function createPost(req, res, next) {
+    // grab errors
+    const errors = validator.validationResult(req);
+    // create new Count
+    const dateInitiated = new Date();
+    const dateSubmitted =
+      req.params.submitType === "submit" ? new Date() : undefined;
+    const count = new InventoryCount({
+      dateInitiated,
+      dateSubmitted,
+      countedQuantities: req.body.countedQuantities,
+      type: req.body.dateSubmitted,
+    });
+    // errors? rerender with items modified by count
+    if (!errors.isEmpty()) {
+      // rerender with items modified by count
+    }
+    // save count
 
-  //   // update all of the items in count
-  // },
+    // update all of the items in count
+  },
 ];
 
 function countCreatePost(req, res, next) {
