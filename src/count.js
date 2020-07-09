@@ -11,10 +11,14 @@ submitButton.addEventListener("click", (e) => {
   });
   const filterEl = document.querySelector("#filter");
   const filter = filterEl.value;
-  axios.post("create-new/submit", {
-    items,
-    filter,
-  });
+  axios
+    .post("create-new/submit", {
+      items,
+      filter,
+    })
+    .then((response) => {
+      window.location = response.data.redirect;
+    });
 });
 
 saveButton.addEventListener("click", (e) => {

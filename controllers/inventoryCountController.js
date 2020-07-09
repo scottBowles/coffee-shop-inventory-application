@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const async = require("async");
 const validator = require("express-validator");
 const InventoryCount = require("../models/inventoryCount");
@@ -104,42 +105,103 @@ exports.count_create_get = async function countCreateGet(req, res, next) {
 
 exports.count_create_post = [
   // For testing
-  function testCreatePostData(req, res, next) {
-    console.log(req.body.items.filter((item) => item.quantity !== null));
-    console.log(req.body);
-    console.log(JSON.stringify(req.params.submitType));
-    res.send({ status: "success" });
-  },
-  // zero empty items
+  // function testCreatePostData(req, res, next) {
+  //   console.log({
+  //     items: req.body.items,
+  //     id: typeof req.body.items[0].id,
+  //     quantity: typeof req.body.items[0].quantity,
+  //   });
+  //   res.send({ status: "success" });
+  // },
+  // remove empty items
   function removeEmptyItems(req, res, next) {
     req.body.items = req.body.items.filter((item) => item.quantity !== null);
     next();
   },
+
   // validate and sanitize input
   validator.body("items.*.id").escape(),
   validator.body("items.*.quantity").isInt({ lt: 10000000 }).escape(),
   validator.body("filter").escape(),
 
-  function createPost(req, res, next) {
+  async function createPost(req, res, next) {
     // grab errors
     const errors = validator.validationResult(req);
+
     // create new Count
-    const dateInitiated = new Date();
-    const dateSubmitted =
-      req.params.submitType === "submit" ? new Date() : undefined;
-    const count = new InventoryCount({
-      dateInitiated,
-      dateSubmitted,
-      countedQuantities: req.body.countedQuantities,
-      type: req.body.dateSubmitted,
+    const newCount = {};
+    newCount.dateInitiated = Date.now();
+    newCount.dateSubmitted =
+      req.params.submitType === "submit" ? Date.now() : undefined;
+    newCount.countedQuantities = req.body.items.map((item) => {
+      return {
+        item: mongoose.Types.ObjectId(item.id),
+        quantity: item.quantity,
+      };
     });
+    const { filter } = req.body || undefined;
+    if (filter === "Full") newCount.type = "Full";
+    else if (filter === "AdHoc") newCount.type = "Ad Hoc";
+    else newCount.type = "By Category";
+
+    const count = new InventoryCount(newCount);
+
     // errors? rerender with items modified by count
     if (!errors.isEmpty()) {
-      // rerender with items modified by count
-    }
-    // save count
+      console.log({ errors });
+      const fetchItems = Item.find(
+        {},
+        "name description category sku quantityInStock"
+      )
+        .populate("category")
+        .exec();
 
-    // update all of the items in count
+      const fetchCategories = Category.find({}, "name").exec();
+
+      const [items, categories] = await Promise.all([
+        fetchItems,
+        fetchCategories,
+      ]).catch((err) => next(err));
+
+      const filteredItems =
+        filter === "Full" || filter === "AdHoc"
+          ? items
+          : items.filter((item) => item.category.name === filter);
+
+      res.render("countForm", {
+        title: "Create New Count",
+        items: filteredItems,
+        categories,
+        count,
+        filter,
+        errors,
+      });
+    } else {
+      // save count & update all of the items in count
+      const saveCount = count.save();
+
+      const saveDocs = [saveCount];
+
+      count.countedQuantities.forEach((qty) => {
+        const newItem = new Item({
+          _id: qty.item,
+          quantityInStock: qty.quantity,
+          qtyLastUpdated: Date.now(),
+        });
+        const saveItem = Item.findByIdAndUpdate(newItem).exec();
+        saveDocs.push(saveItem);
+      });
+
+      const savedDocs = await Promise.all(saveDocs).catch((err) => next(err));
+
+      const savedCount = await savedDocs[0];
+
+      console.log(savedCount.url);
+      return res.json({ redirect: savedCount.url });
+
+      // TODO -- IT ISN'T UPDATING THE ITEMS
+      // && NEED TO GET SAVE BUTTON WORKING (PER req.params.submitType), FOR WHICH IT SHOULDN'T UPDATE ITEMS
+    }
   },
 ];
 
