@@ -13,3 +13,8 @@ caption {
 .hidden {
   display: none;
 }
+
+input:invalid {
+  box-shadow: 0 0 3px 0 red;
+  border: none;
+}

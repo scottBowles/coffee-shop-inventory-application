@@ -2,6 +2,10 @@ extends layout
 
 //- A count will exist on create-new errors and all update pages
 //- A filter will exist once selected on create-new and on all update pages
+//- REQUIRES: title
+//- !filter: categories
+//- !!filter: filter, items
+//- count? errors?
 
 block content
   h1= title
@@ -31,7 +35,7 @@ block content
       
 
 
-
+  //- MAY NOT HAVE TO WORRY ABOUT THIS AS NO DUPLICATION CONCERN AS WITH ITEM NAME OR THE LIKE
   //- if foundItem
   //-   if foundItem.name === item.name
   //-     div Item already exists. Change item name or go to #[a(href=foundItem.url) existing item].

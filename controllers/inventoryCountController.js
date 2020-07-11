@@ -4,13 +4,9 @@ const validator = require("express-validator");
 const InventoryCount = require("../models/inventoryCount");
 const Item = require("../models/item");
 const Category = require("../models/category");
-const { render } = require("pug");
 
 exports.count_home = function countHome(req, res, next) {
-  if (
-    ["all", "unsubmitted", "recent", undefined].includes(req.query.filter) ===
-    false
-  ) {
+  if (!["all", "unsubmitted", "recent", undefined].includes(req.query.filter)) {
     res.redirect("/inventory/counts");
   } else {
     async.auto(
@@ -123,6 +119,7 @@ exports.count_create_post = [
 
     // create new Count
     const { filter } = req.body || undefined;
+
     const newCount = {
       dateInitiated: Date.now(),
       dateSubmitted: req.body.submit === "submit" ? Date.now() : undefined,
@@ -139,33 +136,41 @@ exports.count_create_post = [
           ? "Ad Hoc"
           : "By Category",
     };
+
     const count = new InventoryCount(newCount);
 
     // errors? rerender with items modified by count
     if (errors.length > 0) {
-      const fetchItems = Item.find(
+      const items = await Item.find(
         {},
         "name description category sku quantityInStock"
       )
         .populate("category")
         .exec();
 
-      const fetchCategories = Category.find({}, "name").exec();
-
-      const [items, categories] = await Promise.all([
-        fetchItems,
-        fetchCategories,
-      ]).catch((err) => next(err));
-
       const filteredItems =
         filter === "Full" || filter === "AdHoc"
           ? items
           : items.filter((item) => item.category.name === filter);
 
+      const countHash = {};
+      count.countedQuantities.forEach((countItem) => {
+        const id = countItem.item.toString();
+        countHash[id] = countItem.quantity;
+      });
+
+      const itemsModifiedByCount = [];
+
+      filteredItems.forEach((item) => {
+        const newItem = item;
+        newItem.quantityInStock =
+          countHash[newItem._id.toString()] || item.quantityInStock;
+        itemsModifiedByCount.push(newItem);
+      });
+
       res.render("countForm", {
         title: "Create New Count",
-        items: filteredItems,
-        categories,
+        items: itemsModifiedByCount,
         count,
         filter,
         errors,
@@ -196,10 +201,6 @@ exports.count_create_post = [
     }
   },
 ];
-
-function countCreatePost(req, res, next) {
-  res.send("NOT IMPLEMENTED");
-}
 
 exports.count_update_get = function countUpdateGet(req, res, next) {
   res.send("NOT IMPLEMENTED");
