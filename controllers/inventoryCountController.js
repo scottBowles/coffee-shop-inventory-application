@@ -105,18 +105,9 @@ exports.count_create_get = async function countCreateGet(req, res, next) {
 };
 
 exports.count_create_post = [
-  // For testing
-  // function testCreatePostData(req, res, next) {
-  //   console.log({
-  //     items: req.body.items,
-  //     id: typeof req.body.items[0].id,
-  //     quantity: typeof req.body.items[0].quantity,
-  //   });
-  //   res.send({ status: "success" });
-  // },
   // remove empty items
   function removeEmptyItems(req, res, next) {
-    req.body.items = req.body.items.filter((item) => item.quantity !== null);
+    req.body.items = req.body.items.filter((item) => item.quantity !== "");
     next();
   },
 
@@ -124,32 +115,34 @@ exports.count_create_post = [
   validator.body("items.*.id").escape(),
   validator.body("items.*.quantity").isInt({ lt: 10000000 }).escape(),
   validator.body("filter").escape(),
+  // validator.body("submit").isIn(["submit", "save"]).escape(),
 
   async function createPost(req, res, next) {
     // grab errors
-    const errors = validator.validationResult(req);
+    const { errors } = validator.validationResult(req);
 
     // create new Count
-    const newCount = {};
-    newCount.dateInitiated = Date.now();
-    newCount.dateSubmitted =
-      req.params.submitType === "submit" ? Date.now() : undefined;
-    newCount.countedQuantities = req.body.items.map((item) => {
-      return {
-        item: mongoose.Types.ObjectId(item.id),
-        quantity: item.quantity,
-      };
-    });
     const { filter } = req.body || undefined;
-    if (filter === "Full") newCount.type = "Full";
-    else if (filter === "AdHoc") newCount.type = "Ad Hoc";
-    else newCount.type = "By Category";
-
+    const newCount = {
+      dateInitiated: Date.now(),
+      dateSubmitted: req.body.submit === "submit" ? Date.now() : undefined,
+      countedQuantities: req.body.items.map((item) => {
+        return {
+          item: mongoose.Types.ObjectId(item.id),
+          quantity: item.quantity,
+        };
+      }),
+      type:
+        filter === "Full"
+          ? "Full"
+          : filter === "AdHoc"
+          ? "Ad Hoc"
+          : "By Category",
+    };
     const count = new InventoryCount(newCount);
 
     // errors? rerender with items modified by count
-    if (!errors.isEmpty()) {
-      console.log({ errors });
+    if (errors.length > 0) {
       const fetchItems = Item.find(
         {},
         "name description category sku quantityInStock"
@@ -177,45 +170,29 @@ exports.count_create_post = [
         filter,
         errors,
       });
-
-      // res.json({
-      //   action: "render",
-      //   template: "countForm",
-      //   props: {
-      //     title: "Create New Count",
-      //     items: filteredItems,
-      //     categories,
-      //     count,
-      //     filter,
-      //     errors,
-      //   },
-      // });
     } else {
       // save count & update all of the items in count
       const saveCount = count.save();
 
       const saveDocs = [saveCount];
 
-      count.countedQuantities.forEach((qty) => {
-        const newItem = new Item({
-          _id: qty.item,
-          quantityInStock: qty.quantity,
-          qtyLastUpdated: Date.now(),
+      if (req.body.submit === "submit") {
+        count.countedQuantities.forEach((qty) => {
+          const newItem = new Item({
+            _id: qty.item,
+            quantityInStock: qty.quantity,
+            qtyLastUpdated: Date.now(),
+          });
+          const saveItem = Item.findByIdAndUpdate(newItem._id, newItem).exec();
+          saveDocs.push(saveItem);
         });
-        const saveItem = Item.findByIdAndUpdate(newItem._id, newItem).exec();
-        saveDocs.push(saveItem);
-      });
+      }
 
       const savedDocs = await Promise.all(saveDocs).catch((err) => next(err));
 
       const savedCount = await savedDocs[0];
 
-      // return res.json({ action: "redirect", target: savedCount.url });
-
-      return res.json({ redirect: savedCount.url });
-
-      // VALIDATOR ERROR ROUTE NOT WORKING DUE TO AXIOS INTERACTION
-      // && NEED TO GET SAVE BUTTON WORKING (PER req.params.submitType), FOR WHICH IT SHOULDN'T UPDATE ITEMS
+      res.redirect(savedCount.url);
     }
   },
 ];

@@ -42,10 +42,7 @@ router.get("/receiving", receivingController.receiving_home);
 router.get("/count/create-new", inventoryCountController.count_create_get);
 
 // POST request for updating a count
-router.post(
-  "/count/create-new/:submitType",
-  inventoryCountController.count_create_post
-);
+router.post("/count/create-new", inventoryCountController.count_create_post);
 
 // GET request for updating a count
 router.get("/count/:id/update", inventoryCountController.count_update_get);
