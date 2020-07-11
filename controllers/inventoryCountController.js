@@ -4,6 +4,7 @@ const validator = require("express-validator");
 const InventoryCount = require("../models/inventoryCount");
 const Item = require("../models/item");
 const Category = require("../models/category");
+const { render } = require("pug");
 
 exports.count_home = function countHome(req, res, next) {
   if (
@@ -176,6 +177,19 @@ exports.count_create_post = [
         filter,
         errors,
       });
+
+      // res.json({
+      //   action: "render",
+      //   template: "countForm",
+      //   props: {
+      //     title: "Create New Count",
+      //     items: filteredItems,
+      //     categories,
+      //     count,
+      //     filter,
+      //     errors,
+      //   },
+      // });
     } else {
       // save count & update all of the items in count
       const saveCount = count.save();
@@ -188,7 +202,7 @@ exports.count_create_post = [
           quantityInStock: qty.quantity,
           qtyLastUpdated: Date.now(),
         });
-        const saveItem = Item.findByIdAndUpdate(newItem).exec();
+        const saveItem = Item.findByIdAndUpdate(newItem._id, newItem).exec();
         saveDocs.push(saveItem);
       });
 
@@ -196,10 +210,11 @@ exports.count_create_post = [
 
       const savedCount = await savedDocs[0];
 
-      console.log(savedCount.url);
+      // return res.json({ action: "redirect", target: savedCount.url });
+
       return res.json({ redirect: savedCount.url });
 
-      // TODO -- IT ISN'T UPDATING THE ITEMS
+      // VALIDATOR ERROR ROUTE NOT WORKING DUE TO AXIOS INTERACTION
       // && NEED TO GET SAVE BUTTON WORKING (PER req.params.submitType), FOR WHICH IT SHOULDN'T UPDATE ITEMS
     }
   },

@@ -18,6 +18,13 @@ submitButton.addEventListener("click", (e) => {
     })
     .then((response) => {
       window.location = response.data.redirect;
+      // const { res, action, target, template, props } = response.data;
+      // if (action === "redirect") {
+      //   window.location = target;
+      // }
+      // if (action === "render") {
+      //   res.render(template, props);
+      // }
     });
 });
 
