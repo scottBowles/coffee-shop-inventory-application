@@ -189,11 +189,9 @@ exports.count_create_post = [
           count.save(),
           ...count.countedQuantities.map(async (qty) => {
             const item = await Item.findById(qty.item).exec();
-            console.log(item);
             if (item.quantityInStock !== qty.quantity) {
               item.quantityInStock = qty.quantity;
               item.qtyLastUpdated = Date.now();
-              console.log(item);
               return item.save();
             }
             return item;
@@ -208,8 +206,8 @@ exports.count_create_post = [
         // req.body.submit === "save" -- save count only
         count
           .save()
-          .then((savedCount) => res.redirect(savedCount.url))
-          .catch((err) => next(err));
+          .catch((err) => next(err))
+          .then((savedCount) => res.redirect(savedCount.url));
       }
     }
   },
@@ -243,7 +241,7 @@ exports.count_update_get = async function countUpdateGet(req, res, next) {
     .exec()
     .catch((err) => next(err));
 
-  // Only matters whether "By Category" or not, but this gives consistency to the front end.
+  // Only matters here whether "By Category" or not, but this gives consistency to the front end & for POST
   const filter =
     // eslint-disable-next-line no-nested-ternary
     count.type === "Full"
@@ -289,9 +287,128 @@ exports.count_update_get = async function countUpdateGet(req, res, next) {
   });
 };
 
-exports.count_update_post = function countUpdatePost(req, res, next) {
-  res.send("NOT IMPLEMENTED");
-};
+exports.count_update_post = [
+  // remove empty items
+  function removeEmptyItems(req, res, next) {
+    req.body.items = req.body.items.filter((item) => item.quantity !== "");
+    next();
+  },
+
+  // validate and sanitize input
+  validator.body("items.*.id").escape(),
+  validator.body("items.*.quantity").isInt({ lt: 10000000 }).escape(),
+  validator.body("filter").escape(),
+  validator.body("submitButton").isIn(["submit", "save"]).escape(),
+
+  async function createPost(req, res, next) {
+    // grab errors & filter
+    const { errors } = validator.validationResult(req);
+    const { filter } = req.body;
+
+    // fetch count
+    const count = await InventoryCount.findById(req.params.id)
+      .populate({
+        path: "countedQuantities.item",
+        populate: "category",
+      })
+      .exec();
+
+    // if count has already been submitted, render with error message
+    if (count.submitted) {
+      if (count.submitted) {
+        res.render("countDetail", {
+          title: "Count Detail",
+          count,
+          error: "Cannot update a submitted count",
+        });
+      }
+    }
+
+    // define category if a category count
+    const category =
+      filter === "By Category"
+        ? count.countedQuantities[0].item.category._id
+        : undefined;
+
+    // update count with input data
+    const newCountedQuantities = req.body.items.map((item) => {
+      return {
+        item: mongoose.Types.ObjectId(item.id),
+        quantity: item.quantity,
+      };
+    });
+
+    count.countedQuantities = newCountedQuantities;
+
+    // errors? rerender with items modified by count
+    if (errors.length > 0) {
+      const items = await Item.find({}).populate("category").exec();
+
+      // console.log({ items });
+
+      const filteredItems = category
+        ? items
+        : items.filter((item) => item.category._id === category);
+
+      const countHash = {};
+      count.countedQuantities.forEach((countItem) => {
+        const id = countItem.item.toString();
+        countHash[id] = countItem.quantity;
+      });
+
+      const itemsModifiedByCount = [];
+      filteredItems.forEach((item) => {
+        const newItem = item;
+        newItem.quantityInStock =
+          countHash[newItem._id.toString()] || item.quantityInStock;
+        itemsModifiedByCount.push(newItem);
+      });
+
+      itemsModifiedByCount.sort((item1, item2) =>
+        item1.name.toLowerCase() > item2.name.toLowerCase() ? 1 : -1
+      );
+
+      res.render("countForm", {
+        title: "Update Count",
+        items: itemsModifiedByCount,
+        count,
+        filter,
+        errors,
+      });
+    } else {
+      // no errors: save count. if submitting, update all of the items in count. if saving, save count alone.
+
+      // eslint-disable-next-line no-lonely-if
+      if (req.body.submitButton === "submit") {
+        // save count, update each item whose quantity was changed
+        await Promise.all([
+          count.countedQuantities.map(async (qty) => {
+            const item = await Item.findById(qty.item).exec();
+            if (item.quantityInStock !== qty.quantity) {
+              item.quantityInStock = qty.quantity;
+              item.qtyLastUpdated = Date.now();
+              return item.save();
+            }
+            return item;
+          }),
+        ])
+          .then(async () => {
+            count.dateSubmitted = Date.now();
+            const savedCount = await count.save();
+            res.redirect(savedCount.url);
+          })
+          .catch((err) => next(err));
+      } else {
+        // req.body.submit === "save" -- save count only
+        count
+          .save()
+          .catch((err) => next(err))
+          .then((savedCount) => res.redirect(savedCount.url));
+      }
+    }
+  },
+  // TODO: CHANGE GET SO THAT IT BRINGS UP ALL RELEVANT ITEMS
+];
 
 exports.count_delete_get = function countDeleteGet(req, res, next) {
   res.send("NOT IMPLEMENTED");
