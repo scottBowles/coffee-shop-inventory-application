@@ -51,7 +51,7 @@ exports.count_home = function countHome(req, res, next) {
   }
 };
 
-exports.count_detail = function countDetail(req, res, next) {
+exports.count_detail_get = function countDetailGet(req, res, next) {
   InventoryCount.findById(req.params.id)
     .populate({
       path: "countedQuantities.item",
@@ -69,6 +69,25 @@ exports.count_detail = function countDetail(req, res, next) {
       });
       res.render("countDetail", { title: "Count Detail", count });
     });
+};
+
+exports.count_detail_post = async function countDetailPost(req, res, next) {
+  const count = await InventoryCount.findById(req.params.id)
+    .populate({ path: "countedQuantities.item", populate: "category" })
+    .exec();
+  console.log({ count });
+  if (count.submitted) {
+    res.render("countDetail", {
+      title: "Count Detail",
+      count,
+      error: "Cannot update a submitted count",
+    });
+  } else {
+    count.dateSubmitted = Date.now();
+    await count.save().catch((err) => next(err));
+
+    res.redirect(count.url);
+  }
 };
 
 exports.count_create_get = async function countCreateGet(req, res, next) {
@@ -228,19 +247,6 @@ exports.count_update_get = async function countUpdateGet(req, res, next) {
     return a.item.name > b.item.name ? 1 : -1;
   });
 
-  if (count.submitted) {
-    res.render("countDetail", {
-      title: "Count Detail",
-      count,
-      error: "Cannot update a submitted count",
-    });
-  }
-
-  const items = await Item.find({})
-    .populate("category")
-    .exec()
-    .catch((err) => next(err));
-
   // Only matters here whether "By Category" or not, but this gives consistency to the front end & for POST
   const filter =
     // eslint-disable-next-line no-nested-ternary
@@ -249,6 +255,20 @@ exports.count_update_get = async function countUpdateGet(req, res, next) {
       : count.type === "Ad Hoc"
       ? "AdHoc"
       : "By Category";
+
+  if (count.submitted) {
+    res.render("countDetail", {
+      title: "Count Detail",
+      count,
+      filter,
+      error: "Cannot update a submitted count",
+    });
+  }
+
+  const items = await Item.find({})
+    .populate("category")
+    .exec()
+    .catch((err) => next(err));
 
   // If category count, grab the category from the first item in the count and filter accordingly
   const filteredItems =
@@ -407,7 +427,6 @@ exports.count_update_post = [
       }
     }
   },
-  // TODO: CHANGE GET SO THAT IT BRINGS UP ALL RELEVANT ITEMS
 ];
 
 exports.count_delete_get = function countDeleteGet(req, res, next) {

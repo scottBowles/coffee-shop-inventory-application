@@ -57,7 +57,10 @@ router.get("/count/:id/remove", inventoryCountController.count_delete_get);
 router.post("/count/:id/remove", inventoryCountController.count_delete_post);
 
 // GET request for one count
-router.get("/count/:id", inventoryCountController.count_detail);
+router.get("/count/:id", inventoryCountController.count_detail_get);
+
+// POST request for one count
+router.post("/count/:id", inventoryCountController.count_detail_post);
 
 // GET inventory count home page
 router.get("/counts", inventoryCountController.count_home);
