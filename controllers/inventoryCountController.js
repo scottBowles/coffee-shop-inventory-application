@@ -115,7 +115,7 @@ exports.count_create_post = [
   validator.body("items.*.id").escape(),
   validator.body("items.*.quantity").isInt({ lt: 10000000 }).escape(),
   validator.body("filter").escape(),
-  // validator.body("submit").isIn(["submit", "save"]).escape(),
+  validator.body("submitButton").isIn(["submit", "save"]).escape(),
 
   async function createPost(req, res, next) {
     // grab errors
@@ -126,7 +126,8 @@ exports.count_create_post = [
 
     const newCount = {
       dateInitiated: Date.now(),
-      dateSubmitted: req.body.submit === "submit" ? Date.now() : undefined,
+      dateSubmitted:
+        req.body.submitButton === "submit" ? Date.now() : undefined,
       countedQuantities: req.body.items.map((item) => {
         return {
           item: mongoose.Types.ObjectId(item.id),
@@ -182,7 +183,7 @@ exports.count_create_post = [
       // no errors: save count. if submitting, update all of the items in count. if saving, save count alone.
 
       // eslint-disable-next-line no-lonely-if
-      if (req.body.submit === "submit") {
+      if (req.body.submitButton === "submit") {
         // save count, update each item whose quantity was changed
         await Promise.all([
           count.save(),
