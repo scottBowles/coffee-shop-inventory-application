@@ -75,7 +75,7 @@ Orders home page                       g  inventory/orders                    St
 Each order page                        g  inventory/order/<id>                Static done
 Each order amending page               gp inventory/order/<id>/update
 Each order deleting page               gp inventory/order/<id>/remove
-Create order                           gp inventory/order/create-new
+Create order                           gp inventory/order/create-new          GET done; POST remains
 
 >>> ITEMS <<<
 Items home page                        g  inventory/items                     Static done

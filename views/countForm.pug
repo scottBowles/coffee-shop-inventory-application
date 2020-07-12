@@ -1,12 +1,5 @@
 extends layout
 
-//- A count will exist on create-new errors and all update pages
-//- A filter will exist once selected on create-new and on all update pages
-//- REQUIRES: title
-//- !filter: categories
-//- !!filter: filter, items
-//- count? errors?
-
 block content
   h1= title
 
@@ -32,15 +25,6 @@ block content
       .d-flex.w-25.justify-content-between
         button.btn.btn-primary.submit-button(type="submit" name="submitButton" value="submit") Submit
         button.btn.btn-primary.mr-3.save-button(type="submit" name="submitButton" value="save") Save
-      
-
-
-  //- MAY NOT HAVE TO WORRY ABOUT THIS AS NO DUPLICATION CONCERN AS WITH ITEM NAME OR THE LIKE
-  //- if foundItem
-  //-   if foundItem.name === item.name
-  //-     div Item already exists. Change item name or go to #[a(href=foundItem.url) existing item].
-  //-   else
-  //-     div Item already exists. Change item sku or go to #[a(href=foundItem.url) existing item].
 
   if errors
     ul

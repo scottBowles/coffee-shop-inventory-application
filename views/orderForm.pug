@@ -1,0 +1,37 @@
+extends layout
+
+block content
+  h1= title
+
+  form(method="POST" action="")
+    table(class="table table-striped")
+      thead
+        tr
+          th(scope="col") Order
+          th(scope="col") Item
+          th(scope="col") In Stock
+          th(scope="col") On Order
+          th(scope="col") SKU
+      tbody
+        for item, index in items
+          tr
+            td
+              input(type="number" name=`items[${index}][quantity]`)
+            td #[a(href=item.url)= item.name]
+            td= item.quantityInStock
+            td #{ onOrder[item._id.toString()] || "0" }
+            td= item.sku
+            td.hidden
+              input(type="hidden" name=`items[${index}][id]` value=item._id)
+    
+    .d-flex.w-25.justify-content-between
+      button.btn.btn-primary.submit-button(type="submit" name="submitButton" value="submit") Submit
+      button.btn.btn-primary.mr-3.save-button(type="submit" name="submitButton" value="save") Save
+
+  if errors
+    ul
+      for error in errors
+        li!= error.msg
+
+
+//- CREATE-NEW GET: { title: "Create New Order", items, onOrder }

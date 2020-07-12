@@ -123,8 +123,43 @@ exports.order_detail = function orderDetail(req, res, next) {
   );
 };
 
-exports.order_create_get = function orderCreateGet(req, res, next) {
-  res.send("NOT IMPLEMENTED: Order create GET");
+exports.order_create_get = async function orderCreateGet(req, res, next) {
+  // get items -- name, sku, quantityInStock
+  const fetchItems = Item.find({}, "name sku quantityInStock").exec();
+
+  // create a hash of items -- { id: quantity on order }
+  async function getItemsOnOrder() {
+    const orders = await Order.find(
+      { status: "Ordered" },
+      "orderedItems"
+    ).exec();
+
+    const itemQtyHash = {};
+    orders.forEach((order) => {
+      order.orderedItems.forEach((orderedItem) => {
+        const id = orderedItem.item.toString();
+        if (itemQtyHash[id]) itemQtyHash[id] += orderedItem.quantity;
+        else itemQtyHash[id] = orderedItem.quantity;
+      });
+    });
+
+    return itemQtyHash;
+  }
+
+  const [items, onOrder] = await Promise.all([
+    fetchItems,
+    getItemsOnOrder(),
+  ]).catch((err) => next(err));
+
+  items.sort((a, b) => {
+    if (a.sku !== b.sku) {
+      return a.sku > b.sku ? 1 : -1;
+    }
+    return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+  });
+
+  // render order form
+  res.render("orderForm", { title: "Create New Order", items, onOrder });
 };
 
 exports.order_create_post = function orderCreatePost(req, res, next) {
