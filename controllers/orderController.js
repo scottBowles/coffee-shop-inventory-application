@@ -1,5 +1,6 @@
+const mongoose = require("mongoose");
 const async = require("async");
-
+const validator = require("express-validator");
 const Order = require("../models/order");
 const InventoryCount = require("../models/inventoryCount");
 const Item = require("../models/item");
@@ -162,9 +163,98 @@ exports.order_create_get = async function orderCreateGet(req, res, next) {
   res.render("orderForm", { title: "Create New Order", items, onOrder });
 };
 
-exports.order_create_post = function orderCreatePost(req, res, next) {
-  res.send("NOT IMPLEMENTED: Order create POST");
-};
+exports.order_create_post = [
+  function removeItemsNotOrdered(req, res, next) {
+    req.body.orderedItems = req.body.orderedItems.filter(
+      (item) => item.quantity !== ""
+    );
+    next();
+  },
+
+  validator.body("orderedItems.*.id").escape(),
+  validator.body("orderedItems.*.quantity").isInt({ lt: 10000000 }).escape(),
+  validator.body("submitButton").isIn(["placeOrder", "save"]).escape(),
+
+  async function orderCreatePost(req, res, next) {
+    // grab errors
+    const { errors } = validator.validationResult(req);
+
+    // get submit type
+    const { submitButton, orderedItems } = req.body;
+
+    // construct new Order
+    const newOrder = {
+      orderDate: submitButton === "placeOrder" ? Date.now() : undefined,
+      status: submitButton === "placeOrder" ? "Ordered" : "Saved",
+      orderedItems: orderedItems.map((orderedItem) => {
+        return {
+          item: mongoose.Types.ObjectId(orderedItem.id),
+          quantity: orderedItem.quantity,
+        };
+      }),
+      lastUpdated: Date.now(),
+    };
+
+    const order = new Order(newOrder);
+
+    // if errors
+    if (errors.length > 0) {
+      // get items -- name, sku, quantityInStock
+      const fetchItems = Item.find({}, "name sku quantityInStock").exec();
+
+      // create a hash of items -- { id: quantity on order }
+      async function getItemsOnOrder() {
+        const orders = await Order.find(
+          { status: "Ordered" },
+          "orderedItems"
+        ).exec();
+
+        const itemQtyHash = {};
+        orders.forEach((order) => {
+          order.orderedItems.forEach((orderedItem) => {
+            const id = orderedItem.item.toString();
+            if (itemQtyHash[id]) itemQtyHash[id] += orderedItem.quantity;
+            else itemQtyHash[id] = orderedItem.quantity;
+          });
+        });
+
+        return itemQtyHash;
+      }
+
+      const [items, onOrder] = await Promise.all([
+        fetchItems,
+        getItemsOnOrder(),
+      ]).catch((err) => next(err));
+
+      items.sort((a, b) => {
+        if (a.sku !== b.sku) {
+          return a.sku > b.sku ? 1 : -1;
+        }
+        return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+      });
+
+      const thisOrderItems = {};
+      order.orderedItems.forEach((orderedItem) => {
+        const id = orderedItem.item.toString();
+        thisOrderItems[id] = orderedItem.quantity;
+      });
+
+      // render order form
+      res.render("orderForm", {
+        title: "Create New Order",
+        items,
+        thisOrderItems,
+        onOrder,
+        errors,
+      });
+      return;
+    }
+
+    // no validation errors -- save order and redirect to new order's page
+    const savedOrder = await order.save().catch((err) => next(err));
+    res.redirect(savedOrder.url);
+  },
+];
 
 exports.order_update_get = function orderUpdateGet(req, res, next) {
   res.send("NOT IMPLEMENTED: Order update GET");

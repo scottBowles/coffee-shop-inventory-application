@@ -82,12 +82,12 @@ exports.count_detail_post = async function countDetailPost(req, res, next) {
       count,
       error: "Cannot update a submitted count",
     });
-  } else {
-    count.dateSubmitted = Date.now();
-    await count.save().catch((err) => next(err));
-
-    res.redirect(count.url);
+    return;
   }
+  count.dateSubmitted = Date.now();
+  await count.save().catch((err) => next(err));
+
+  res.redirect(count.url);
 };
 
 exports.count_create_get = async function countCreateGet(req, res, next) {

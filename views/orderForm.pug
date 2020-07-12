@@ -16,16 +16,16 @@ block content
         for item, index in items
           tr
             td
-              input(type="number" name=`items[${index}][quantity]`)
+              input(type="number" name=`orderedItems[${index}][quantity]` value=`${thisOrderItems ? thisOrderItems[item._id.toString()] || '' : ''}`)
             td #[a(href=item.url)= item.name]
             td= item.quantityInStock
             td #{ onOrder[item._id.toString()] || "0" }
             td= item.sku
             td.hidden
-              input(type="hidden" name=`items[${index}][id]` value=item._id)
+              input(type="hidden" name=`orderedItems[${index}][id]` value=item._id)
     
     .d-flex.w-25.justify-content-between
-      button.btn.btn-primary.submit-button(type="submit" name="submitButton" value="submit") Submit
+      button.btn.btn-primary.submit-button(type="submit" name="submitButton" value="placeOrder") Place Order
       button.btn.btn-primary.mr-3.save-button(type="submit" name="submitButton" value="save") Save
 
   if errors
@@ -33,5 +33,4 @@ block content
       for error in errors
         li!= error.msg
 
-
-//- CREATE-NEW GET: { title: "Create New Order", items, onOrder }
+  //- CREATE-NEW GET: { title: "Create New Order", items, onOrder }
