@@ -92,6 +92,10 @@ exports.count_create_get = async function countCreateGet(req, res, next) {
       ? items
       : items.filter((item) => item.category.name === filter);
 
+  filteredItems.sort((item1, item2) =>
+    item1.name.toLowerCase() > item2.name.toLowerCase() ? 1 : -1
+  );
+
   res.render("countForm", {
     title: "Create New Count",
     items: filteredItems,
@@ -163,6 +167,10 @@ exports.count_create_post = [
         itemsModifiedByCount.push(newItem);
       });
 
+      itemsModifiedByCount.sort((item1, item2) =>
+        item1.name.toLowerCase() > item2.name.toLowerCase() ? 1 : -1
+      );
+
       res.render("countForm", {
         title: "Create New Count",
         items: itemsModifiedByCount,
@@ -207,12 +215,6 @@ exports.count_create_post = [
 ];
 
 exports.count_update_get = async function countUpdateGet(req, res, next) {
-  // req.params.id will have count id -- need count data
-  //    -- populate items and items' categories -- need category in case count is type === "By Category"
-  // need to make sure count is not submitted
-  // need items data, filtered by category if count type === "By Category"
-  // need to set the filter based on type and pass that along
-
   const count = await InventoryCount.findById(req.params.id)
     .populate({
       path: "countedQuantities.item",
@@ -235,9 +237,55 @@ exports.count_update_get = async function countUpdateGet(req, res, next) {
     });
   }
 
-  res.render("countForm", { title: "Update Count", count, items, filter });
+  const items = await Item.find({})
+    .populate("category")
+    .exec()
+    .catch((err) => next(err));
 
-  res.send("NOT IMPLEMENTED");
+  // Only matters whether "By Category" or not, but this gives consistency to the front end.
+  const filter =
+    // eslint-disable-next-line no-nested-ternary
+    count.type === "Full"
+      ? "Full"
+      : count.type === "Ad Hoc"
+      ? "AdHoc"
+      : "By Category";
+
+  // If category count, grab the category from the first item in the count and filter accordingly
+  const filteredItems =
+    filter === "Full" || filter === "AdHoc"
+      ? items
+      : items.filter(
+          (item) =>
+            item.category.name === count.countedQuantities[0].item.category.name
+        );
+
+  const countHash = {};
+
+  count.countedQuantities.forEach((countItem) => {
+    const id = countItem.item._id.toString();
+    countHash[id] = countItem.quantity;
+  });
+
+  const itemsModifiedByCount = [];
+
+  filteredItems.forEach((item) => {
+    const newItem = item;
+    newItem.quantityInStock =
+      countHash[newItem._id.toString()] || item.quantityInStock;
+    itemsModifiedByCount.push(newItem);
+  });
+
+  itemsModifiedByCount.sort((item1, item2) =>
+    item1.name.toLowerCase() > item2.name.toLowerCase() ? 1 : -1
+  );
+
+  res.render("countForm", {
+    title: "Update Count",
+    items: itemsModifiedByCount,
+    count,
+    filter,
+  });
 };
 
 exports.count_update_post = function countUpdatePost(req, res, next) {
