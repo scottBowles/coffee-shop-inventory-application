@@ -11,6 +11,10 @@ block content
     p Submitted #{count.dateSubmittedFormatted}
   else
     p Count not submitted
+  a.mr-5(href="") Submit
+  a(href=count.url + "/update") Update
+  if error
+    h4= error
 
   table(class="table table-striped")
     caption #{count.countedQuantities.length} Items Counted

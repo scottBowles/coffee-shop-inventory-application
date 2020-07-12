@@ -141,12 +141,7 @@ exports.count_create_post = [
 
     // errors? rerender with items modified by count
     if (errors.length > 0) {
-      const items = await Item.find(
-        {},
-        "name description category sku quantityInStock"
-      )
-        .populate("category")
-        .exec();
+      const items = await Item.find({}).populate("category").exec();
 
       const filteredItems =
         filter === "Full" || filter === "AdHoc"
@@ -176,33 +171,72 @@ exports.count_create_post = [
         errors,
       });
     } else {
-      // save count & update all of the items in count
-      const saveCount = count.save();
+      // no errors: save count. if submitting, update all of the items in count. if saving, save count alone.
 
-      const saveDocs = [saveCount];
-
+      // eslint-disable-next-line no-lonely-if
       if (req.body.submit === "submit") {
-        count.countedQuantities.forEach((qty) => {
-          const newItem = new Item({
-            _id: qty.item,
-            quantityInStock: qty.quantity,
-            qtyLastUpdated: Date.now(),
-          });
-          const saveItem = Item.findByIdAndUpdate(newItem._id, newItem).exec();
-          saveDocs.push(saveItem);
-        });
+        // save count, update each item whose quantity was changed
+        await Promise.all([
+          count.save(),
+          ...count.countedQuantities.map(async (qty) => {
+            const item = await Item.findById(qty.item).exec();
+            console.log(item);
+            if (item.quantityInStock !== qty.quantity) {
+              item.quantityInStock = qty.quantity;
+              item.qtyLastUpdated = Date.now();
+              console.log(item);
+              return item.save();
+            }
+            return item;
+          }),
+        ])
+          .then((savedDocs) => {
+            const savedCount = savedDocs[0];
+            res.redirect(savedCount.url);
+          })
+          .catch((err) => next(err));
+      } else {
+        // req.body.submit === "save" -- save count only
+        count
+          .save()
+          .then((savedCount) => res.redirect(savedCount.url))
+          .catch((err) => next(err));
       }
-
-      const savedDocs = await Promise.all(saveDocs).catch((err) => next(err));
-
-      const savedCount = await savedDocs[0];
-
-      res.redirect(savedCount.url);
     }
   },
 ];
 
-exports.count_update_get = function countUpdateGet(req, res, next) {
+exports.count_update_get = async function countUpdateGet(req, res, next) {
+  // req.params.id will have count id -- need count data
+  //    -- populate items and items' categories -- need category in case count is type === "By Category"
+  // need to make sure count is not submitted
+  // need items data, filtered by category if count type === "By Category"
+  // need to set the filter based on type and pass that along
+
+  const count = await InventoryCount.findById(req.params.id)
+    .populate({
+      path: "countedQuantities.item",
+      populate: "category",
+    })
+    .exec();
+
+  count.countedQuantities.sort((a, b) => {
+    if (a.item.sku !== b.item.sku) {
+      return a.item.sku > b.item.sku ? 1 : -1;
+    }
+    return a.item.name > b.item.name ? 1 : -1;
+  });
+
+  if (count.submitted) {
+    res.render("countDetail", {
+      title: "Count Detail",
+      count,
+      error: "Cannot update a submitted count",
+    });
+  }
+
+  res.render("countForm", { title: "Update Count", count, items, filter });
+
   res.send("NOT IMPLEMENTED");
 };
 

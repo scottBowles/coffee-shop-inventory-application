@@ -100,7 +100,7 @@ Create new receipt page                gp inventory/receiving/create-new
 
 >>> COUNTS <<<
 Inventory counts home page             g  inventory/counts                    Static done
-Each inventory count page              g  inventory/count/<id>                Static done
+Each inventory count page              g  inventory/count/<id>                Static done -- NEED SUBMIT POST
 Each inventory count amending page     gp inventory/count/<id>/update         
 Each inventory count deleting page     gp inventory/count/<id>/remove
   (only deletable if not yet submitted)
