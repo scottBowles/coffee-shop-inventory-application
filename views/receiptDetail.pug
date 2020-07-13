@@ -8,10 +8,19 @@ block content
     h6 #[a(href=receipt.orderReceivedUrl) Order Received]
   else
     h6 Ad Hoc
+  if !receipt.submitted
+    a(href=`${receipt.url}/update`) Update Receipt
+
+  if errors
+    ul
+      for error in errors
+        li #[strong!= error.msg]
 
   h4 Items
   table(class="table table-striped")
-    caption #{receipt.receivedItems.length} Line Items / #{receipt.totalQuantityInItems} Items Received
+    - const numItems = receipt.receivedItems.length
+    - const totQty = receipt.totalQuantityInItems
+    caption #{numItems === 1 ? `${numItems} Line Item` : `${numItems} Line Items`} / #{totQty === 1 ? `${totQty} Item Received` : `${totQty} Items Received`}
     thead
       tr
         th(scope="col") Category

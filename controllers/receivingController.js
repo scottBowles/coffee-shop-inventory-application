@@ -89,8 +89,62 @@ exports.receipt_create_post = function receiptCreatePost(req, res, next) {
   res.send("NOT IMPLEMENTED");
 };
 
-exports.receipt_update_get = function receiptUpdateGet(req, res, next) {
-  res.send("NOT IMPLEMENTED");
+exports.receipt_update_get = async function receiptUpdateGet(req, res, next) {
+  // promise receipt
+  const fetchReceipt = Receipt.findById(req.params.id)
+    .populate({
+      path: "receivedItems.item",
+      select: "category name",
+      populate: {
+        path: "category",
+        select: "name",
+      },
+    })
+    .exec();
+
+  // promise items
+  const fetchItems = Item.find({}, "name sku quantityInStock")
+    .populate("category")
+    .exec();
+
+  // fetch in parallel
+  const [receipt, items] = await Promise.all([
+    fetchReceipt,
+    fetchItems,
+  ]).catch((err) => next(err));
+
+  // if receipt has already been submitted, re-render detail page with error message
+  if (receipt.submitted) {
+    receipt.receivedItems.sort((a, b) => b.item.name - a.item.name);
+    res.render("receiptDetail", {
+      title: "Receipt",
+      receipt,
+      errors: [{ msg: "Cannot update a receipt once it has been submitted." }],
+    });
+    return;
+  }
+
+  items.sort((a, b) => {
+    if (a.category !== b.category) {
+      return a.category.name.toLowerCase() > b.category.name.toLowerCase()
+        ? 1
+        : -1;
+    }
+    return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+  });
+
+  const thisReceiptItems = {};
+  receipt.receivedItems.forEach((receivedItem) => {
+    const id = receivedItem.item._id.toString();
+    thisReceiptItems[id] = receivedItem.quantity;
+  });
+
+  res.render("receiptForm", {
+    title: "Update Receipt",
+    receipt,
+    items,
+    thisReceiptItems,
+  });
 };
 
 exports.receipt_update_post = function receiptUpdatePost(req, res, next) {

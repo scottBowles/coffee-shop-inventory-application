@@ -94,7 +94,7 @@ Create new category page               gp inventory/category/create-new       Do
 >>> RECEIVING <<<
 Receiving home page                    g  inventory/receiving                 Static done
 Each receipt page                      g  inventory/receiving/<id>            Static done
-Each receipt amending page             gp inventory/receiving/<id>/update     
+Each receipt amending page             gp inventory/receiving/<id>/update     GET done
 Each receipt deleting page             gp inventory/receiving/<id>/remove
 Create new receipt page                gp inventory/receiving/create-new      GET done
 
@@ -108,8 +108,9 @@ Create new inventory count             gp inventory/count/create-new          Do
   On count detail page, need an update button and maybe a submit as-is button
 
 
-
+TODO
 STILL NEED TO:
 
 FIGURE OUT HOW TO GET DATES TO WORK RIGHT AND NOT OFFSET BY ONE (MDN MENTIONED TIME-ZONE-RELATED)
 VALIDATE PARAMS
+ORDER DELIVERY DATES -- IS SOMETHING FUNKY GOING ON? MAKE SURE IT'S WORKING RIGHT THROUGHOUT THE PROCESS
