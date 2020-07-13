@@ -256,8 +256,85 @@ exports.order_create_post = [
   },
 ];
 
-exports.order_update_get = function orderUpdateGet(req, res, next) {
-  res.send("NOT IMPLEMENTED: Order update GET");
+exports.order_update_get = async function orderUpdateGet(req, res, next) {
+  // get order id
+  const orderId = req.params.id;
+
+  // fetch order
+  const fetchOrder = Order.findById(orderId).exec();
+
+  // fetch items -- name, sku, quantityInStock
+  const fetchItems = Item.find({}, "name sku quantityInStock").exec();
+
+  // create a hash of items -- { id: totalQuantityOnOrder }
+  async function getItemsOnOrder() {
+    const orders = await Order.find(
+      { status: "Ordered" },
+      "orderedItems"
+    ).exec();
+
+    const itemQtyHash = {};
+    orders.forEach((order) => {
+      order.orderedItems.forEach((orderedItem) => {
+        const id = orderedItem.item.toString();
+        if (itemQtyHash[id]) itemQtyHash[id] += orderedItem.quantity;
+        else itemQtyHash[id] = orderedItem.quantity;
+      });
+    });
+
+    return itemQtyHash;
+  }
+
+  const [order, items, onOrder] = await Promise.all([
+    fetchOrder,
+    fetchItems,
+    getItemsOnOrder(),
+  ]).catch((err) => next(err));
+
+  // if order has already been placed, re-render detail page with error message
+  if (order.status !== "Saved") {
+    const populateOrder = order
+      .populate({
+        path: "orderedItems.item",
+        populate: {
+          path: "category",
+        },
+      })
+      .execPopulate();
+    const fetchReceipt = Receipt.findOne({ orderReceived: orderId }).exec();
+    const [populatedOrder, receipt] = await Promise.all([
+      populateOrder,
+      fetchReceipt,
+    ]).catch((err) => next(err));
+    res.render("orderDetail", {
+      title: "Order Details",
+      order: populatedOrder,
+      receipt,
+      errors: [{ msg: "Cannot update an order once it has been placed." }],
+    });
+    return;
+  }
+
+  items.sort((a, b) => {
+    if (a.sku !== b.sku) {
+      return a.sku > b.sku ? 1 : -1;
+    }
+    return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+  });
+
+  const thisOrderItems = {};
+  order.orderedItems.forEach((orderedItem) => {
+    const id = orderedItem.item.toString();
+    thisOrderItems[id] = orderedItem.quantity;
+  });
+
+  res.render("orderForm", {
+    title: "Update Order",
+    order,
+    items,
+    onOrder,
+    thisOrderItems,
+  });
 };
 
 exports.order_update_post = function orderUpdatePost(req, res, next) {
