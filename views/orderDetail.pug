@@ -14,13 +14,15 @@ block content
       li Ordered: #{order.orderDateFormatted}
       li Received: #{receipt.dateSubmittedFormatted}
   
-  ul
+  ul.d-flex
     if order.status === 'Saved'
       // TODO Implement buttons (mirrored below)
-      li #[a(href="#") Place Order]
+      li
+        form(method="POST" action="")
+          button.mr-5(type="submit") Place Order
       li #[a(href=`${order.url}/update`) Update Order]
     if order.status === 'Ordered'
-      li #[a(href="#") Receive]
+      li #[a(href="NOT YET IMPLEMENTED") Receive]
 
   if errors
     ul
@@ -47,11 +49,13 @@ block content
             td= orderedItem.item.sku
             td #[a(href=orderedItem.item.category.url)= orderedItem.item.category.name]
 
-  ul
+  ul.d-flex
     if order.status === 'Saved'
       // TODO Implement buttons (mirrored above)
-      li #[a(href="#") Place Order]
+      li
+        form(method="POST" action="")
+          button.mr-5(type="submit") Place Order
       li #[a(href=`${order.url}/update`) Update Order]
     if order.status === 'Ordered'
-      li #[a(href="#") Receive]
+      li #[a(href="NOT YET IMPLEMENTED") Receive]
 

@@ -112,7 +112,10 @@ router.get("/order/:id/remove", orderController.order_delete_get);
 router.post("/order/:id/remove", orderController.order_delete_post);
 
 // GET request for one order
-router.get("/order/:id", orderController.order_detail);
+router.get("/order/:id", orderController.order_detail_get);
+
+// POST request for one order
+router.post("/order/:id", orderController.order_detail_post);
 
 // GET request for order home page
 router.get("/orders", orderController.order_home);

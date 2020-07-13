@@ -72,10 +72,10 @@ Home page                              g  inventory/                          St
 
 >>> ORDERS <<<
 Orders home page                       g  inventory/orders                    Static done
-Each order page                        g  inventory/order/<id>                Static done
-Each order amending page               gp inventory/order/<id>/update
+Each order page                        g  inventory/order/<id>                Static done & POST done
+Each order amending page               gp inventory/order/<id>/update         Done
 Each order deleting page               gp inventory/order/<id>/remove
-Create order                           gp inventory/order/create-new          GET done; POST remains
+Create order                           gp inventory/order/create-new          Done
 
 >>> ITEMS <<<
 Items home page                        g  inventory/items                     Static done
@@ -112,3 +112,4 @@ Create new inventory count             gp inventory/count/create-new          Do
 STILL NEED TO:
 
 FIGURE OUT HOW TO GET DATES TO WORK RIGHT AND NOT OFFSET BY ONE (MDN MENTIONED TIME-ZONE-RELATED)
+VALIDATE PARAMS

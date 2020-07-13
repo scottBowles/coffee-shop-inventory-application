@@ -93,7 +93,7 @@ exports.order_home = function orderHome(req, res, next) {
   );
 };
 
-exports.order_detail = function orderDetail(req, res, next) {
+exports.order_detail_get = function orderDetail(req, res, next) {
   // Need 'order', 'receipt' if received, populate orderedItems->item, populate orderItems->item->category. Organize items by category then alpha?
   async.parallel(
     {
@@ -122,6 +122,44 @@ exports.order_detail = function orderDetail(req, res, next) {
       });
     }
   );
+};
+
+exports.order_detail_post = async function (req, res, next) {
+  const order = await Order.findById(req.params.id).exec();
+
+  if (order.status !== "Saved") {
+    const populateOrder = order
+      .populate({
+        path: "orderedItems.item",
+        populate: {
+          path: "category",
+        },
+      })
+      .execPopulate();
+
+    const fetchReceipt = Receipt.findOne({
+      orderReceived: req.params.id,
+    }).exec();
+
+    const [populatedOrder, receipt] = await Promise.all([
+      populateOrder,
+      fetchReceipt,
+    ]).catch((err) => next(err));
+
+    res.render("orderDetail", {
+      title: "Order Details",
+      order: populatedOrder,
+      receipt,
+      errors: [{ msg: "Order was already placed." }],
+    });
+    return;
+  }
+
+  order.status = "Ordered";
+  order.orderDate = Date.now();
+  order.lastUpdated = Date.now();
+  await order.save();
+  res.redirect(order.url);
 };
 
 exports.order_create_get = async function orderCreateGet(req, res, next) {
