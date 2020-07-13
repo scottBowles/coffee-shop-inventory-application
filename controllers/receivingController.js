@@ -1,6 +1,7 @@
 const async = require("async");
 const Receipt = require("../models/receipt");
 const Order = require("../models/order");
+const Item = require("../models/item");
 
 exports.receiving_home = function receivingHome(req, res, next) {
   if (["all", "recent", undefined].includes(req.query.filter) === false) {
@@ -64,8 +65,24 @@ exports.receipt_detail = function receiptDetail(req, res, next) {
     });
 };
 
-exports.receipt_create_get = function receiptCreateGet(req, res, next) {
-  res.send("NOT IMPLEMENTED");
+exports.receipt_create_get = async function receiptCreateGet(req, res, next) {
+  // get items -- name, sku, quantityInStock
+  const items = await Item.find({}, "name sku quantityInStock")
+    .populate("category")
+    .exec()
+    .catch((err) => next(err));
+
+  items.sort((a, b) => {
+    if (a.category.name !== b.category.name) {
+      return a.category.name.toLowerCase() > b.category.name.toLowerCase()
+        ? 1
+        : -1;
+    }
+    return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+  });
+
+  // render order form
+  res.render("receiptForm", { title: "Create New Receipt", items });
 };
 
 exports.receipt_create_post = function receiptCreatePost(req, res, next) {

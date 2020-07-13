@@ -163,7 +163,7 @@ exports.order_detail_post = async function (req, res, next) {
 };
 
 exports.order_create_get = async function orderCreateGet(req, res, next) {
-  // get items -- name, sku, quantityInStock
+  // get items
   const fetchItems = Item.find({}, "name sku quantityInStock").exec();
 
   // create a hash of items -- { id: quantity on order }

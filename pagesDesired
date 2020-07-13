@@ -96,7 +96,7 @@ Receiving home page                    g  inventory/receiving                 St
 Each receipt page                      g  inventory/receiving/<id>            Static done
 Each receipt amending page             gp inventory/receiving/<id>/update     
 Each receipt deleting page             gp inventory/receiving/<id>/remove
-Create new receipt page                gp inventory/receiving/create-new
+Create new receipt page                gp inventory/receiving/create-new      GET done
 
 >>> COUNTS <<<
 Inventory counts home page             g  inventory/counts                    Static done
