@@ -350,7 +350,7 @@ exports.order_update_post = [
 
   // validate & sanitize
   validator.body("orderedItems.*.id").escape(),
-  validator.body("orderedItems.*.quantity").isInt({ lt: 10 }).escape(),
+  validator.body("orderedItems.*.quantity").isInt({ lt: 10000000 }).escape(),
   validator.body("submitType").isIn(["placeOrder", "save"]).escape(),
 
   async function updatePost(req, res, next) {

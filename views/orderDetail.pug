@@ -18,7 +18,7 @@ block content
     if order.status === 'Saved'
       // TODO Implement buttons (mirrored below)
       li #[a(href="#") Place Order]
-      li #[a(href=`${order.url}/update`) Change Order]
+      li #[a(href=`${order.url}/update`) Update Order]
     if order.status === 'Ordered'
       li #[a(href="#") Receive]
 
@@ -51,7 +51,7 @@ block content
     if order.status === 'Saved'
       // TODO Implement buttons (mirrored above)
       li #[a(href="#") Place Order]
-      li #[a(href=`${order.url}/update`) Change Order]
+      li #[a(href=`${order.url}/update`) Update Order]
     if order.status === 'Ordered'
       li #[a(href="#") Receive]
 
