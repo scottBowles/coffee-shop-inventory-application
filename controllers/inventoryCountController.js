@@ -320,7 +320,7 @@ exports.count_update_post = [
   validator.body("filter").escape(),
   validator.body("submitButton").isIn(["submit", "save"]).escape(),
 
-  async function createPost(req, res, next) {
+  async function updatePost(req, res, next) {
     // grab errors & filter
     const { errors } = validator.validationResult(req);
     const { filter } = req.body;

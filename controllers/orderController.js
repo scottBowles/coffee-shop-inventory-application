@@ -173,19 +173,19 @@ exports.order_create_post = [
 
   validator.body("orderedItems.*.id").escape(),
   validator.body("orderedItems.*.quantity").isInt({ lt: 10000000 }).escape(),
-  validator.body("submitButton").isIn(["placeOrder", "save"]).escape(),
+  validator.body("submitType").isIn(["placeOrder", "save"]).escape(),
 
   async function orderCreatePost(req, res, next) {
     // grab errors
     const { errors } = validator.validationResult(req);
 
     // get submit type
-    const { submitButton, orderedItems } = req.body;
+    const { submitType, orderedItems } = req.body;
 
     // construct new Order
     const newOrder = {
-      orderDate: submitButton === "placeOrder" ? Date.now() : undefined,
-      status: submitButton === "placeOrder" ? "Ordered" : "Saved",
+      orderDate: submitType === "placeOrder" ? Date.now() : undefined,
+      status: submitType === "placeOrder" ? "Ordered" : "Saved",
       orderedItems: orderedItems.map((orderedItem) => {
         return {
           item: mongoose.Types.ObjectId(orderedItem.id),
@@ -301,7 +301,9 @@ exports.order_update_get = async function orderUpdateGet(req, res, next) {
         },
       })
       .execPopulate();
-    const fetchReceipt = Receipt.findOne({ orderReceived: orderId }).exec();
+    const fetchReceipt = Receipt.findOne({
+      orderReceived: req.params.id,
+    }).exec();
     const [populatedOrder, receipt] = await Promise.all([
       populateOrder,
       fetchReceipt,
@@ -337,9 +339,129 @@ exports.order_update_get = async function orderUpdateGet(req, res, next) {
   });
 };
 
-exports.order_update_post = function orderUpdatePost(req, res, next) {
-  res.send("NOT IMPLEMENTED: Order update POST");
-};
+exports.order_update_post = [
+  // remove empty items
+  function removeEmptyItems(req, res, next) {
+    req.body.orderedItems = req.body.orderedItems.filter(
+      (item) => item.quantity !== ""
+    );
+    next();
+  },
+
+  // validate & sanitize
+  validator.body("orderedItems.*.id").escape(),
+  validator.body("orderedItems.*.quantity").isInt({ lt: 10 }).escape(),
+  validator.body("submitType").isIn(["placeOrder", "save"]).escape(),
+
+  async function updatePost(req, res, next) {
+    // grab errors & submitType
+    const { errors } = validator.validationResult(req);
+    const { submitType } = req.body;
+
+    // fetch order
+    const order = await Order.findById(req.params.id);
+
+    // if order.status !== "Saved", render detail page with errors
+    if (order.status !== "Saved") {
+      const populateOrder = order
+        .populate({
+          path: "orderedItems.item",
+          populate: {
+            path: "category",
+          },
+        })
+        .execPopulate();
+
+      const fetchReceipt = Receipt.findOne({
+        orderReceived: req.params.id,
+      }).exec();
+
+      const [populatedOrder, receipt] = await Promise.all([
+        populateOrder,
+        fetchReceipt,
+      ]).catch((err) => next(err));
+
+      res.render("orderDetail", {
+        title: "Order Details",
+        order: populatedOrder,
+        receipt,
+        errors: [{ msg: "Cannot update an order once it has been placed." }],
+      });
+      return;
+    }
+
+    // update order.orderedItems
+    order.orderedItems = req.body.orderedItems.map((orderedItem) => {
+      const { id, quantity } = orderedItem;
+      return { item: mongoose.Types.ObjectId(id), quantity };
+    });
+
+    // if errors, re-render "orderForm"
+    if (errors.length > 0) {
+      // fetch items
+      const fetchItems = Item.find({}, "name sku quantityInStock").exec();
+
+      // create a hash of items -- { id: totalQuantityOnOrder }
+      async function getItemsOnOrder() {
+        const orders = await Order.find(
+          { status: "Ordered" },
+          "orderedItems"
+        ).exec();
+
+        const itemQtyHash = {};
+        orders.forEach((order) => {
+          order.orderedItems.forEach((orderedItem) => {
+            const id = orderedItem.item.toString();
+            if (itemQtyHash[id]) itemQtyHash[id] += orderedItem.quantity;
+            else itemQtyHash[id] = orderedItem.quantity;
+          });
+        });
+
+        return itemQtyHash;
+      }
+
+      const [items, onOrder] = await Promise.all([
+        fetchItems,
+        getItemsOnOrder(),
+      ]).catch((err) => next(err));
+
+      items.sort((a, b) => {
+        if (a.sku !== b.sku) {
+          return a.sku > b.sku ? 1 : -1;
+        }
+        return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+      });
+
+      // create a hash of this order's items for the frontend
+      const thisOrderItems = {};
+      order.orderedItems.forEach((orderedItem) => {
+        const id = orderedItem.item.toString();
+        thisOrderItems[id] = orderedItem.quantity;
+      });
+
+      res.render("orderForm", {
+        title: "Update Order",
+        order,
+        items,
+        onOrder,
+        thisOrderItems,
+        errors,
+      });
+      return;
+    }
+
+    // no errors: update order
+    order.orderDate = submitType === "placeOrder" ? Date.now() : undefined;
+    order.status = submitType === "placeOrder" ? "Ordered" : "Saved";
+    order.lastUpdated = Date.now();
+
+    // save order.
+    await order.save();
+
+    // redirect to order.url
+    res.redirect(order.url);
+  },
+];
 
 exports.order_delete_get = function orderDeleteGet(req, res, next) {
   res.send("NOT IMPLEMENTED: Order delete GET");
@@ -348,3 +470,5 @@ exports.order_delete_get = function orderDeleteGet(req, res, next) {
 exports.order_delete_post = function orderDeletePost(req, res, next) {
   res.send("NOT IMPLEMENTED: Order delete POST");
 };
+
+// TODO -- CREATE A RECEIPT EVERY TIME A NEW ORDER IS CREATED

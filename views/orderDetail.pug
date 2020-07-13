@@ -8,6 +8,7 @@ block content
       li Last Updated: #{order.lastUpdatedFormatted}
     if order.status === 'Ordered'
       li Ordered: #{order.orderDateFormatted}
+    if order.deliveryDate
       li Delivery Date: #{order.deliveryDateFormatted}
     if order.status === 'Received'
       li Ordered: #{order.orderDateFormatted}
