@@ -12,10 +12,22 @@ router.get("/", orderController.index);
 
 // RECEIVING ROUTES //
 
-// GET request for updating a receipt
+// GET request for creating a receipt from an order
+router.get(
+  "/receiving/create-new/:order",
+  receivingController.receipt_create_get
+);
+
+// POST request for creating a receipt from an order
+router.post(
+  "/receiving/create-new/:order",
+  receivingController.receipt_create_post
+);
+
+// GET request for creating a receipt
 router.get("/receiving/create-new", receivingController.receipt_create_get);
 
-// POST request for updating a receipt
+// POST request for creating a receipt
 router.post("/receiving/create-new", receivingController.receipt_create_post);
 
 // GET request for updating a receipt
@@ -38,10 +50,10 @@ router.get("/receiving", receivingController.receiving_home);
 
 // COUNT ROUTES //
 
-// GET request for updating a count
+// GET request for creating a count
 router.get("/count/create-new", inventoryCountController.count_create_get);
 
-// POST request for updating a count
+// POST request for creating a count
 router.post("/count/create-new", inventoryCountController.count_create_post);
 
 // GET request for updating a count

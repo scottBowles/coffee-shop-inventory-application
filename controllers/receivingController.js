@@ -1,4 +1,7 @@
 const async = require("async");
+const { body, validationResult } = require("express-validator");
+// const validator = require("express-validator");
+const { mongoose } = require("mongoose");
 const Receipt = require("../models/receipt");
 const Order = require("../models/order");
 const Item = require("../models/item");
@@ -66,7 +69,7 @@ exports.receipt_detail = function receiptDetail(req, res, next) {
 };
 
 exports.receipt_create_get = async function receiptCreateGet(req, res, next) {
-  // get items -- name, sku, quantityInStock
+  // get items
   const items = await Item.find({}, "name sku quantityInStock")
     .populate("category")
     .exec()
@@ -81,13 +84,96 @@ exports.receipt_create_get = async function receiptCreateGet(req, res, next) {
     return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
   });
 
-  // render order form
+  // render receipt form
   res.render("receiptForm", { title: "Create New Receipt", items });
 };
 
-exports.receipt_create_post = function receiptCreatePost(req, res, next) {
-  res.send("NOT IMPLEMENTED");
-};
+exports.receipt_create_post = [
+  // USED BODY RATHER THAN VALIDATOR.BODY
+
+  // validate/sanitize
+  body("receivedItems.*.id").escape(),
+  body("receivedItems.*.quantity").isInt({ lt: 10000000 }).escape(),
+  body("submitType").isIn(["submit", "save"]).escape(),
+
+  async function receiptCreatePostWinnow(req, res, next) {
+    const { errors } = validationResult(req);
+    const { receivedItems, submitType } = req.body;
+    const orderId = req.params.order;
+
+    /*
+     *  Filter out items not on receipt
+     *  Create hash { itemIds: qtiesReceived }
+     *  Add to hash items present in order but zeroed in receipt,
+     *      to preserve that these were ordered but not received.
+     *  (The other items are duplicated in this step, not changing the hash.)
+     */
+
+    const receivedItemsFiltered = receivedItems.filter(
+      (item) => !!item.quantity
+    );
+
+    const receivedItemHash = {};
+    receivedItemsFiltered.forEach((item) => {
+      receivedItemHash[item.id] = item.quantity;
+    });
+
+    if (orderId) {
+      const order = await Order.findById(orderId).exec();
+      order.orderedItems.forEach((orderedItem) => {
+        receivedItemHash[orderedItem.item] =
+          receivedItemHash[orderedItem.item] || "0";
+      });
+    }
+
+    /*
+     *  Make new Receipt
+     */
+
+    const newReceipt = new Receipt({
+      dateSubmitted: submitType === "submit" ? Date.now() : undefined,
+      receivedItems: Object.keys(receivedItemHash).map((key) => {
+        return {
+          item: mongoose.Types.ObjectId(key),
+          quantity: receivedItemHash[key],
+        };
+      }),
+      orderReceived: orderId ? mongoose.Types.ObjectId(orderId) : undefined,
+    });
+
+    /*
+     *  Fetch Items
+     */
+
+    const items = await Item.find({}, "name sku quantityInStock").exec();
+
+    /*
+     *  If errors, rerender receiptForm with errors
+     */
+    if (errors.length > 0) {
+      // get items
+      items
+        .populate("category")
+        .execPopulate()
+        .catch((err) => next(err));
+
+      items.sort((a, b) => {
+        if (a.category.name !== b.category.name) {
+          return a.category.name.toLowerCase() > b.category.name.toLowerCase()
+            ? 1
+            : -1;
+        }
+        return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+      });
+
+      // render receipt form
+      res.render("receiptForm", { title: "Create New Receipt", items, errors });
+    }
+    // get items and amend them with added quantity
+    // save receipt and items
+    // redirect to receipt.url
+  },
+];
 
 exports.receipt_update_get = async function receiptUpdateGet(req, res, next) {
   // promise receipt
