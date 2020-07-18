@@ -21,8 +21,7 @@ block content
           td= order.orderDateFormatted
           td= order.deliveryDateFormatted
           td #[a(href=order.url) View Order]
-          // TODO - Implement button
-          td #[button Receive]
+          td #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
 
   ul(class="nav nav-tabs")
     li(class="nav-item")

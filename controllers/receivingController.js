@@ -1,7 +1,6 @@
 const async = require("async");
 const { body, validationResult } = require("express-validator");
-// const validator = require("express-validator");
-const { mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 const Receipt = require("../models/receipt");
 const Order = require("../models/order");
 const Item = require("../models/item");
@@ -14,6 +13,7 @@ exports.receiving_home = function receivingHome(req, res, next) {
       {
         orders(callback) {
           Order.find({ status: "Ordered" })
+            .populate("receipt")
             .sort({ deliveryDate: "descending" })
             .exec(callback);
         },
@@ -69,12 +69,29 @@ exports.receipt_detail = function receiptDetail(req, res, next) {
 };
 
 exports.receipt_create_get = async function receiptCreateGet(req, res, next) {
-  // get items
-  const items = await Item.find({}, "name sku quantityInStock")
+  // get items and, if receiving an order, order
+  const fetchItems = Item.find({}, "name sku quantityInStock")
     .populate("category")
     .exec()
     .catch((err) => next(err));
 
+  const orderId = req.params.order || undefined;
+  const fetchOrder = orderId ? Order.findById(orderId).exec() : undefined;
+
+  const [items, order] = await Promise.all([fetchItems, fetchOrder]);
+
+  // get hash of this receipt's items from the order being received
+  let thisReceiptItems = {};
+  if (orderId) {
+    order.orderedItems.forEach((orderedItem) => {
+      const id = orderedItem.item._id.toString();
+      thisReceiptItems[id] = orderedItem.quantity;
+    });
+  } else {
+    thisReceiptItems = undefined;
+  }
+
+  // sort items
   items.sort((a, b) => {
     if (a.category.name !== b.category.name) {
       return a.category.name.toLowerCase() > b.category.name.toLowerCase()
@@ -85,21 +102,38 @@ exports.receipt_create_get = async function receiptCreateGet(req, res, next) {
   });
 
   // render receipt form
-  res.render("receiptForm", { title: "Create New Receipt", items });
+  res.render("receiptForm", {
+    title: "Create New Receipt",
+    items,
+    thisReceiptItems,
+  });
 };
 
 exports.receipt_create_post = [
-  // USED BODY RATHER THAN VALIDATOR.BODY
-
   // validate/sanitize
   body("receivedItems.*.id").escape(),
-  body("receivedItems.*.quantity").isInt({ lt: 10000000 }).escape(),
+  body("receivedItems.*.quantity")
+    .optional({ checkFalsy: true })
+    .isInt({ lt: 10000000 })
+    .escape(),
   body("submitType").isIn(["submit", "save"]).escape(),
 
-  async function receiptCreatePostWinnow(req, res, next) {
+  async function receiptCreatePost(req, res, next) {
     const { errors } = validationResult(req);
     const { receivedItems, submitType } = req.body;
     const orderId = req.params.order;
+
+    /*
+     *  Fetch items and, if receiving an order, order.
+     *  Populate item category in case of error.
+     */
+
+    const fetchItems = Item.find({}).populate("category").exec();
+    const fetchOrder = orderId ? Order.findById(orderId).exec() : undefined;
+    const [items, order] = await Promise.all([
+      fetchItems,
+      fetchOrder,
+    ]).catch((err) => next(err));
 
     /*
      *  Filter out items not on receipt
@@ -118,8 +152,7 @@ exports.receipt_create_post = [
       receivedItemHash[item.id] = item.quantity;
     });
 
-    if (orderId) {
-      const order = await Order.findById(orderId).exec();
+    if (order) {
       order.orderedItems.forEach((orderedItem) => {
         receivedItemHash[orderedItem.item] =
           receivedItemHash[orderedItem.item] || "0";
@@ -138,25 +171,14 @@ exports.receipt_create_post = [
           quantity: receivedItemHash[key],
         };
       }),
-      orderReceived: orderId ? mongoose.Types.ObjectId(orderId) : undefined,
+      orderReceived: orderId || undefined,
+      // orderReceived: orderId ? mongoose.Types.ObjectId(orderId) : undefined,
     });
-
-    /*
-     *  Fetch Items
-     */
-
-    const items = await Item.find({}, "name sku quantityInStock").exec();
 
     /*
      *  If errors, rerender receiptForm with errors
      */
     if (errors.length > 0) {
-      // get items
-      items
-        .populate("category")
-        .execPopulate()
-        .catch((err) => next(err));
-
       items.sort((a, b) => {
         if (a.category.name !== b.category.name) {
           return a.category.name.toLowerCase() > b.category.name.toLowerCase()
@@ -167,11 +189,58 @@ exports.receipt_create_post = [
       });
 
       // render receipt form
-      res.render("receiptForm", { title: "Create New Receipt", items, errors });
+      res.render("receiptForm", {
+        title: "Create New Receipt",
+        thisReceiptItems: receivedItemHash,
+        items,
+        errors,
+      });
+      return;
     }
-    // get items and amend them with added quantity
-    // save receipt and items
-    // redirect to receipt.url
+    /*
+     *  No errors -- amend and save to db and redirect
+     */
+
+    if (submitType === "submit") {
+      // amend order
+      if (order) {
+        order.deliveryDate = Date.now();
+        order.lastUpdated = Date.now();
+        order.status = "Received";
+      }
+
+      // amend items in receipt
+      const amendedItems = [];
+      items.forEach((item) => {
+        if (receivedItemHash[item._id]) {
+          const quantityReceived = receivedItemHash[item._id];
+          item.quantityInStock += +quantityReceived;
+          item.qtyLastUpdated = Date.now();
+          item.itemLastUpdated = Date.now();
+          amendedItems.push(item);
+        } else if (receivedItemHash[item._id] === "0") {
+          item.qtyLastUpdated = Date.now();
+          item.itemLastUpdated = Date.now();
+          amendedItems.push(item);
+        }
+      });
+
+      // save items, order, and receipt
+      const saveItems = amendedItems.map((item) => item.save());
+      const saveOrder = order ? order.save() : undefined;
+      const saveReceipt = newReceipt.save();
+      const [savedReceipt] = await Promise.all([
+        saveReceipt,
+        saveOrder,
+        ...saveItems,
+      ]);
+      // redirect to receipt detail page
+      res.redirect(savedReceipt.url);
+    } else if (submitType === "save") {
+      const savedReceipt = await newReceipt.save();
+      // redirect to receipt detail page
+      res.redirect(savedReceipt.url);
+    }
   },
 ];
 

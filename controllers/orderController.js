@@ -71,6 +71,7 @@ exports.order_home = function orderHome(req, res, next) {
           { status: { $in: queryFilter } },
           "orderDate deliveryDate status lastUpdated"
         )
+          .populate("receipt")
           .sort([["lastUpdated", "descending"]])
           .exec((err, filteredOrders) => {
             if (err) {
@@ -99,6 +100,7 @@ exports.order_detail_get = function orderDetail(req, res, next) {
     {
       order(callback) {
         Order.findById(req.params.id)
+          .populate("receipt")
           .populate({
             path: "orderedItems.item",
             populate: {

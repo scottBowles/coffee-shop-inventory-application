@@ -1,5 +1,6 @@
 const moment = require("moment");
 const mongoose = require("mongoose");
+const Receipt = require("./receipt");
 
 const { Schema } = mongoose;
 
@@ -21,6 +22,13 @@ const OrderSchema = new Schema({
   lastUpdated: { type: Date, required: true, default: Date.now() },
 });
 
+OrderSchema.virtual("receipt", {
+  ref: "Receipt",
+  localField: "_id",
+  foreignField: "orderReceived",
+  justOne: "true",
+});
+
 OrderSchema.virtual("orderDateFormatted").get(function () {
   return moment(this.orderDate).format("MMMM Do, YYYY");
 });
@@ -36,5 +44,7 @@ OrderSchema.virtual("lastUpdatedFormatted").get(function () {
 OrderSchema.virtual("url").get(function () {
   return `/inventory/order/${this._id}`;
 });
+
+OrderSchema.set("toObject", { virtuals: true });
 
 module.exports = mongoose.model("Order", OrderSchema);

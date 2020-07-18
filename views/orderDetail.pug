@@ -16,13 +16,12 @@ block content
   
   ul.d-flex
     if order.status === 'Saved'
-      // TODO Implement buttons (mirrored below)
       li
         form(method="POST" action="")
           button.mr-5(type="submit") Place Order
       li #[a(href=`${order.url}/update`) Update Order]
     if order.status === 'Ordered'
-      li #[a(href="NOT YET IMPLEMENTED") Receive]
+      li #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
 
   if errors
     ul
@@ -51,11 +50,10 @@ block content
 
   ul.d-flex
     if order.status === 'Saved'
-      // TODO Implement buttons (mirrored above)
       li
         form(method="POST" action="")
           button.mr-5(type="submit") Place Order
       li #[a(href=`${order.url}/update`) Update Order]
     if order.status === 'Ordered'
-      li #[a(href="NOT YET IMPLEMENTED") Receive]
+      li #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
 
