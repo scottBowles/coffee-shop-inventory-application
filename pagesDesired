@@ -88,15 +88,15 @@ Create new item page                   gp inventory/item/create-new           Do
 Categories home page                   g  inventory/categories                Static done
 Each category viewing page             g  inventory/category/<id>             Static done
 Each category amending page            gp inventory/category/<id>/update      Done
-Each category deleting page            gp inventory/category/<id>/remove
+Each category deleting page            gp inventory/category/<id>/remove      GET done, POST remains
 Create new category page               gp inventory/category/create-new       Done
 
 >>> RECEIVING <<<
 Receiving home page                    g  inventory/receiving                 Static done
 Each receipt page                      g  inventory/receiving/<id>            Static done
-Each receipt amending page             gp inventory/receiving/<id>/update     done
+Each receipt amending page             gp inventory/receiving/<id>/update     Done
 Each receipt deleting page             gp inventory/receiving/<id>/remove
-Create new receipt page                gp inventory/receiving/create-new      done
+Create new receipt page                gp inventory/receiving/create-new      Done
 
 >>> COUNTS <<<
 Inventory counts home page             g  inventory/counts                    Static done

@@ -26,4 +26,6 @@ CategorySchema.virtual("url").get(function () {
   return `/inventory/category/${this._id}`;
 });
 
+CategorySchema.set("toObject", { virtuals: true });
+
 module.exports = mongoose.model("Category", CategorySchema);

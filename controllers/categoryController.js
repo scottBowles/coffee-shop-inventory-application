@@ -1,5 +1,6 @@
 const validator = require("express-validator");
 const Category = require("../models/category");
+const Item = require("../models/item");
 
 exports.category_home = function categoryHome(req, res, next) {
   Category.find()
@@ -125,8 +126,26 @@ exports.category_update_post = [
   },
 ];
 
-exports.category_delete_get = function categoryDeleteGet(req, res, next) {
-  res.send("NOT IMPLEMENTED: Category delete GET");
+exports.category_delete_get = async function categoryDeleteGet(req, res, next) {
+  try {
+    // Get category
+    const category = await Category.findById(req.params.id)
+      .populate("items")
+      .exec();
+
+    // If no category is found, redirect
+    if (category == null) {
+      return res.redirect("/inventory/categories");
+    }
+
+    // Render page
+    return res.render("categoryDelete", {
+      title: `Remove Category: ${category.name}`,
+      category,
+    });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 exports.category_delete_post = function categoryDeletePost(req, res, next) {
