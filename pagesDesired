@@ -94,9 +94,9 @@ Create new category page               gp inventory/category/create-new       Do
 >>> RECEIVING <<<
 Receiving home page                    g  inventory/receiving                 Static done
 Each receipt page                      g  inventory/receiving/<id>            Static done
-Each receipt amending page             gp inventory/receiving/<id>/update     GET done
+Each receipt amending page             gp inventory/receiving/<id>/update     done
 Each receipt deleting page             gp inventory/receiving/<id>/remove
-Create new receipt page                gp inventory/receiving/create-new      GET done
+Create new receipt page                gp inventory/receiving/create-new      done
 
 >>> COUNTS <<<
 Inventory counts home page             g  inventory/counts                    Static done

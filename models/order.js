@@ -1,6 +1,5 @@
 const moment = require("moment");
 const mongoose = require("mongoose");
-const Receipt = require("./receipt");
 
 const { Schema } = mongoose;
 

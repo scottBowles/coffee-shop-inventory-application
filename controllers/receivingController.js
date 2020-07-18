@@ -76,15 +76,25 @@ exports.receipt_create_get = async function receiptCreateGet(req, res, next) {
     .catch((err) => next(err));
 
   const orderId = req.params.order || undefined;
-  const fetchOrder = orderId ? Order.findById(orderId).exec() : undefined;
+  const fetchOrder = orderId
+    ? Order.findById(orderId).populate("receipt").exec()
+    : undefined;
 
-  const [items, order] = await Promise.all([fetchItems, fetchOrder]);
+  const [items, order] = await Promise.all([
+    fetchItems,
+    fetchOrder,
+  ]).catch((err) => next(err));
+
+  // if order already has an associated receipt, redirect to the update page
+  if (order.receipt) {
+    res.redirect(`/inventory/receiving/${order.receipt._id}/update`);
+  }
 
   // get hash of this receipt's items from the order being received
   let thisReceiptItems = {};
-  if (orderId) {
+  if (order) {
     order.orderedItems.forEach((orderedItem) => {
-      const id = orderedItem.item._id.toString();
+      const id = orderedItem.item;
       thisReceiptItems[id] = orderedItem.quantity;
     });
   } else {
@@ -126,14 +136,21 @@ exports.receipt_create_post = [
     /*
      *  Fetch items and, if receiving an order, order.
      *  Populate item category in case of error.
+     *  If order already has a receipt, redirect to the receipt's update page
      */
 
     const fetchItems = Item.find({}).populate("category").exec();
-    const fetchOrder = orderId ? Order.findById(orderId).exec() : undefined;
+    const fetchOrder = orderId
+      ? Order.findById(orderId).populate("receipt").exec()
+      : undefined;
     const [items, order] = await Promise.all([
       fetchItems,
       fetchOrder,
     ]).catch((err) => next(err));
+
+    if (order && order.receipt) {
+      res.redirect(`/inventory/receiving/${order.receipt._id}/update`);
+    }
 
     /*
      *  Filter out items not on receipt
@@ -172,7 +189,6 @@ exports.receipt_create_post = [
         };
       }),
       orderReceived: orderId || undefined,
-      // orderReceived: orderId ? mongoose.Types.ObjectId(orderId) : undefined,
     });
 
     /*
@@ -302,9 +318,167 @@ exports.receipt_update_get = async function receiptUpdateGet(req, res, next) {
   });
 };
 
-exports.receipt_update_post = function receiptUpdatePost(req, res, next) {
-  res.send("NOT IMPLEMENTED");
-};
+exports.receipt_update_post = [
+  // validate/sanitize
+  body("receivedItems.*.id").escape(),
+  body("receivedItems.*.quantity")
+    .optional({ checkFalsy: true })
+    .isInt({ lt: 10000000 })
+    .escape(),
+  body("submitType").isIn(["submit", "save"]).escape(),
+
+  async function receiptUpdatePost(req, res, next) {
+    const { errors } = validationResult(req);
+    const receiptId = req.params.id;
+    const { receivedItems, submitType } = req.body;
+
+    const fetchItems = Item.find({}).populate("category").exec();
+    const fetchReceipt = Receipt.findById(receiptId)
+      .populate("orderReceived")
+      .exec();
+
+    const [items, receipt] = await Promise.all([
+      fetchItems,
+      fetchReceipt,
+    ]).catch((err) => next(err));
+
+    const order = receipt.orderReceived;
+
+    if (receipt.submitted) {
+      return res.redirect(receipt.url);
+    }
+
+    // create receivedItemHash preserving zeroes from ordered items, if receiving an order
+    const receivedItemsFiltered = receivedItems.filter(
+      (item) => !!item.quantity
+    );
+
+    const receivedItemHash = {};
+    receivedItemsFiltered.forEach((item) => {
+      receivedItemHash[item.id] = item.quantity;
+    });
+
+    if (order) {
+      order.orderedItems.forEach((orderedItem) => {
+        receivedItemHash[orderedItem.item] =
+          receivedItemHash[orderedItem.item] || "0";
+      });
+    }
+
+    /*
+     *  Errors? Re-render form
+     */
+
+    if (errors.length > 0) {
+      if (errors.length > 0) {
+        // sort items
+        items.sort((a, b) => {
+          if (a.category.name !== b.category.name) {
+            return a.category.name.toLowerCase() > b.category.name.toLowerCase()
+              ? 1
+              : -1;
+          }
+          return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+        });
+
+        // render receipt form
+        return res.render("receiptForm", {
+          title: "Update Receipt",
+          thisReceiptItems: receivedItemHash,
+          items,
+          errors,
+        });
+      }
+    }
+
+    /*
+     *  No errors -- amend, save to db and redirect, as appropriate to submitType
+     */
+
+    if (submitType === "submit") {
+      // amend receipt
+      receipt.dateSubmitted = Date.now();
+      receipt.receivedItems = Object.keys(receivedItemHash).map((key) => {
+        return {
+          item: mongoose.Types.ObjectId(key),
+          quantity: receivedItemHash[key],
+        };
+      });
+
+      // amend order
+      if (order) {
+        order.deliveryDate = Date.now();
+        order.lastUpdated = Date.now();
+        order.status = "Received";
+      }
+
+      // amend each item in receipt
+      const amendedItems = [];
+      items.forEach((item) => {
+        if (receivedItemHash[item._id]) {
+          const quantityReceived = receivedItemHash[item._id];
+          item.quantityInStock += +quantityReceived;
+          item.qtyLastUpdated = Date.now();
+          item.itemLastUpdated = Date.now();
+          amendedItems.push(item);
+        } else if (receivedItemHash[item._id] === "0") {
+          item.qtyLastUpdated = Date.now();
+          item.itemLastUpdated = Date.now();
+          amendedItems.push(item);
+        }
+      });
+
+      // save items, order, and receipt
+      const saveItems = amendedItems.map((item) => item.save());
+      const saveOrder = order ? order.save() : undefined;
+      const saveReceipt = receipt.save();
+      const [savedReceipt] = await Promise.all([
+        saveReceipt,
+        saveOrder,
+        ...saveItems,
+      ]);
+      // redirect to receipt detail page
+      return res.redirect(savedReceipt.url);
+    }
+
+    if (submitType === "save") {
+      // update receivedItems
+      receipt.receivedItems = Object.keys(receivedItemHash).map((key) => {
+        return {
+          item: mongoose.Types.ObjectId(key),
+          quantity: receivedItemHash[key],
+        };
+      });
+      await receipt.save();
+      // redirect to receipt detail page
+      return res.redirect(receipt.url);
+    }
+
+    /*
+     *  A different submitType somehow got through validation
+     */
+
+    errors.push({ msg: "Invalid submit type" });
+
+    // sort items
+    items.sort((a, b) => {
+      if (a.category.name !== b.category.name) {
+        return a.category.name.toLowerCase() > b.category.name.toLowerCase()
+          ? 1
+          : -1;
+      }
+      return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+    });
+
+    // render receipt form
+    return res.render("receiptForm", {
+      title: "Update Receipt",
+      thisReceiptItems: receivedItemHash,
+      items,
+      errors,
+    });
+  },
+];
 
 exports.receipt_delete_get = function receiptDeleteGet(req, res, next) {
   res.send("NOT IMPLEMENTED");
