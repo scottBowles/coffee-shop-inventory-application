@@ -3,7 +3,7 @@ extends layout
 block content
   h1= title
   if count.type === "By Category"
-    p Category: #{count.countedQuantities[0].item.category.name}
+    p Category: #[span= count.countedQuantities[0].item.category ? count.countedQuantities[0].item.category.name : "(None)"]
   else
     p= count.type
   p Initiated #{count.dateInitiatedFormatted}
@@ -38,4 +38,7 @@ block content
           td= countedQuantity.quantity
           td= countedQuantity.item.sku
           if count.type !== "By Category"
-            td #[a(href=countedQuantity.item.category.url)= countedQuantity.item.category.name]
+            if countedQuantity.item.category
+              td #[a(href=countedQuantity.item.category.url)= countedQuantity.item.category.name]
+            else
+              td "(None)"

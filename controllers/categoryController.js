@@ -21,6 +21,9 @@ exports.category_detail = function categoryDetail(req, res, next) {
       if (err) {
         return next(err);
       }
+      if (category == null) {
+        res.redirect("/inventory/categories");
+      }
       res.render("categoryDetail", { title: category.name, category });
     });
 };
@@ -148,6 +151,28 @@ exports.category_delete_get = async function categoryDeleteGet(req, res, next) {
   }
 };
 
-exports.category_delete_post = function categoryDeletePost(req, res, next) {
-  res.send("NOT IMPLEMENTED: Category delete POST");
+exports.category_delete_post = async function categoryDeletePost(
+  req,
+  res,
+  next
+) {
+  // validate/sanitize
+  // get category, populating items
+  const category = await Category.findByIdAndRemove(req.params.id)
+    .populate("items")
+    .exec();
+  // get each item in category and change item's category to undefined
+  const savedItems = [];
+  category.items.forEach((item) => {
+    item.category = undefined;
+    const savedItem = item.save();
+    savedItems.push(savedItem);
+  });
+  await Promise.all(savedItems).catch((err) => next(err));
+  res.redirect("/inventory/categories");
+
+  // change each item's category to undefined
+  // save each item
+  // Category.findByIdAndRemove(req.body.id).exec().catch(err => next(err))
+  // res.redirect("/inventory/categories");
 };

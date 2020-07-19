@@ -109,7 +109,7 @@ exports.count_create_get = async function countCreateGet(req, res, next) {
   const filteredItems =
     filter === "Full" || filter === "AdHoc"
       ? items
-      : items.filter((item) => item.category.name === filter);
+      : items.filter((item) => item.category && item.category.name === filter);
 
   filteredItems.sort((item1, item2) =>
     item1.name.toLowerCase() > item2.name.toLowerCase() ? 1 : -1

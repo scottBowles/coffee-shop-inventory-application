@@ -86,7 +86,7 @@ exports.receipt_create_get = async function receiptCreateGet(req, res, next) {
   ]).catch((err) => next(err));
 
   // if order already has an associated receipt, redirect to the update page
-  if (order.receipt) {
+  if (order && order.receipt) {
     res.redirect(`/inventory/receiving/${order.receipt._id}/update`);
   }
 
@@ -103,7 +103,7 @@ exports.receipt_create_get = async function receiptCreateGet(req, res, next) {
 
   // sort items
   items.sort((a, b) => {
-    if (a.category.name !== b.category.name) {
+    if (a.category && b.category && a.category.name !== b.category.name) {
       return a.category.name.toLowerCase() > b.category.name.toLowerCase()
         ? 1
         : -1;
@@ -286,6 +286,11 @@ exports.receipt_update_get = async function receiptUpdateGet(req, res, next) {
 
   // if receipt has already been submitted, re-render detail page with error message
   if (receipt.submitted) {
+    // sort, with category-less items assigned "None"
+    receipt.receivedItems.forEach((receivedItem) => {
+      receivedItem.category = receivedItem.category || { name: "None" };
+    });
+
     receipt.receivedItems.sort((a, b) => b.item.name - a.item.name);
     res.render("receiptDetail", {
       title: "Receipt",
@@ -296,11 +301,6 @@ exports.receipt_update_get = async function receiptUpdateGet(req, res, next) {
   }
 
   items.sort((a, b) => {
-    if (a.category !== b.category) {
-      return a.category.name.toLowerCase() > b.category.name.toLowerCase()
-        ? 1
-        : -1;
-    }
     return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
   });
 

@@ -46,7 +46,10 @@ block content
             td= orderedItem.quantity
             td #[a(href=orderedItem.item.url)= orderedItem.item.name]
             td= orderedItem.item.sku
-            td #[a(href=orderedItem.item.category.url)= orderedItem.item.category.name]
+            if orderedItem.item.category
+              td #[a(href=orderedItem.item.category.url)= orderedItem.item.category.name]
+            else
+              td (None)
 
   ul.d-flex
     if order.status === 'Saved'

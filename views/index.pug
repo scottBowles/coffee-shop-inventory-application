@@ -77,7 +77,10 @@ block content
             tr
               td #[a(href=item.url)= item.name]
               td= item.quantityInStock
-              td #[a(href=item.category.url)= item.category.name]
+              if item.category
+                td #[a(href=item.category.url)= item.category.name]
+              else
+                td (None)
               td= item.itemLastUpdatedFormatted
               // TODO - IMPLEMENT UPDATE BUTTON (CREATE NEW COUNT WITH ITEM)
               td #[button Update]

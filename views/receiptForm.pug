@@ -19,7 +19,7 @@ block content
               input(type="number" name=`receivedItems[${index}][quantity]` value=`${thisReceiptItems ? thisReceiptItems[item._id.toString()] || '' : ''}`)
             td #[a(href=item.url)= item.name]
             td= item.quantityInStock
-            td= item.category.name
+            td= item.category ? item.category.name : "(None)"
             td= item.sku
             td.hidden
               input(type="hidden" name=`receivedItems[${index}][id]` value=item._id)

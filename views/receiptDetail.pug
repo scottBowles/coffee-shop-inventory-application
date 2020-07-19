@@ -32,6 +32,9 @@ block content
           td No items to display
       each receivedItem in receipt.receivedItems
         tr
-          td #[a(href=receivedItem.item.category.url)= receivedItem.item.category.name]
+          if receivedItem.item.category
+            td #[a(href=receivedItem.item.category.url)= receivedItem.item.category.name]
+          else
+            td (None)
           td #[a(href=receivedItem.item.url)= receivedItem.item.name]
           td= receivedItem.quantity
