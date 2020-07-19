@@ -503,12 +503,33 @@ exports.order_update_post = [
   },
 ];
 
-exports.order_delete_get = function orderDeleteGet(req, res, next) {
-  res.send("NOT IMPLEMENTED: Order delete GET");
+exports.order_delete_get = async function orderDeleteGet(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    const order = await Order.findById(id)
+      .populate("receipt")
+      .populate({
+        path: "orderedItems.item",
+        populate: {
+          path: "category",
+        },
+      })
+      .exec();
+
+    order.orderedItems.sort((a, b) => {
+      if (a.item.sku !== b.item.sku) {
+        return a.item.sku > b.item.sku ? 1 : -1;
+      }
+      return a.item.name.toLowerCase() > b.item.name.toLowerCase() ? 1 : -1;
+    });
+
+    return res.render("orderDelete", { title: "Delete Order", order });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 exports.order_delete_post = function orderDeletePost(req, res, next) {
   res.send("NOT IMPLEMENTED: Order delete POST");
 };
-
-// TODO -- CREATE A RECEIPT EVERY TIME A NEW ORDER IS CREATED
