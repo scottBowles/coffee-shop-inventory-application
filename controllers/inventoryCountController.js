@@ -431,21 +431,32 @@ exports.count_update_post = [
 
 exports.count_delete_get = async function countDeleteGet(req, res, next) {
   const { id } = req.params;
-  const count = await InventoryCount.findById(id)
-    .populate({
-      path: "countedQuantities.item",
-      populate: "category",
-    })
-    .exec();
-  count.countedQuantities.sort((a, b) => {
-    if (a.item.sku !== b.item.sku) {
-      return a.item.sku > b.item.sku ? 1 : -1;
-    }
-    return a.item.name > b.item.name ? 1 : -1;
-  });
-  res.render("countDelete", { title: "Remove Inventory Count", count });
+  try {
+    const count = await InventoryCount.findById(id)
+      .populate({
+        path: "countedQuantities.item",
+        populate: "category",
+      })
+      .exec();
+
+    count.countedQuantities.sort((a, b) => {
+      if (a.item.sku !== b.item.sku) {
+        return a.item.sku > b.item.sku ? 1 : -1;
+      }
+      return a.item.name > b.item.name ? 1 : -1;
+    });
+
+    res.render("countDelete", { title: "Remove Inventory Count", count });
+  } catch (error) {
+    return next(error);
+  }
 };
 
-exports.count_delete_post = function countDeletePost(req, res, next) {
-  res.send("NOT IMPLEMENTED");
+exports.count_delete_post = async function countDeletePost(req, res, next) {
+  try {
+    await InventoryCount.findByIdAndRemove(req.params.id).exec();
+    res.redirect("/inventory/counts");
+  } catch (error) {
+    return next(error);
+  }
 };

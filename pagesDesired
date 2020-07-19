@@ -102,10 +102,8 @@ Create new receipt page                gp inventory/receiving/create-new      Do
 Inventory counts home page             g  inventory/counts                    Static done
 Each inventory count page              g  inventory/count/<id>                Static done & POST done
 Each inventory count amending page     gp inventory/count/<id>/update         Done
-Each inventory count deleting page     gp inventory/count/<id>/remove
-  (only deletable if not yet submitted)
+Each inventory count deleting page     gp inventory/count/<id>/remove         GET done; POST remains
 Create new inventory count             gp inventory/count/create-new          Done
-  On count detail page, need an update button and maybe a submit as-is button
 
 
 TODO
