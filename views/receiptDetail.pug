@@ -41,5 +41,10 @@ block content
             td= receivedItem.quantity
 
   else
-    p No receipt found
-    p If this is unexpected contact an administrator
+    if errors
+      ul
+        for error in errors
+          li #[strong!= error.msg]
+    else 
+      p No receipt found
+      p If this is unexpected contact an administrator

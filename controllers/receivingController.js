@@ -1,5 +1,5 @@
 const async = require("async");
-const { body, validationResult } = require("express-validator");
+const { body, param, validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 const Receipt = require("../models/receipt");
 const Order = require("../models/order");
@@ -38,7 +38,7 @@ exports.receiving_home = function receivingHome(req, res, next) {
         if (err) {
           return next(err);
         }
-        res.render("receivingHome", {
+        return res.render("receivingHome", {
           title: "Receiving",
           orders: results.orders,
           filter: results.filter,
@@ -49,81 +49,135 @@ exports.receiving_home = function receivingHome(req, res, next) {
   }
 };
 
-exports.receipt_detail = function receiptDetail(req, res, next) {
-  Receipt.findById(req.params.id)
-    .populate({
-      path: "receivedItems.item",
-      select: "category name",
-      populate: {
-        path: "category",
-        select: "name",
-      },
-    })
-    .exec((err, receipt) => {
-      if (err) {
-        return next(err);
-      }
-      if (receipt == null) {
-        return res.render("receiptDetail", { title: "Receipt" });
-      }
-      receipt.receivedItems.sort((a, b) => b.item.name - a.item.name);
-      res.render("receiptDetail", { title: "Receipt", receipt });
-    });
-};
+exports.receipt_detail = [
+  // validate/sanitize
+  param("id")
+    .isMongoId()
+    .withMessage(
+      "Receipt not found. Was something changed in the string after '/receiving/' in the url?"
+    )
+    .escape(),
 
-exports.receipt_create_get = async function receiptCreateGet(req, res, next) {
-  // get items and, if receiving an order, order
-  const fetchItems = Item.find({}, "name sku quantityInStock")
-    .populate("category")
-    .exec()
-    .catch((err) => next(err));
-
-  const orderId = req.params.order || undefined;
-  const fetchOrder = orderId
-    ? Order.findById(orderId).populate("receipt").exec()
-    : undefined;
-
-  const [items, order] = await Promise.all([
-    fetchItems,
-    fetchOrder,
-  ]).catch((err) => next(err));
-
-  // if order already has an associated receipt, redirect to the update page
-  if (order && order.receipt) {
-    res.redirect(`/inventory/receiving/${order.receipt._id}/update`);
-  }
-
-  // get hash of this receipt's items from the order being received
-  let thisReceiptItems = {};
-  if (order) {
-    order.orderedItems.forEach((orderedItem) => {
-      const id = orderedItem.item;
-      thisReceiptItems[id] = orderedItem.quantity;
-    });
-  } else {
-    thisReceiptItems = undefined;
-  }
-
-  // sort items
-  items.sort((a, b) => {
-    if (a.category && b.category && a.category.name !== b.category.name) {
-      return a.category.name.toLowerCase() > b.category.name.toLowerCase()
-        ? 1
-        : -1;
+  function receiptDetail(req, res, next) {
+    const { errors } = validationResult(req);
+    if (errors.length > 0) {
+      return res.render("receiptDetail", { title: "Receipt", errors });
     }
-    return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
-  });
 
-  // render receipt form
-  res.render("receiptForm", {
-    title: "Create New Receipt",
-    items,
-    thisReceiptItems,
-  });
-};
+    Receipt.findById(req.params.id)
+      .populate({
+        path: "receivedItems.item",
+        select: "category name",
+        populate: {
+          path: "category",
+          select: "name",
+        },
+      })
+      .exec((err, receipt) => {
+        if (err) {
+          return next(err);
+        }
+        if (receipt == null) {
+          return res.render("receiptDetail", { title: "Receipt" });
+        }
+        receipt.receivedItems.sort((a, b) => b.item.name - a.item.name);
+        return res.render("receiptDetail", { title: "Receipt", receipt });
+      });
+  },
+];
+
+exports.receipt_create_get = [
+  // validate/sanitize
+  param("order")
+    .optional()
+    .isMongoId()
+    .withMessage(
+      "Order not found. Was something added or changed after '/receiving/create-new/' in the url?"
+    )
+    .escape(),
+
+  async function receiptCreateGet(req, res, next) {
+    // handle validation errors
+    const { errors } = validationResult(req);
+    if (errors.length > 0) {
+      return res.render("receiptForm", {
+        title: "Create New Receipt",
+        errors,
+      });
+    }
+
+    const orderId = req.params.order || undefined;
+
+    // get items and, if receiving an order, order
+    const fetchItems = Item.find({}, "name sku quantityInStock")
+      .populate("category")
+      .exec()
+      .catch((err) => next(err));
+
+    const fetchOrder = orderId
+      ? Order.findById(orderId).populate("receipt").exec()
+      : undefined;
+
+    const [items, order] = await Promise.all([
+      fetchItems,
+      fetchOrder,
+    ]).catch((err) => next(err));
+
+    // handle if order is in params but no order is found
+    if (orderId && order == null) {
+      return res.render("receiptForm", {
+        title: "Create New Receipt",
+        errors: [
+          {
+            msg:
+              "Order not found. Was something added or changed after '/receiving/create-new/' in the url?",
+          },
+        ],
+      });
+    }
+
+    // if order already has an associated receipt, redirect to the update page
+    if (order && order.receipt) {
+      return res.redirect(`/inventory/receiving/${order.receipt._id}/update`);
+    }
+
+    // get hash of this receipt's items from the order being received
+    let thisReceiptItems = {};
+    if (order) {
+      order.orderedItems.forEach((orderedItem) => {
+        const id = orderedItem.item;
+        thisReceiptItems[id] = orderedItem.quantity;
+      });
+    } else {
+      thisReceiptItems = undefined;
+    }
+
+    // sort items
+    items.sort((a, b) => {
+      if (a.category && b.category && a.category.name !== b.category.name) {
+        return a.category.name.toLowerCase() > b.category.name.toLowerCase()
+          ? 1
+          : -1;
+      }
+      return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+    });
+
+    // render receipt form
+    return res.render("receiptForm", {
+      title: "Create New Receipt",
+      items,
+      thisReceiptItems,
+    });
+  },
+];
 
 exports.receipt_create_post = [
   // validate/sanitize
+  param("order")
+    .optional()
+    .isMongoId()
+    .withMessage("Invalid order id")
+    .escape(),
   body("receivedItems.*.id").escape(),
   body("receivedItems.*.quantity")
     .optional({ checkFalsy: true })
@@ -134,7 +188,15 @@ exports.receipt_create_post = [
   async function receiptCreatePost(req, res, next) {
     const { errors } = validationResult(req);
     const { receivedItems, submitType } = req.body;
-    const orderId = req.params.order;
+    const orderId = req.params.order || undefined;
+
+    // if our orderId from params is bad, handle before we try to fetch the order
+    if (errors[0] && errors[0].location === "params") {
+      return res.render("receiptForm", {
+        title: "Create New Receipt",
+        errors,
+      });
+    }
 
     /*
      *  Fetch items and, if receiving an order, order.
@@ -151,8 +213,22 @@ exports.receipt_create_post = [
       fetchOrder,
     ]).catch((err) => next(err));
 
+    // handle if order is in params but no order is found
+    if (orderId && order == null) {
+      return res.render("receiptForm", {
+        title: "Create New Receipt",
+        errors: [
+          {
+            msg:
+              "Order not found. Was something added or changed after '/receiving/create-new/' in the url?",
+          },
+        ],
+      });
+    }
+
+    // if order already has an associated receipt, redirect to the update page
     if (order && order.receipt) {
-      res.redirect(`/inventory/receiving/${order.receipt._id}/update`);
+      return res.redirect(`/inventory/receiving/${order.receipt._id}/update`);
     }
 
     /*
@@ -191,31 +267,27 @@ exports.receipt_create_post = [
           quantity: receivedItemHash[key],
         };
       }),
-      orderReceived: orderId || undefined,
+      orderReceived: order ? order._id : undefined,
     });
 
     /*
      *  If errors, rerender receiptForm with errors
      */
+
     if (errors.length > 0) {
       items.sort((a, b) => {
-        if (a.category.name !== b.category.name) {
-          return a.category.name.toLowerCase() > b.category.name.toLowerCase()
-            ? 1
-            : -1;
-        }
         return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
       });
 
       // render receipt form
-      res.render("receiptForm", {
+      return res.render("receiptForm", {
         title: "Create New Receipt",
         thisReceiptItems: receivedItemHash,
         items,
         errors,
       });
-      return;
     }
+
     /*
      *  No errors -- amend and save to db and redirect
      */
@@ -254,75 +326,96 @@ exports.receipt_create_post = [
         ...saveItems,
       ]);
       // redirect to receipt detail page
-      res.redirect(savedReceipt.url);
-    } else if (submitType === "save") {
-      const savedReceipt = await newReceipt.save();
-      // redirect to receipt detail page
-      res.redirect(savedReceipt.url);
+      return res.redirect(savedReceipt.url);
     }
+
+    // submitType presumed to be "save" given validation result
+    const savedReceipt = await newReceipt.save();
+
+    // redirect to receipt detail page
+    return res.redirect(savedReceipt.url);
   },
 ];
 
-exports.receipt_update_get = async function receiptUpdateGet(req, res, next) {
-  // promise receipt
-  const fetchReceipt = Receipt.findById(req.params.id)
-    .populate({
-      path: "receivedItems.item",
-      select: "category name",
-      populate: {
-        path: "category",
-        select: "name",
-      },
-    })
-    .exec();
+exports.receipt_update_get = [
+  param("id")
+    .isMongoId()
+    .withMessage(
+      "Receipt not found. Was something added or changed in the string after '/receiving/' and before '/update' in the url?"
+    )
+    .escape(),
 
-  // promise items
-  const fetchItems = Item.find({}, "name sku quantityInStock")
-    .populate("category")
-    .exec();
+  async function receiptUpdateGet(req, res, next) {
+    const { errors } = validationResult(req);
+    if (errors.length > 0) {
+      return res.render("receiptForm", {
+        title: "Update Receipt",
+        errors,
+      });
+    }
 
-  // fetch in parallel
-  const [receipt, items] = await Promise.all([
-    fetchReceipt,
-    fetchItems,
-  ]).catch((err) => next(err));
+    // promise receipt
+    const fetchReceipt = Receipt.findById(req.params.id)
+      .populate({
+        path: "receivedItems.item",
+        select: "category name",
+        populate: {
+          path: "category",
+          select: "name",
+        },
+      })
+      .exec();
 
-  // if receipt has already been submitted, re-render detail page with error message
-  if (receipt.submitted) {
-    // sort, with category-less items assigned "None"
+    // promise items
+    const fetchItems = Item.find({}, "name sku quantityInStock")
+      .populate("category")
+      .exec();
+
+    // fetch in parallel
+    const [receipt, items] = await Promise.all([
+      fetchReceipt,
+      fetchItems,
+    ]).catch((err) => next(err));
+
+    // if receipt has already been submitted, re-render detail page with error message
+    if (receipt.submitted) {
+      // sort, with category-less items assigned "None"
+      receipt.receivedItems.forEach((receivedItem) => {
+        receivedItem.category = receivedItem.category || { name: "None" };
+      });
+
+      receipt.receivedItems.sort((a, b) => b.item.name - a.item.name);
+      return res.render("receiptDetail", {
+        title: "Receipt",
+        receipt,
+        errors: [
+          { msg: "Cannot update a receipt once it has been submitted." },
+        ],
+      });
+    }
+
+    items.sort((a, b) => {
+      return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+    });
+
+    const thisReceiptItems = {};
     receipt.receivedItems.forEach((receivedItem) => {
-      receivedItem.category = receivedItem.category || { name: "None" };
+      const id = receivedItem.item._id.toString();
+      thisReceiptItems[id] = receivedItem.quantity;
     });
 
-    receipt.receivedItems.sort((a, b) => b.item.name - a.item.name);
-    res.render("receiptDetail", {
-      title: "Receipt",
+    return res.render("receiptForm", {
+      title: "Update Receipt",
       receipt,
-      errors: [{ msg: "Cannot update a receipt once it has been submitted." }],
+      items,
+      thisReceiptItems,
     });
-    return;
-  }
-
-  items.sort((a, b) => {
-    return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
-  });
-
-  const thisReceiptItems = {};
-  receipt.receivedItems.forEach((receivedItem) => {
-    const id = receivedItem.item._id.toString();
-    thisReceiptItems[id] = receivedItem.quantity;
-  });
-
-  res.render("receiptForm", {
-    title: "Update Receipt",
-    receipt,
-    items,
-    thisReceiptItems,
-  });
-};
+  },
+];
 
 exports.receipt_update_post = [
   // validate/sanitize
+  param("id").isMongoId().withMessage("Invalid receipt").escape(),
   body("receivedItems.*.id").escape(),
   body("receivedItems.*.quantity")
     .optional({ checkFalsy: true })
@@ -334,6 +427,14 @@ exports.receipt_update_post = [
     const { errors } = validationResult(req);
     const receiptId = req.params.id;
     const { receivedItems, submitType } = req.body;
+
+    // if our orderId from params is bad, handle before we try to fetch the order
+    if (errors[0] && errors[0].location === "params") {
+      return res.render("receiptForm", {
+        title: "Update Receipt",
+        errors,
+      });
+    }
 
     const fetchItems = Item.find({}).populate("category").exec();
     const fetchReceipt = Receipt.findById(receiptId)
