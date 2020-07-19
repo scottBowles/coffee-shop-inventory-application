@@ -437,6 +437,12 @@ exports.count_delete_get = async function countDeleteGet(req, res, next) {
       populate: "category",
     })
     .exec();
+  count.countedQuantities.sort((a, b) => {
+    if (a.item.sku !== b.item.sku) {
+      return a.item.sku > b.item.sku ? 1 : -1;
+    }
+    return a.item.name > b.item.name ? 1 : -1;
+  });
   res.render("countDelete", { title: "Remove Inventory Count", count });
 };
 
