@@ -63,6 +63,9 @@ exports.receipt_detail = function receiptDetail(req, res, next) {
       if (err) {
         return next(err);
       }
+      if (receipt == null) {
+        return res.render("receiptDetail", { title: "Receipt" });
+      }
       receipt.receivedItems.sort((a, b) => b.item.name - a.item.name);
       res.render("receiptDetail", { title: "Receipt", receipt });
     });

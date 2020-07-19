@@ -2,39 +2,44 @@ extends layout
 
 block content
   h1= title
-  h6= receipt.submitted ? "Submitted " + receipt.dateSubmittedFormatted : 'Open'
-  h6 Initiated #{receipt.dateInitiatedFormatted}
-  if receipt.orderReceived
-    h6 #[a(href=receipt.orderReceivedUrl) Order Received]
+  if receipt
+    h6= receipt.submitted ? "Submitted " + receipt.dateSubmittedFormatted : 'Open'
+    h6 Initiated #{receipt.dateInitiatedFormatted}
+    if receipt.orderReceived
+      h6 #[a(href=receipt.orderReceivedUrl) Order Received]
+    else
+      h6 Ad Hoc
+    if !receipt.submitted
+      a(href=`${receipt.url}/update`) Update Receipt
+
+    if errors
+      ul
+        for error in errors
+          li #[strong!= error.msg]
+
+    h4 Items
+    table(class="table table-striped")
+      - const numItems = receipt.receivedItems.length
+      - const totQty = receipt.totalQuantityInItems
+      caption #{numItems === 1 ? `${numItems} Line Item` : `${numItems} Line Items`} / #{totQty === 1 ? `${totQty} Item Received` : `${totQty} Items Received`}
+      thead
+        tr
+          th(scope="col") Category
+          th(scope="col") Item
+          th(scope="col") Quantity Received
+      tbody
+        if receipt.receivedItems.length === 0
+          tr
+            td No items to display
+        each receivedItem in receipt.receivedItems
+          tr
+            if receivedItem.item.category
+              td #[a(href=receivedItem.item.category.url)= receivedItem.item.category.name]
+            else
+              td (None)
+            td #[a(href=receivedItem.item.url)= receivedItem.item.name]
+            td= receivedItem.quantity
+
   else
-    h6 Ad Hoc
-  if !receipt.submitted
-    a(href=`${receipt.url}/update`) Update Receipt
-
-  if errors
-    ul
-      for error in errors
-        li #[strong!= error.msg]
-
-  h4 Items
-  table(class="table table-striped")
-    - const numItems = receipt.receivedItems.length
-    - const totQty = receipt.totalQuantityInItems
-    caption #{numItems === 1 ? `${numItems} Line Item` : `${numItems} Line Items`} / #{totQty === 1 ? `${totQty} Item Received` : `${totQty} Items Received`}
-    thead
-      tr
-        th(scope="col") Category
-        th(scope="col") Item
-        th(scope="col") Quantity Received
-    tbody
-      if receipt.receivedItems.length === 0
-        tr
-          td No items to display
-      each receivedItem in receipt.receivedItems
-        tr
-          if receivedItem.item.category
-            td #[a(href=receivedItem.item.category.url)= receivedItem.item.category.name]
-          else
-            td (None)
-          td #[a(href=receivedItem.item.url)= receivedItem.item.name]
-          td= receivedItem.quantity
+    p No receipt found
+    p If this is unexpected contact an administrator
