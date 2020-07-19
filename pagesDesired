@@ -88,7 +88,7 @@ Create new item page                   gp inventory/item/create-new           Do
 Categories home page                   g  inventory/categories                Static done
 Each category viewing page             g  inventory/category/<id>             Static done
 Each category amending page            gp inventory/category/<id>/update      Done
-Each category deleting page            gp inventory/category/<id>/remove      GET done, POST remains
+Each category deleting page            gp inventory/category/<id>/remove      Done
 Create new category page               gp inventory/category/create-new       Done
 
 >>> RECEIVING <<<

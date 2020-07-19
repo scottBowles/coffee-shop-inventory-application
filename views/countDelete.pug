@@ -1,0 +1,49 @@
+extends layout
+
+block content
+  h1= title
+  if count.type === "By Category"
+    p Category: #[span= count.countedQuantities[0].item.category ? count.countedQuantities[0].item.category.name : "(None)"]
+  else
+    p= count.type
+  p Initiated #{count.dateInitiatedFormatted}
+  if count.submitted
+    p Submitted #{count.dateSubmittedFormatted}
+  else
+    p Count not submitted
+
+  p Are you sure you want to remove this inventory count?
+
+  if error
+    h4= error
+  
+  if count.countedQuantities
+    table(class="table table-striped")
+      caption #{count.countedQuantities.length} Items Counted
+      thead
+        tr
+          th(scope="col") Name
+          th(scope="col") Quantity
+          th(scope="col") SKU
+          if count.type !== "By Category"
+            th(scope="col") Category
+      tbody
+        if count.countedQuantities.length === 0
+          tr
+            td No items counted
+        each countedQuantity in count.countedQuantities
+          tr
+            td #[a(href=countedQuantity.item.url)= countedQuantity.item.name]
+            td= countedQuantity.quantity
+            td= countedQuantity.item.sku
+            if count.type !== "By Category"
+              if countedQuantity.item.category
+                td #[a(href=countedQuantity.item.category.url)= countedQuantity.item.category.name]
+              else
+                td "(None)"
+
+  form(method='POST' action='')
+      div.form-group
+        input#countId.form-control(type='hidden',name='countId', required='true', value=count._id )
+
+      button.btn.btn-primary(type='submit') Delete

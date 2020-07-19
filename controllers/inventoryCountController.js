@@ -429,8 +429,15 @@ exports.count_update_post = [
   },
 ];
 
-exports.count_delete_get = function countDeleteGet(req, res, next) {
-  res.send("NOT IMPLEMENTED");
+exports.count_delete_get = async function countDeleteGet(req, res, next) {
+  const { id } = req.params;
+  const count = await InventoryCount.findById(id)
+    .populate({
+      path: "countedQuantities.item",
+      populate: "category",
+    })
+    .exec();
+  res.render("countDelete", { title: "Remove Inventory Count", count });
 };
 
 exports.count_delete_post = function countDeletePost(req, res, next) {
