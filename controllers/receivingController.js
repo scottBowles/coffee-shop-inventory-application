@@ -191,7 +191,8 @@ exports.receipt_create_post = [
     const orderId = req.params.order || undefined;
 
     // if our orderId from params is bad, handle before we try to fetch the order
-    if (errors[0] && errors[0].location === "params") {
+    const paramErrors = errors.filter((error) => error.location === "params");
+    if (paramErrors.length > 0) {
       return res.render("receiptForm", {
         title: "Create New Receipt",
         errors,
@@ -429,7 +430,8 @@ exports.receipt_update_post = [
     const { receivedItems, submitType } = req.body;
 
     // if our orderId from params is bad, handle before we try to fetch the order
-    if (errors[0] && errors[0].location === "params") {
+    const paramErrors = errors.filter((error) => error.location === "params");
+    if (paramErrors.length > 0) {
       return res.render("receiptForm", {
         title: "Update Receipt",
         errors,
