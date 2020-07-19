@@ -74,7 +74,7 @@ Home page                              g  inventory/                          St
 Orders home page                       g  inventory/orders                    Static done
 Each order page                        g  inventory/order/<id>                Static done & POST done
 Each order amending page               gp inventory/order/<id>/update         Done
-Each order deleting page               gp inventory/order/<id>/remove
+Each order deleting page               gp inventory/order/<id>/remove         GET done; POST remains
 Create order                           gp inventory/order/create-new          Done
 
 >>> ITEMS <<<
@@ -102,7 +102,7 @@ Create new receipt page                gp inventory/receiving/create-new      Do
 Inventory counts home page             g  inventory/counts                    Static done
 Each inventory count page              g  inventory/count/<id>                Static done & POST done
 Each inventory count amending page     gp inventory/count/<id>/update         Done
-Each inventory count deleting page     gp inventory/count/<id>/remove         GET done; POST remains
+Each inventory count deleting page     gp inventory/count/<id>/remove         Done
 Create new inventory count             gp inventory/count/create-new          Done
 
 
@@ -118,4 +118,3 @@ GET IT TO ORDER RECEIPTS THE WAY I WANT ON RECEIPT HOME PAGE. MAY NEED TO ADD LA
 SINCE ADDING A RECEIPT VIRTUAL TO THE ORDER SCHEMA, SHOULD BE ABLE TO CLEAN UP THE ORDER CONTROLLERS TO USE THIS RATHER THAN FETCHING THE MATCHING RECEIPT ON THEIR OWN
 TAKE A LOOK AT THE LANDING PAGE -- ITS VARIOUS LINKS, WHETHER ORDERS SHOW THE APPROPRIATE ONES, ETC.
 SORT ITEMS ON ORDER DETAIL GET PAGE
-SWITCH SORTING OF ORDERS ON RECEIVING HOME PAGE

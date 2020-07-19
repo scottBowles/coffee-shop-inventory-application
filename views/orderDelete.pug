@@ -12,11 +12,11 @@ block content
       li Delivery Date: #{order.deliveryDateFormatted}
     if order.status === 'Received'
       li Ordered: #{order.orderDateFormatted}
-      li Received: #{receipt.dateSubmittedFormatted}
+      li Received: #{order.receipt.dateSubmittedFormatted}
 
   p Are you sure you want to delete this order?
   if order.receipt
-    p This will remove both this order and also #[a(href=order.receipt.url) its receipt].
+    p This will remove both this order and #[a(href=order.receipt.url) its receipt].
 
   if errors
     ul

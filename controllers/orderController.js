@@ -530,6 +530,20 @@ exports.order_delete_get = async function orderDeleteGet(req, res, next) {
   }
 };
 
-exports.order_delete_post = function orderDeletePost(req, res, next) {
-  res.send("NOT IMPLEMENTED: Order delete POST");
+exports.order_delete_post = async function orderDeletePost(req, res, next) {
+  try {
+    // delete order and, if receipt, receipt
+    const order = await Order.findByIdAndDelete(req.params.id)
+      .populate("receipt")
+      .exec();
+
+    if (order.receipt) {
+      const receiptId = order.receipt._id;
+      await Receipt.findByIdAndDelete(receiptId);
+    }
+
+    return res.redirect("/inventory/orders");
+  } catch (error) {
+    return next(err);
+  }
 };
