@@ -120,7 +120,7 @@ SORT ITEMS ON ORDER DETAIL GET PAGE
 VALIDATE PARAMS
   MAKE SURE NOTHING CRASHES IF A REQ.PARAMS.[] POINTS TO SOMETHING THAT DOESN'T EXIST
   -- receiving -- DONE -- make sure delete follows this as well
-  -- order        ---
+  -- order        DONE
   -- item         ---
   -- count        ---
   -- category     ---

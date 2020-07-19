@@ -2,62 +2,68 @@ extends layout
 
 block content
   h1= title
-  h6= order.status
-  ul
-    if order.status === 'Saved'
-      li Last Updated: #{order.lastUpdatedFormatted}
-    if order.status === 'Ordered'
-      li Ordered: #{order.orderDateFormatted}
-    if order.deliveryDate
-      li Delivery Date: #{order.deliveryDateFormatted}
-    if order.status === 'Received'
-      li Ordered: #{order.orderDateFormatted}
-      li Received: #{receipt.dateSubmittedFormatted}
-  
-  ul.d-flex
-    if order.status === 'Saved'
-      li
-        form(method="POST" action="")
-          button.mr-5(type="submit") Place Order
-      li #[a(href=`${order.url}/update`) Update Order]
-    if order.status === 'Ordered'
-      li #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
-
-  if errors
+  if order
+    h6= order.status
     ul
-      for error in errors
-        li #[strong!= error.msg]
+      if order.status === 'Saved'
+        li Last Updated: #{order.lastUpdatedFormatted}
+      if order.status === 'Ordered'
+        li Ordered: #{order.orderDateFormatted}
+      if order.deliveryDate
+        li Delivery Date: #{order.deliveryDateFormatted}
+      if order.status === 'Received'
+        li Ordered: #{order.orderDateFormatted}
+        li Received: #{receipt.dateSubmittedFormatted}
+    
+    ul.d-flex
+      if order.status === 'Saved'
+        li
+          form(method="POST" action="")
+            button.mr-5(type="submit") Place Order
+        li #[a(href=`${order.url}/update`) Update Order]
+      if order.status === 'Ordered'
+        li #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
 
-  table(class="table table-striped")
-    caption Items
-    thead
-      tr
-        th(scope="col") Qty Ordered
-        th(scope="col") Name
-        th(scope="col") SKU
-        th(scope="col") Category
-    tbody
-      if order.orderedItems.length === 0
+    if errors
+      ul
+        for error in errors
+          li #[strong!= error.msg]
+
+    table(class="table table-striped")
+      caption Items
+      thead
         tr
-          td No items to display
-      each orderedItem in order.orderedItems
-        if orderedItem
+          th(scope="col") Qty Ordered
+          th(scope="col") Name
+          th(scope="col") SKU
+          th(scope="col") Category
+      tbody
+        if order.orderedItems.length === 0
           tr
-            td= orderedItem.quantity
-            td #[a(href=orderedItem.item.url)= orderedItem.item.name]
-            td= orderedItem.item.sku
-            if orderedItem.item.category
-              td #[a(href=orderedItem.item.category.url)= orderedItem.item.category.name]
-            else
-              td (None)
+            td No items to display
+        each orderedItem in order.orderedItems
+          if orderedItem
+            tr
+              td= orderedItem.quantity
+              td #[a(href=orderedItem.item.url)= orderedItem.item.name]
+              td= orderedItem.item.sku
+              if orderedItem.item.category
+                td #[a(href=orderedItem.item.category.url)= orderedItem.item.category.name]
+              else
+                td (None)
 
-  ul.d-flex
-    if order.status === 'Saved'
-      li
-        form(method="POST" action="")
-          button.mr-5(type="submit") Place Order
-      li #[a(href=`${order.url}/update`) Update Order]
-    if order.status === 'Ordered'
-      li #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
-    li #[a.ml-5(href=`/inventory/order/${order._id}/remove`) Delete Order]
+    ul.d-flex
+      if order.status === 'Saved'
+        li
+          form(method="POST" action="")
+            button.mr-5(type="submit") Place Order
+        li #[a(href=`${order.url}/update`) Update Order]
+      if order.status === 'Ordered'
+        li #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
+      li #[a.ml-5(href=`/inventory/order/${order._id}/remove`) Delete Order]
 
+  else
+    if errors
+      ul
+        for error in errors
+          li!= error.msg

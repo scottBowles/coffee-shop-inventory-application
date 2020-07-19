@@ -2,52 +2,59 @@ extends layout
 
 block content
   h1= title
-  h6= order.status
-  ul
-    if order.status === 'Saved'
-      li Last Updated: #{order.lastUpdatedFormatted}
-    if order.status === 'Ordered'
-      li Ordered: #{order.orderDateFormatted}
-    if order.deliveryDate
-      li Delivery Date: #{order.deliveryDateFormatted}
-    if order.status === 'Received'
-      li Ordered: #{order.orderDateFormatted}
-      li Received: #{order.receipt.dateSubmittedFormatted}
-
-  p Are you sure you want to delete this order?
-  if order.receipt
-    p This will remove both this order and #[a(href=order.receipt.url) its receipt].
-
-  if errors
+  if order
+    h6= order.status
     ul
-      for error in errors
-        li #[strong!= error.msg]
+      if order.status === 'Saved'
+        li Last Updated: #{order.lastUpdatedFormatted}
+      if order.status === 'Ordered'
+        li Ordered: #{order.orderDateFormatted}
+      if order.deliveryDate
+        li Delivery Date: #{order.deliveryDateFormatted}
+      if order.status === 'Received'
+        li Ordered: #{order.orderDateFormatted}
+        li Received: #{order.receipt.dateSubmittedFormatted}
 
-  table(class="table table-striped")
-    caption Items
-    thead
-      tr
-        th(scope="col") Qty Ordered
-        th(scope="col") Name
-        th(scope="col") SKU
-        th(scope="col") Category
-    tbody
-      if order.orderedItems.length === 0
+    p Are you sure you want to delete this order?
+    if order.receipt
+      p This will remove both this order and #[a(href=order.receipt.url) its receipt].
+
+    if errors
+      ul
+        for error in errors
+          li #[strong!= error.msg]
+
+    table(class="table table-striped")
+      caption Items
+      thead
         tr
-          td No items to display
-      each orderedItem in order.orderedItems
-        if orderedItem
+          th(scope="col") Qty Ordered
+          th(scope="col") Name
+          th(scope="col") SKU
+          th(scope="col") Category
+      tbody
+        if order.orderedItems.length === 0
           tr
-            td= orderedItem.quantity
-            td #[a(href=orderedItem.item.url)= orderedItem.item.name]
-            td= orderedItem.item.sku
-            if orderedItem.item.category
-              td #[a(href=orderedItem.item.category.url)= orderedItem.item.category.name]
-            else
-              td (None)
+            td No items to display
+        each orderedItem in order.orderedItems
+          if orderedItem
+            tr
+              td= orderedItem.quantity
+              td #[a(href=orderedItem.item.url)= orderedItem.item.name]
+              td= orderedItem.item.sku
+              if orderedItem.item.category
+                td #[a(href=orderedItem.item.category.url)= orderedItem.item.category.name]
+              else
+                td (None)
 
-  form(method='POST' action='')
-    div.form-group
-      input#orderId.form-control(type='hidden',name='orderId', required='true', value=order._id )
+    form(method='POST' action='')
+      div.form-group
+        input#orderId.form-control(type='hidden',name='orderId', required='true', value=order._id )
 
-    button.btn.btn-primary(type='submit') Delete
+      button.btn.btn-primary(type='submit') Delete
+
+  else
+    if errors
+      ul
+        for error in errors
+          li!= error.msg
