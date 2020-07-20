@@ -86,16 +86,30 @@ exports.item_home = function itemHome(req, res, next) {
   );
 };
 
-exports.item_detail = function itemDetail(req, res, next) {
-  Item.findById(req.params.id)
-    .populate("category")
-    .exec((err, item) => {
-      if (err) {
-        return next(err);
-      }
-      res.render("itemDetail", { item });
-    });
-};
+exports.item_detail = [
+  param("id").isMongoId().withMessage("Item not found").escape(),
+  function itemDetail(req, res, next) {
+    const { errors } = validationResult(req);
+    if (errors.length > 0) {
+      return res.render("itemDetail", {
+        errors,
+      });
+    }
+    Item.findById(req.params.id)
+      .populate("category")
+      .exec((err, item) => {
+        if (err) {
+          return next(err);
+        }
+        if (item == null) {
+          return res.render("itemDetail", {
+            errors: [{ msg: "Item not found" }],
+          });
+        }
+        return res.render("itemDetail", { item });
+      });
+  },
+];
 
 exports.item_create_get = function itemCreateGet(req, res, next) {
   Category.find({}).exec((err, categories) => {
@@ -198,25 +212,34 @@ exports.item_create_post = [
 // Remember to check whether quantityInStock has been updated, and if so, create an Initial count
 // Remember to change qtyLastUpdated if quantityInStock changes
 
-exports.item_update_get = function itemUpdateGet(req, res, next) {
-  const fetchItem = Item.findById(req.params.id).exec();
-  const fetchCategories = Category.find({}).exec();
+exports.item_update_get = [
+  param("id").isMongoId().withMessage("Item not found").escape(),
+  function itemUpdateGet(req, res, next) {
+    const { errors } = validationResult(req);
+    if (errors.length > 0) {
+      res.render({ title: "Update Item", errors });
+    }
 
-  Promise.all([fetchItem, fetchCategories])
-    .catch((error) => next(error))
-    .then(([item, categories]) => {
-      if (item === null || categories === null) {
-        const notFoundError = new Error("Item not found");
-        notFoundError.status = 404;
-        return next(notFoundError);
-      }
-      res.render("itemForm", {
-        title: `Update Item: ${item.name}`,
-        item,
-        categories,
+    const fetchItem = Item.findById(req.params.id).exec();
+    const fetchCategories = Category.find({}).exec();
+
+    Promise.all([fetchItem, fetchCategories])
+      .catch((error) => next(error))
+      .then(([item, categories]) => {
+        if (item === null) {
+          return res.render("itemForm", {
+            title: "Update Item",
+            errors: [{ msg: "Item not found" }],
+          });
+        }
+        return res.render("itemForm", {
+          title: `Update Item: ${item.name}`,
+          item,
+          categories,
+        });
       });
-    });
-};
+  },
+];
 
 exports.item_update_post = [
   body("name")
@@ -248,11 +271,29 @@ exports.item_update_post = [
     "itemLastUpdated",
     "ItemLastUpdated must be a valid date. (If you are seeing this as an end user, please report this error.)"
   ).toDate(),
+  param("id").isMongoId().withMessage("Item not found").escape(),
 
   async function itemUpdatePost(req, res, next) {
     const errors = validationResult(req);
+    // if the item Id from params is bad, handle before we try to fetch the item
+    const paramErrors = errors
+      .array()
+      .filter((error) => error.location === "params");
+    if (paramErrors.length > 0) {
+      return res.render("itemForm", {
+        title: "Update Item",
+        errors: errors.array(),
+      });
+    }
 
     const existingItem = await Item.findById(req.params.id).exec();
+
+    if (existingItem === null) {
+      return res.render("itemForm", {
+        title: "Update Item",
+        errors: [{ msg: "Item not found" }],
+      });
+    }
 
     const updatedItem = {
       name: req.body.name,
@@ -283,25 +324,24 @@ exports.item_update_post = [
 
     if (!errors.isEmpty()) {
       const categories = await Category.find({}).exec();
-      res.render("itemForm", {
+      return res.render("itemForm", {
         title: `Update Item: ${req.body.name}`,
         item,
         categories,
         errors: errors.array(),
       });
-    } else {
-      Item.findByIdAndUpdate(req.params.id, item).exec((err, newItem) => {
-        if (err) {
-          return next(err);
-        }
-        if (newCount) {
-          newCount.save((saveCountError) => {
-            if (saveCountError) return next(saveCountError);
-          });
-        }
-        res.redirect(newItem.url);
-      });
     }
+    Item.findByIdAndUpdate(req.params.id, item).exec((err, newItem) => {
+      if (err) {
+        return next(err);
+      }
+      if (newCount) {
+        newCount.save((saveCountError) => {
+          if (saveCountError) return next(saveCountError);
+        });
+      }
+      return res.redirect(newItem.url);
+    });
   },
 ];
 
