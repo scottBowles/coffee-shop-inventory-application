@@ -1,6 +1,5 @@
-const validator = require("express-validator");
+const { body, param, validationResult } = require("express-validator");
 const Category = require("../models/category");
-const Item = require("../models/item");
 
 exports.category_home = function categoryHome(req, res, next) {
   Category.find()
@@ -10,7 +9,7 @@ exports.category_home = function categoryHome(req, res, next) {
       if (err) {
         return next(err);
       }
-      res.render("categoriesHome", { title: "Categories", categories });
+      return res.render("categoriesHome", { title: "Categories", categories });
     });
 };
 
@@ -22,9 +21,9 @@ exports.category_detail = function categoryDetail(req, res, next) {
         return next(err);
       }
       if (category == null) {
-        res.redirect("/inventory/categories");
+        return res.redirect("/inventory/categories");
       }
-      res.render("categoryDetail", { title: category.name, category });
+      return res.render("categoryDetail", { title: category.name, category });
     });
 };
 
@@ -33,16 +32,14 @@ exports.category_create_get = function categoryCreateGet(req, res, next) {
 };
 
 exports.category_create_post = [
-  validator.body("name", "Category name required").trim().isLength({ min: 1 }),
-  validator
-    .body("description", "Category description required")
+  body("name", "Category name required").trim().isLength({ min: 1 }).escape(),
+  body("description", "Category description required")
     .trim()
-    .isLength({ min: 1 }),
-  validator.sanitizeBody("name").escape(),
-  validator.sanitizeBody("description").escape(),
+    .isLength({ min: 1 })
+    .escape(),
 
   (req, res, next) => {
-    const errors = validator.validationResult(req);
+    const errors = validationResult(req);
 
     const category = new Category({
       name: req.body.name,
@@ -61,15 +58,14 @@ exports.category_create_post = [
           return next(err);
         }
         if (foundCategory) {
-          res.redirect(foundCategory.url);
-        } else {
-          category.save((categorySaveError) => {
-            if (categorySaveError) {
-              return next(categorySaveError);
-            }
-            res.redirect(category.url);
-          });
+          return res.redirect(foundCategory.url);
         }
+        category.save((categorySaveError) => {
+          if (categorySaveError) {
+            return next(categorySaveError);
+          }
+          return res.redirect(category.url);
+        });
       });
     }
   },
@@ -85,7 +81,7 @@ exports.category_update_get = function categoryUpdateGet(req, res, next) {
       notFoundError.status = 404;
       return next(notFoundError);
     }
-    res.render("categoryForm", {
+    return res.render("categoryForm", {
       title: `Update Category: ${category.name}`,
       category,
     });
@@ -93,16 +89,14 @@ exports.category_update_get = function categoryUpdateGet(req, res, next) {
 };
 
 exports.category_update_post = [
-  validator.body("name", "Category name required").trim().isLength({ min: 1 }),
-  validator
-    .body("description", "Category description required")
+  body("name", "Category name required").trim().isLength({ min: 1 }).escape(),
+  body("description", "Category description required")
     .trim()
-    .isLength({ min: 1 }),
-  validator.sanitizeBody("name").escape(),
-  validator.sanitizeBody("description").escape(),
+    .isLength({ min: 1 })
+    .escape(),
 
   (req, res, next) => {
-    const errors = validator.validationResult(req);
+    const errors = validationResult(req);
 
     const category = new Category({
       name: req.body.name,

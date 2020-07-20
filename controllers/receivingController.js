@@ -1,6 +1,6 @@
+const mongoose = require("mongoose");
 const async = require("async");
 const { body, param, validationResult } = require("express-validator");
-const mongoose = require("mongoose");
 const Receipt = require("../models/receipt");
 const Order = require("../models/order");
 const Item = require("../models/item");

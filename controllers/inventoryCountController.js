@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const async = require("async");
-const validator = require("express-validator");
+const { body, param, validationResult } = require("express-validator");
 const InventoryCount = require("../models/inventoryCount");
 const Item = require("../models/item");
 const Category = require("../models/category");
@@ -131,14 +131,14 @@ exports.count_create_post = [
   },
 
   // validate and sanitize input
-  validator.body("items.*.id").escape(),
-  validator.body("items.*.quantity").isInt({ lt: 10000000 }).escape(),
-  validator.body("filter").escape(),
-  validator.body("submitButton").isIn(["submit", "save"]).escape(),
+  body("items.*.id").escape(),
+  body("items.*.quantity").isInt({ lt: 10000000 }).escape(),
+  body("filter").escape(),
+  body("submitButton").isIn(["submit", "save"]).escape(),
 
   async function createPost(req, res, next) {
     // grab errors
-    const { errors } = validator.validationResult(req);
+    const { errors } = validationResult(req);
 
     // create new Count
     const { filter } = req.body || undefined;
@@ -315,14 +315,14 @@ exports.count_update_post = [
   },
 
   // validate and sanitize input
-  validator.body("items.*.id").escape(),
-  validator.body("items.*.quantity").isInt({ lt: 10000000 }).escape(),
-  validator.body("filter").escape(),
-  validator.body("submitButton").isIn(["submit", "save"]).escape(),
+  body("items.*.id").escape(),
+  body("items.*.quantity").isInt({ lt: 10000000 }).escape(),
+  body("filter").escape(),
+  body("submitButton").isIn(["submit", "save"]).escape(),
 
   async function updatePost(req, res, next) {
     // grab errors & filter
-    const { errors } = validator.validationResult(req);
+    const { errors } = validationResult(req);
     const { filter } = req.body;
 
     // fetch count

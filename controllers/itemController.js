@@ -1,5 +1,5 @@
 const async = require("async");
-const validator = require("express-validator");
+const { body, param, validationResult } = require("express-validator");
 const Item = require("../models/item");
 const Category = require("../models/category");
 const Order = require("../models/order");
@@ -107,17 +107,16 @@ exports.item_create_get = function itemCreateGet(req, res, next) {
 };
 
 exports.item_create_post = [
-  validator.body("name", "Item name required").trim().isLength({ min: 1 }),
-  validator.sanitizeBody("name").escape(),
-  validator.sanitizeBody("description").escape(),
-  validator.sanitizeBody("sku").escape(),
-  validator.sanitizeBody("price").escape(),
-  validator.sanitizeBody("quantityInStock").escape(),
-  validator.sanitizeBody("category").escape(),
-  validator.sanitizeBody("itemLastUpdated").escape(),
+  body("name", "Item name required").trim().isLength({ min: 1 }).escape(),
+  body("description").escape(),
+  body("sku").escape(),
+  body("price").escape(),
+  body("quantityInStock").escape(),
+  body("category").escape(),
+  body("itemLastUpdated").escape(),
 
   (req, res, next) => {
-    const errors = validator.validationResult(req);
+    const errors = validationResult(req);
 
     const item = new Item({
       name: req.body.name,
@@ -220,45 +219,38 @@ exports.item_update_get = function itemUpdateGet(req, res, next) {
 };
 
 exports.item_update_post = [
-  validator
-    .body("name")
+  body("name")
     .trim()
     .isLength({ min: 1 })
     .withMessage("Item name required")
     .isLength({ max: 40 })
     .withMessage("Item name max of 40 characters exceeded")
     .escape(),
-  validator
-    .body("description", "Description max of 256 characters exceeded")
+  body("description", "Description max of 256 characters exceeded")
     .optional({ checkFalsy: true })
     .isLength({ max: 256 })
     .escape(),
-  validator
-    .body("sku", "SKU must be 24 characters or less")
+  body("sku", "SKU must be 24 characters or less")
     .optional({ checkFalsy: true })
     .isLength({ max: 24 })
     .escape(),
-  validator
-    .body("price", "We could never charge that much!")
+  body("price", "We could never charge that much!")
     .optional({ checkFalsy: true })
     .isFloat({ min: 0, max: 9999999 }),
-  validator
-    .body(
-      "quantityInStock",
-      "Quantity must be an integer between 0 and 9999999 (but it's inclusive at least!)"
-    )
+  body(
+    "quantityInStock",
+    "Quantity must be an integer between 0 and 9999999 (but it's inclusive at least!)"
+  )
     .isInt({ min: 0, max: 9999999 })
     .toInt(),
-  validator.body("category").optional({ checkFalsy: true }),
-  validator
-    .body(
-      "itemLastUpdated",
-      "ItemLastUpdated must be a valid date. (If you are seeing this as an end user, please report this error.)"
-    )
-    .toDate(),
+  body("category").optional({ checkFalsy: true }),
+  body(
+    "itemLastUpdated",
+    "ItemLastUpdated must be a valid date. (If you are seeing this as an end user, please report this error.)"
+  ).toDate(),
 
   async function itemUpdatePost(req, res, next) {
-    const errors = validator.validationResult(req);
+    const errors = validationResult(req);
 
     const existingItem = await Item.findById(req.params.id).exec();
 

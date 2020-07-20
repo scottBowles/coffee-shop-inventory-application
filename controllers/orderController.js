@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const async = require("async");
-const validator = require("express-validator");
+const { body, param, validationResult } = require("express-validator");
 const Order = require("../models/order");
 const InventoryCount = require("../models/inventoryCount");
 const Item = require("../models/item");
@@ -47,7 +47,7 @@ exports.index = function inventoryHome(req, res, next) {
 };
 
 exports.order_home = [
-  validator.param("filter").escape(),
+  param("filter").escape(),
 
   function orderHome(req, res, next) {
     async.waterfall(
@@ -99,10 +99,10 @@ exports.order_home = [
 ];
 
 exports.order_detail_get = [
-  validator.param("id").isMongoId().withMessage("Order not found").escape(),
+  param("id").isMongoId().withMessage("Order not found").escape(),
 
   function orderDetail(req, res, next) {
-    const { errors } = validator.validationResult(req);
+    const { errors } = validationResult(req);
     if (errors.length > 0) {
       return res.render("orderDetail", {
         title: "Order Details",
@@ -149,10 +149,10 @@ exports.order_detail_get = [
 ];
 
 exports.order_detail_post = [
-  validator.param("id").isMongoId().withMessage("Order not found").escape(),
+  param("id").isMongoId().withMessage("Order not found").escape(),
 
   async function orderDetailPost(req, res, next) {
-    const { errors } = validator.validationResult(req);
+    const { errors } = validationResult(req);
     if (errors.length > 0) {
       return res.render("orderDetail", {
         title: "Order Details",
@@ -250,13 +250,13 @@ exports.order_create_post = [
     next();
   },
 
-  validator.body("orderedItems.*.id").escape(),
-  validator.body("orderedItems.*.quantity").isInt({ lt: 10000000 }).escape(),
-  validator.body("submitType").isIn(["placeOrder", "save"]).escape(),
+  body("orderedItems.*.id").escape(),
+  body("orderedItems.*.quantity").isInt({ lt: 10000000 }).escape(),
+  body("submitType").isIn(["placeOrder", "save"]).escape(),
 
   async function orderCreatePost(req, res, next) {
     // grab errors
-    const { errors } = validator.validationResult(req);
+    const { errors } = validationResult(req);
 
     // get submit type
     const { submitType, orderedItems } = req.body;
@@ -336,10 +336,10 @@ exports.order_create_post = [
 ];
 
 exports.order_update_get = [
-  validator.param("id").isMongoId().withMessage("Order not found").escape(),
+  param("id").isMongoId().withMessage("Order not found").escape(),
 
   async function orderUpdateGet(req, res, next) {
-    const { errors } = validator.validationResult(req);
+    const { errors } = validationResult(req);
     if (errors.length > 0) {
       return res.render("orderDetail", {
         title: "Order Details",
@@ -447,14 +447,14 @@ exports.order_update_post = [
   },
 
   // validate & sanitize
-  validator.param("id").isMongoId().withMessage("Order not found").escape(),
-  validator.body("orderedItems.*.id").escape(),
-  validator.body("orderedItems.*.quantity").isInt({ lt: 10000000 }).escape(),
-  validator.body("submitType").isIn(["placeOrder", "save"]).escape(),
+  param("id").isMongoId().withMessage("Order not found").escape(),
+  body("orderedItems.*.id").escape(),
+  body("orderedItems.*.quantity").isInt({ lt: 10000000 }).escape(),
+  body("submitType").isIn(["placeOrder", "save"]).escape(),
 
   async function updatePost(req, res, next) {
     // grab errors & submitType
-    const { errors } = validator.validationResult(req);
+    const { errors } = validationResult(req);
     const { submitType } = req.body;
 
     // if our orderId from params is bad, handle before we try to fetch the order
@@ -579,10 +579,10 @@ exports.order_update_post = [
 ];
 
 exports.order_delete_get = [
-  validator.param("id").isMongoId().withMessage("Order not found").escape(),
+  param("id").isMongoId().withMessage("Order not found").escape(),
   async function orderDeleteGet(req, res, next) {
     try {
-      const { errors } = validator.validationResult(req);
+      const { errors } = validationResult(req);
       if (errors.length > 0) {
         return res.render("orderDelete", {
           title: "Delete Order",
@@ -624,10 +624,10 @@ exports.order_delete_get = [
 ];
 
 exports.order_delete_post = [
-  validator.param("id").isMongoId().withMessage("Order not found").escape(),
+  param("id").isMongoId().withMessage("Order not found").escape(),
   async function orderDeletePost(req, res, next) {
     try {
-      const { errors } = validator.validationResult(req);
+      const { errors } = validationResult(req);
       if (errors.length > 0) {
         return res.render("orderDelete", { title: "Delete Order", errors });
       }
