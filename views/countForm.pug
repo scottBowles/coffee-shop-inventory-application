@@ -1,34 +1,35 @@
 extends layout
 
 block content
-  h1= title
+  if items
+    h1= title
 
-  if !filter
-    div.btn-group-vertical#typeSelector(role="group" aria-label="Button group with nested dropdown")
-      a#test.btn.btn-outline-secondary(role="button" value="Full" href="/inventory/count/create-new?filter=Full") Full
-      div.btn-group.dropright(role="group")
-        button.btn.btn-outline-secondary.dropdown-toggle#dropdownMenu2(type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") By Category
-        div.dropdown-menu(aria-labelledby="dropdownMenu2")
-          for category in categories
-            a.dropdown-item(role="button" href=`/inventory/count/create-new?filter=${category.name}`) #{category.name}
-      a.btn.btn-outline-secondary(role="button" value="Ad Hoc" href="/inventory/count/create-new?filter=AdHoc") Ad Hoc
-  
-  else
-    form(method="POST" action="")
-      for item, index in items 
-        .form-group.d-flex.align-items-center.justify-content-end.flex-row-reverse
-          input(type="hidden" name=`items[${index}][id]` value=item._id)
-          label(for=`item${index}quantity`)= item.name
-          input.w-25.form-control.mr-3.item-quantity(name=`items[${index}][quantity]` id=`item${index}quantity` type="number" value=item.quantityInStock)
-          
-      input(type="hidden" name="filter" id="filter" value=filter)
-      .d-flex.w-25.justify-content-between
-        button.btn.btn-primary.submit-button(type="submit" name="submitButton" value="submit") Submit
-        button.btn.btn-primary.mr-3.save-button(type="submit" name="submitButton" value="save") Save
+    if !filter
+      div.btn-group-vertical#typeSelector(role="group" aria-label="Button group with nested dropdown")
+        a#test.btn.btn-outline-secondary(role="button" value="Full" href="/inventory/count/create-new?filter=Full") Full
+        div.btn-group.dropright(role="group")
+          button.btn.btn-outline-secondary.dropdown-toggle#dropdownMenu2(type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") By Category
+          div.dropdown-menu(aria-labelledby="dropdownMenu2")
+            for category in categories
+              a.dropdown-item(role="button" href=`/inventory/count/create-new?filter=${category.name}`) #{category.name}
+        a.btn.btn-outline-secondary(role="button" value="Ad Hoc" href="/inventory/count/create-new?filter=AdHoc") Ad Hoc
+    
+    else
+      form(method="POST" action="")
+        for item, index in items 
+          .form-group.d-flex.align-items-center.justify-content-end.flex-row-reverse
+            input(type="hidden" name=`items[${index}][id]` value=item._id)
+            label(for=`item${index}quantity`)= item.name
+            input.w-25.form-control.mr-3.item-quantity(name=`items[${index}][quantity]` id=`item${index}quantity` type="number" value=item.quantityInStock)
+            
+        input(type="hidden" name="filter" id="filter" value=filter)
+        .d-flex.w-25.justify-content-between
+          button.btn.btn-primary.submit-button(type="submit" name="submitButton" value="submit") Submit
+          button.btn.btn-primary.mr-3.save-button(type="submit" name="submitButton" value="save") Save
 
   if errors
     ul
       for error in errors
         li!= error.msg
 
-  script(src="/javascripts/count.js")
+  

@@ -2,44 +2,50 @@ extends layout
 
 block content
   h1= title
-  if count.type === "By Category"
-    p Category: #[span= count.countedQuantities[0].item.category ? count.countedQuantities[0].item.category.name : "(None)"]
-  else
-    p= count.type
-  p Initiated #{count.dateInitiatedFormatted}
-  if count.submitted
-    p Submitted #{count.dateSubmittedFormatted}
-  else
-    p Count not submitted
-    .d-flex
-      form(method="POST" action="")
-        input(type="hidden" name="filter" value=filter)
-        button.mr-5(type="submit") Submit
-      a(href=count.url + "/update") Update
-  if error
-    h4= error
+  if count
+    if count.type === "By Category"
+      p Category: #[span= count.countedQuantities[0].item.category ? count.countedQuantities[0].item.category.name : "(None)"]
+    else
+      p= count.type
+    p Initiated #{count.dateInitiatedFormatted}
+    if count.submitted
+      p Submitted #{count.dateSubmittedFormatted}
+    else
+      p Count not submitted
+      .d-flex
+        form(method="POST" action="")
+          input(type="hidden" name="filter" value=filter)
+          button.mr-5(type="submit") Submit
+        a(href=count.url + "/update") Update
 
-  table(class="table table-striped")
-    caption #{count.countedQuantities.length} Items Counted
-    thead
-      tr
-        th(scope="col") Name
-        th(scope="col") Quantity
-        th(scope="col") SKU
-        if count.type !== "By Category"
-          th(scope="col") Category
-    tbody
-      if count.countedQuantities.length === 0
+  if errors
+    ul
+      for error in errors
+        li!= error.msg
+
+  if count
+    table(class="table table-striped")
+      caption #{count.countedQuantities.length} Items Counted
+      thead
         tr
-          td No items counted
-      each countedQuantity in count.countedQuantities
-        tr
-          td #[a(href=countedQuantity.item.url)= countedQuantity.item.name]
-          td= countedQuantity.quantity
-          td= countedQuantity.item.sku
+          th(scope="col") Name
+          th(scope="col") Quantity
+          th(scope="col") SKU
           if count.type !== "By Category"
-            if countedQuantity.item.category
-              td #[a(href=countedQuantity.item.category.url)= countedQuantity.item.category.name]
-            else
-              td (None)
-  a(href=`/inventory/count/${count._id}/remove`) Delete Count
+            th(scope="col") Category
+      tbody
+        if count.countedQuantities.length === 0
+          tr
+            td No items counted
+        each countedQuantity in count.countedQuantities
+          tr
+            td #[a(href=countedQuantity.item.url)= countedQuantity.item.name]
+            td= countedQuantity.quantity
+            td= countedQuantity.item.sku
+            if count.type !== "By Category"
+              if countedQuantity.item.category
+                td #[a(href=countedQuantity.item.category.url)= countedQuantity.item.category.name]
+              else
+                td (None)
+    a(href=`/inventory/count/${count._id}/remove`) Delete Count
+  
