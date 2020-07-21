@@ -77,8 +77,10 @@ exports.receipt_detail = [
         if (err) {
           return next(err);
         }
-        if (receipt == null) {
-          return res.render("receiptDetail", { title: "Receipt" });
+        if (receipt === null) {
+          const notFoundError = new Error("Receipt not found");
+          notFoundError.status = 404;
+          return next(notFoundError);
         }
         receipt.receivedItems.sort((a, b) => b.item.name - a.item.name);
         return res.render("receiptDetail", { title: "Receipt", receipt });
@@ -124,16 +126,12 @@ exports.receipt_create_get = [
     ]).catch((err) => next(err));
 
     // handle if order is in params but no order is found
-    if (orderId && order == null) {
-      return res.render("receiptForm", {
-        title: "Create New Receipt",
-        errors: [
-          {
-            msg:
-              "Order not found. Was something added or changed after '/receiving/create-new/' in the url?",
-          },
-        ],
-      });
+    if (orderId && order === null) {
+      const notFoundError = new Error(
+        "Order not found. Was something added or changed after '/receiving/create-new/' in the url?"
+      );
+      notFoundError.status = 404;
+      return next(notFoundError);
     }
 
     // if order already has an associated receipt, redirect to the update page
@@ -215,16 +213,12 @@ exports.receipt_create_post = [
     ]).catch((err) => next(err));
 
     // handle if order is in params but no order is found
-    if (orderId && order == null) {
-      return res.render("receiptForm", {
-        title: "Create New Receipt",
-        errors: [
-          {
-            msg:
-              "Order not found. Was something added or changed after '/receiving/create-new/' in the url?",
-          },
-        ],
-      });
+    if (orderId && order === null) {
+      const notFoundError = new Error(
+        "Order not found. Was something added or changed after '/receiving/create-new/' in the url?"
+      );
+      notFoundError.status = 404;
+      return next(notFoundError);
     }
 
     // if order already has an associated receipt, redirect to the update page

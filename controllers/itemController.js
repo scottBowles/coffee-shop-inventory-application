@@ -101,10 +101,10 @@ exports.item_detail = [
         if (err) {
           return next(err);
         }
-        if (item == null) {
-          return res.render("itemDetail", {
-            errors: [{ msg: "Item not found" }],
-          });
+        if (item === null) {
+          const notFoundError = new Error("Item not found");
+          notFoundError.status = 404;
+          return next(notFoundError);
         }
         return res.render("itemDetail", { item });
       });
@@ -116,7 +116,7 @@ exports.item_create_get = function itemCreateGet(req, res, next) {
     if (err) {
       return next(err);
     }
-    res.render("itemForm", { title: "Create New Item", categories });
+    return res.render("itemForm", { title: "Create New Item", categories });
   });
 };
 
@@ -130,7 +130,7 @@ exports.item_create_post = [
   body("itemLastUpdated").escape(),
 
   (req, res, next) => {
-    const errors = validationResult(req);
+    const { errors } = validationResult(req);
 
     const item = new Item({
       name: req.body.name,
@@ -142,7 +142,7 @@ exports.item_create_post = [
     });
 
     // If there are errors, re-render the form with the errors
-    if (!errors.isEmpty()) {
+    if (errors.length > 0) {
       // Get categories for the form
       Category.find({}).exec((err, categories) => {
         if (err) return next(err);
@@ -151,7 +151,7 @@ exports.item_create_post = [
           item,
           categories,
           title: "Create New Item",
-          errors: errors.array(),
+          errors,
         });
       });
     } else {
@@ -214,6 +214,7 @@ exports.item_create_post = [
 
 exports.item_update_get = [
   param("id").isMongoId().withMessage("Item not found").escape(),
+
   function itemUpdateGet(req, res, next) {
     const { errors } = validationResult(req);
     if (errors.length > 0) {
@@ -227,10 +228,9 @@ exports.item_update_get = [
       .catch((error) => next(error))
       .then(([item, categories]) => {
         if (item === null) {
-          return res.render("itemForm", {
-            title: "Update Item",
-            errors: [{ msg: "Item not found" }],
-          });
+          const notFoundError = new Error("Item not found");
+          notFoundError.status = 404;
+          return next(notFoundError);
         }
         return res.render("itemForm", {
           title: `Update Item: ${item.name}`,
@@ -274,25 +274,22 @@ exports.item_update_post = [
   param("id").isMongoId().withMessage("Item not found").escape(),
 
   async function itemUpdatePost(req, res, next) {
-    const errors = validationResult(req);
+    const { errors } = validationResult(req);
     // if the item Id from params is bad, handle before we try to fetch the item
-    const paramErrors = errors
-      .array()
-      .filter((error) => error.location === "params");
+    const paramErrors = errors.filter((error) => error.location === "params");
     if (paramErrors.length > 0) {
       return res.render("itemForm", {
         title: "Update Item",
-        errors: errors.array(),
+        errors,
       });
     }
 
     const existingItem = await Item.findById(req.params.id).exec();
 
     if (existingItem === null) {
-      return res.render("itemForm", {
-        title: "Update Item",
-        errors: [{ msg: "Item not found" }],
-      });
+      const notFoundError = new Error("Item not found");
+      notFoundError.status = 404;
+      return next(notFoundError);
     }
 
     const updatedItem = {
@@ -322,13 +319,13 @@ exports.item_update_post = [
 
     const item = new Item(updatedItem);
 
-    if (!errors.isEmpty()) {
+    if (errors.length > 0) {
       const categories = await Category.find({}).exec();
       return res.render("itemForm", {
         title: `Update Item: ${req.body.name}`,
         item,
         categories,
-        errors: errors.array(),
+        errors,
       });
     }
     Item.findByIdAndUpdate(req.params.id, item).exec((err, newItem) => {

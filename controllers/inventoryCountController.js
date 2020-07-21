@@ -68,10 +68,9 @@ exports.count_detail_get = [
           return next(err);
         }
         if (count === null) {
-          return res.render("countDetail", {
-            title: "Count Detail",
-            errors: [{ msg: "Count not found" }],
-          });
+          const notFoundError = new Error("Inventory Count not found");
+          notFoundError.status = 404;
+          return next(notFoundError);
         }
         count.countedQuantities.sort((a, b) => {
           if (a.item.sku !== b.item.sku) {
@@ -95,10 +94,9 @@ exports.count_detail_post = [
       .populate({ path: "countedQuantities.item", populate: "category" })
       .exec();
     if (count === null) {
-      return res.render("countDetail", {
-        title: "Count Detail",
-        errors: [{ msg: "Count not found" }],
-      });
+      const notFoundError = new Error("Inventory Count not found");
+      notFoundError.status = 404;
+      return next(notFoundError);
     }
     if (count.submitted) {
       return res.render("countDetail", {
@@ -273,10 +271,9 @@ exports.count_update_get = [
       .exec();
 
     if (count === null) {
-      return res.render("countForm", {
-        title: "Update Count",
-        errors: [{ msg: "Count not found" }],
-      });
+      const notFoundError = new Error("Inventory Count not found");
+      notFoundError.status = 404;
+      return next(notFoundError);
     }
 
     count.countedQuantities.sort((a, b) => {
@@ -393,10 +390,9 @@ exports.count_update_post = [
       .exec();
 
     if (count === null) {
-      return res.render("countForm", {
-        title: "Update Count",
-        errors: [{ msg: "Count not found" }],
-      });
+      const notFoundError = new Error("Inventory Count not found");
+      notFoundError.status = 404;
+      return next(notFoundError);
     }
 
     // if count has already been submitted, render with error message
@@ -514,10 +510,9 @@ exports.count_delete_get = [
         .exec();
 
       if (count === null) {
-        return res.render("countDelete", {
-          title: "Remove Inventory Count",
-          errors: [{ msg: "Count not found" }],
-        });
+        const notFoundError = new Error("Inventory Count not found");
+        notFoundError.status = 404;
+        return next(notFoundError);
       }
 
       count.countedQuantities.sort((a, b) => {
@@ -554,10 +549,9 @@ exports.count_delete_post = [
       ).exec();
 
       if (count === null) {
-        res.render("countDelete", {
-          title: "Remove Inventory Count",
-          errors: [{ msg: "Count not found" }],
-        });
+        const notFoundError = new Error("Inventory Count not found");
+        notFoundError.status = 404;
+        return next(notFoundError);
       }
 
       return res.redirect("/inventory/counts");

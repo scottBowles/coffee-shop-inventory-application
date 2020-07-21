@@ -133,10 +133,9 @@ exports.order_detail_get = [
           return next(err);
         }
         if (results.order == null) {
-          return res.render("orderDetail", {
-            title: "Order Details",
-            errors: [{ msg: "Order not found" }],
-          });
+          const notFoundError = new Error("Order not found");
+          notFoundError.status = 404;
+          return next(notFoundError);
         }
         return res.render("orderDetail", {
           order: results.order,
@@ -162,10 +161,9 @@ exports.order_detail_post = [
 
     const order = await Order.findById(req.params.id).exec();
     if (order == null) {
-      return res.render("orderDetail", {
-        title: "Order Details",
-        errors: [{ msg: "Order not found" }],
-      });
+      const notFoundError = new Error("Order not found");
+      notFoundError.status = 404;
+      return next(notFoundError);
     }
 
     if (order.status !== "Saved") {
@@ -382,10 +380,9 @@ exports.order_update_get = [
     ]).catch((err) => next(err));
 
     if (order == null) {
-      return res.render("orderDetail", {
-        title: "Order Details",
-        errors: [{ msg: "Order not found" }],
-      });
+      const notFoundError = new Error("Order not found");
+      notFoundError.status = 404;
+      return next(notFoundError);
     }
 
     // if order has already been placed, re-render detail page with error message
@@ -470,10 +467,9 @@ exports.order_update_post = [
     const order = await Order.findById(req.params.id);
 
     if (order == null) {
-      return res.render("orderForm", {
-        title: "Update Order",
-        errors: [{ msg: "Order not found" }],
-      });
+      const notFoundError = new Error("Order not found");
+      notFoundError.status = 404;
+      return next(notFoundError);
     }
 
     // if order.status !== "Saved", render detail page with errors
@@ -603,10 +599,9 @@ exports.order_delete_get = [
         .exec();
 
       if (order == null) {
-        return res.render("orderDelete", {
-          title: "Delete Order",
-          errors: [{ msg: "Order not found" }],
-        });
+        const notFoundError = new Error("Order not found");
+        notFoundError.status = 404;
+        return next(notFoundError);
       }
 
       order.orderedItems.sort((a, b) => {
@@ -637,11 +632,10 @@ exports.order_delete_post = [
         .populate("receipt")
         .exec();
 
-      if (order == null) {
-        return res.render("orderDelete", {
-          title: "Delete Order",
-          errors: [{ msg: "Order not found" }],
-        });
+      if (order === null) {
+        const notFoundError = new Error("Order not found");
+        notFoundError.status = 404;
+        return next(notFoundError);
       }
 
       if (order.receipt) {

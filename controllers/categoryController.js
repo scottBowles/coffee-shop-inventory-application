@@ -28,10 +28,9 @@ exports.category_detail = [
           return next(err);
         }
         if (category === null) {
-          return res.render("categoryDetail", {
-            title: "Category Detail",
-            errors: [{ msg: "Category not found" }],
-          });
+          const notFoundError = new Error("Category not found");
+          notFoundError.status = 404;
+          return next(notFoundError);
         }
         return res.render("categoryDetail", { title: category.name, category });
       });
@@ -175,7 +174,7 @@ exports.category_delete_get = [
         .exec();
 
       // If no category is found, redirect
-      if (category == null) {
+      if (category === null) {
         return res.redirect("/inventory/categories");
       }
 
