@@ -598,7 +598,7 @@ exports.order_delete_get = [
         })
         .exec();
 
-      if (order == null) {
+      if (order === null) {
         const notFoundError = new Error("Order not found");
         notFoundError.status = 404;
         return next(notFoundError);

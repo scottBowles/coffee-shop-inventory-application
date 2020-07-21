@@ -82,7 +82,9 @@ exports.receipt_detail = [
           notFoundError.status = 404;
           return next(notFoundError);
         }
-        receipt.receivedItems.sort((a, b) => b.item.name - a.item.name);
+        receipt.receivedItems.sort((a, b) =>
+          b.item.name.toLowerCase() < a.item.name.toLowerCase() ? 1 : -1
+        );
         return res.render("receiptDetail", { title: "Receipt", receipt });
       });
   },
@@ -379,7 +381,9 @@ exports.receipt_update_get = [
         receivedItem.category = receivedItem.category || { name: "None" };
       });
 
-      receipt.receivedItems.sort((a, b) => b.item.name - a.item.name);
+      receipt.receivedItems.sort((a, b) =>
+        b.item.name.toLowerCase() < a.item.name.toLowerCase() ? 1 : -1
+      );
       return res.render("receiptDetail", {
         title: "Receipt",
         receipt,
@@ -580,10 +584,39 @@ exports.receipt_update_post = [
   },
 ];
 
-exports.receipt_delete_get = function receiptDeleteGet(req, res, next) {
-  res.send("NOT IMPLEMENTED");
-};
+exports.receipt_delete_get = [
+  param("id").isMongoId().withMessage("Invalid receipt id").escape(),
+  async function receiptDeleteGet(req, res, next) {
+    const { errors } = validationResult(req);
+    if (errors.length > 0) {
+      return res.render("receiptDelete", { title: "Remove Receipt", errors });
+    }
+    const receipt = await Receipt.findById(req.params.id)
+      .populate({
+        path: "receivedItems.item",
+        select: "category name",
+        populate: {
+          path: "category",
+          select: "name",
+        },
+      })
+      .exec();
+
+    if (receipt === null) {
+      const notFoundError = new Error("Receipt not found");
+      notFoundError.status = 404;
+      return next(notFoundError);
+    }
+    receipt.receivedItems.sort((a, b) =>
+      b.item.name.toLowerCase() < a.item.name.toLowerCase() ? 1 : -1
+    );
+    return res.render("receiptDelete", { title: "Remove Receipt", receipt });
+  },
+];
 
 exports.receipt_delete_post = function receiptDeletePost(req, res, next) {
+  // validate param
+  // delete receipt
+  // if receipt is an order receipt, unreceive order
   res.send("NOT IMPLEMENTED");
 };
