@@ -217,7 +217,7 @@ exports.item_update_get = [
   function itemUpdateGet(req, res, next) {
     const { errors } = validationResult(req);
     if (errors.length > 0) {
-      res.render({ title: "Update Item", errors });
+      return res.render("itemForm", { title: "Update Item", errors });
     }
 
     const fetchItem = Item.findById(req.params.id).exec();

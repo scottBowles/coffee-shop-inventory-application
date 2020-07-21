@@ -2,29 +2,30 @@ extends layout
 
 block content
   h1= title
-  if item
-    form(method="POST" action="")
-      div.form-group
-        label(for="name") Name:
-        input#name.form-control(type="text", placeholder="Name", name="name", value=(item === undefined ? "" : item.name) required)
-      div.form-group
-        label(for="description") Description:
-        input#description.form-control(type="text", placeholder="Description", name="description", value=(item === undefined ? "" : item.description))
-      div.form-group
-        label(for="sku") SKU (Leave empty if not for sale):
-        input#sku.form-control(type="text", placeholder="SKU", name="sku", value=(item === undefined ? "" : item.sku))
-      div.form-group
-        div.form-row
-          label(for="price") Price (Leave empty if not for sale):
-        div.input-group
-          span(class="input-group-addon") $
-          input#price.form-control.currency.two-decimal(type="number", placeholder="Price", name="price", value=(item === undefined ? 0 : item.price) step="0.01" data-number-to-fixed="2" data-number-stepfactor="100")
-      div.form-group
-        if item
-          label(for="quantityInStock") Quantity In Stock -- Note: if changed, an ad hoc count will be created:
-        else
-          label(for="quantityInStock") Quantity In Stock:
-        input#quantityInStock.form-control(type="number", placeholder="Quantity", name="quantityInStock", value=(item === undefined ? 0 : item.quantityInStock) required)
+  
+  form(method="POST" action="")
+    div.form-group
+      label(for="name") Name:
+      input#name.form-control(type="text", placeholder="Name", name="name", value=(item === undefined ? "" : item.name) required)
+    div.form-group
+      label(for="description") Description:
+      input#description.form-control(type="text", placeholder="Description", name="description", value=(item === undefined ? "" : item.description))
+    div.form-group
+      label(for="sku") SKU (Leave empty if not for sale):
+      input#sku.form-control(type="text", placeholder="SKU", name="sku", value=(item === undefined ? "" : item.sku))
+    div.form-group
+      div.form-row
+        label(for="price") Price (Leave empty if not for sale):
+      div.input-group
+        span(class="input-group-addon") $
+        input#price.form-control.currency.two-decimal(type="number", placeholder="Price", name="price", value=(item === undefined ? 0 : item.price) step="0.01" data-number-to-fixed="2" data-number-stepfactor="100")
+    div.form-group
+      if item
+        label(for="quantityInStock") Quantity In Stock -- Note: if changed, an ad hoc count will be created:
+      else
+        label(for="quantityInStock") Quantity In Stock:
+      input#quantityInStock.form-control(type="number", placeholder="Quantity", name="quantityInStock", value=(item === undefined ? 0 : item.quantityInStock) required)
+    if categories
       div.form-group
         label(for="category") Category: 
         select#category.form-control(type="select", placeholder="Select Category", name="category")
@@ -36,15 +37,15 @@ block content
             else
               option(value=category._id) #{category.name}
         a(href="../category/create-new") Create a New Category
-      div.form-group
-        input#itemLastUpdated.form-control(type="hidden", name="itemLastUpdated", value=Date.now())
-      button.btn.btn-primary(type="submit") Submit
-    
-    if foundItem
-      if foundItem.name === item.name
-        div Item already exists. Change item name or go to #[a(href=foundItem.url) existing item].
-      else
-        div Item already exists. Change item sku or go to #[a(href=foundItem.url) existing item].
+    div.form-group
+      input#itemLastUpdated.form-control(type="hidden", name="itemLastUpdated", value=Date.now())
+    button.btn.btn-primary(type="submit") Submit
+  
+  if foundItem
+    if foundItem.name === item.name
+      div Item already exists. Change item name or go to #[a(href=foundItem.url) existing item].
+    else
+      div Item already exists. Change item sku or go to #[a(href=foundItem.url) existing item].
 
   if errors
     ul

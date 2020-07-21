@@ -124,3 +124,4 @@ VALIDATE PARAMS
   -- item         DONE
   -- count        DONE
   -- category     ---
+  CHANGE NOT FOUND TO 404 -- see category_update_get

@@ -2,27 +2,33 @@ extends layout
 
 block content
   h1= title
-  h6= category.description
+  if category
+    h6= category.description
 
-  table(class="table table-striped")
-    caption #{category.items.length} Items
-    thead
-      tr
-        th(scope="col") Name
-        th(scope="col") Quantity
-        th(scope="col") SKU
-        th(scope="col") Price
-    tbody
-      if category.items.length === 0
+    table(class="table table-striped")
+      caption #{category.items.length} Items
+      thead
         tr
-          td No items to display
-      each item in category.items
-        if item
+          th(scope="col") Name
+          th(scope="col") Quantity
+          th(scope="col") SKU
+          th(scope="col") Price
+      tbody
+        if category.items.length === 0
           tr
-            td #[a(href=item.url)= item.name]
-            td= item.quantityInStock
-            td= item.sku
-            td= item.price
+            td No items to display
+        each item in category.items
+          if item
+            tr
+              td #[a(href=item.url)= item.name]
+              td= item.quantityInStock
+              td= item.sku
+              td= item.price
+    
+    a(href=category.url + "/update") Update Category
+    a.ml-5(href=category.url + "/remove") Delete Category
   
-  a(href=category.url + "/update") Update Category
-  a.ml-5(href=category.url + "/remove") Delete Category
+  if errors
+    ul
+      for error in errors
+        li!= error.msg

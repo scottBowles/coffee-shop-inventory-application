@@ -2,36 +2,42 @@ extends layout
 
 block content
   h1= title
-  h6= category.description
+  if category
+    h6= category.description
 
-  p Are you sure you want to remove this category?
-  
-  if category.items
+    p Are you sure you want to remove this category?
+    
+    if category.items
 
-    p The following items currently in category will have their category removed:
+      p The following items currently in category will have their category removed:
 
-    table(class="table table-striped")
-      caption #{category.items.length} Items
-      thead
-        tr
-          th(scope="col") Name
-          th(scope="col") Quantity
-          th(scope="col") SKU
-          th(scope="col") Price
-      tbody
-        if category.items.length === 0
+      table(class="table table-striped")
+        caption #{category.items.length} Items
+        thead
           tr
-            td No items to display
-        each item in category.items
-          if item
+            th(scope="col") Name
+            th(scope="col") Quantity
+            th(scope="col") SKU
+            th(scope="col") Price
+        tbody
+          if category.items.length === 0
             tr
-              td #[a(href=item.url)= item.name]
-              td= item.quantityInStock
-              td= item.sku
-              td= item.price
+              td No items to display
+          each item in category.items
+            if item
+              tr
+                td #[a(href=item.url)= item.name]
+                td= item.quantityInStock
+                td= item.sku
+                td= item.price
 
-  form(method='POST' action='')
-      div.form-group
-        input#categoryId.form-control(type='hidden',name='categoryId', required='true', value=category._id )
+    form(method='POST' action='')
+        div.form-group
+          input#categoryId.form-control(type='hidden',name='categoryId', required='true', value=category._id )
 
-      button.btn.btn-primary(type='submit') Delete
+        button.btn.btn-primary(type='submit') Delete
+  
+  if errors
+    ul
+      for error in errors
+        li!= error.msg
