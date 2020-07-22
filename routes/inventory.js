@@ -92,10 +92,10 @@ router.get("/item/:id/update", itemController.item_update_get);
 router.post("/item/:id/update", itemController.item_update_post);
 
 // GET request for deleting an item
-router.get("/item/:id/remove", itemController.item_delete_get);
+router.get("/item/:id/archive", itemController.item_archive_get);
 
 // POST request for deleting an item
-router.post("/item/:id/remove", itemController.item_delete_post);
+router.post("/item/:id/archive", itemController.item_archive_post);
 
 // GET request for one item
 router.get("/item/:id", itemController.item_detail);

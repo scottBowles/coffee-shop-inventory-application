@@ -342,10 +342,50 @@ exports.item_update_post = [
   },
 ];
 
-exports.item_delete_get = function itemDeleteGet(req, res, next) {
-  res.send("NOT IMPLEMENTED: Item delete GET");
-};
+exports.item_archive_get = [
+  param("id").isMongoId().withMessage("Invalid item id").escape(),
+  async function itemDeleteGet(req, res, next) {
+    try {
+      const { errors } = validationResult(req);
+      if (errors.length > 0) {
+        return res.render("itemArchive", { title: "Archive Item", errors });
+      }
 
-exports.item_delete_post = function itemDeletePost(req, res, next) {
-  res.send("NOT IMPLEMENTED: Item delete POST");
-};
+      const item = await Item.findById(req.params.id)
+        .populate("category")
+        .exec();
+      if (item === null) {
+        const notFoundError = new Error("Item not found");
+        notFoundError.status = 404;
+        return next(notFoundError);
+      }
+
+      return res.render("itemArchive", { title: "Archive Item", item });
+    } catch (error) {
+      return next(error);
+    }
+  },
+];
+
+exports.item_archive_post = [
+  param("id").isMongoId().withMessage("Invalid item id").escape(),
+  async function itemDeletePost(req, res, next) {
+    try {
+      const { errors } = validationResult(req);
+      if (errors.length > 0) {
+        return res.render("itemArchive", { title: "Archive Item", errors });
+      }
+      const item = await Item.findById(req.params.id).exec();
+      if (item === null) {
+        const notFoundError = new Error("Item not found");
+        notFoundError.status = 404;
+        return next(notFoundError);
+      }
+      item.active = false;
+      item.save();
+      return res.redirect(item.url);
+    } catch (error) {
+      return next(error);
+    }
+  },
+];

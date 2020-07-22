@@ -12,6 +12,7 @@ const ItemSchema = new Schema({
   quantityInStock: { type: Number, required: true, max: 9999999 },
   qtyLastUpdated: { type: Date, required: true, default: Date.now() },
   itemLastUpdated: { type: Date, required: true, default: Date.now() },
+  active: { type: Boolean, default: true },
 });
 
 ItemSchema.virtual("qtyLastUpdatedFormatted").get(
