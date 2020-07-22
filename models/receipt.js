@@ -39,4 +39,6 @@ ReceivingSchema.virtual("url").get(function () {
   return `/inventory/receiving/${this._id}`;
 });
 
+ReceivingSchema.set("toObject", { virtuals: true });
+
 module.exports = mongoose.model("Receipt", ReceivingSchema);

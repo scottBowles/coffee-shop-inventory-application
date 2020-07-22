@@ -237,7 +237,7 @@ exports.order_create_get = async function orderCreateGet(req, res, next) {
   });
 
   // render order form
-  res.render("orderForm", { title: "Create New Order", items, onOrder });
+  return res.render("orderForm", { title: "Create New Order", items, onOrder });
 };
 
 exports.order_create_post = [

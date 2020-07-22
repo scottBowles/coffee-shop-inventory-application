@@ -6,11 +6,15 @@ block content
     h6= receipt.submitted ? "Submitted " + receipt.dateSubmittedFormatted : 'Open'
     h6 Initiated #{receipt.dateInitiatedFormatted}
     if receipt.orderReceived
-      h6 #[a(href=receipt.orderReceivedUrl) Order Received]
+      h6 #[a(href=receipt.orderReceived.url) Order Received]
     else
       h6 Ad Hoc
     if !receipt.submitted
       a(href=`${receipt.url}/update`) Update Receipt
+  
+    p Are you sure you want to delete this receipt?
+      if receipt.orderReceived
+        p This will both remove this receipt and unreceive the #[a(href=receipt.orderReceived.url) order] it receives.
 
     if errors
       ul
@@ -40,7 +44,11 @@ block content
             td #[a(href=receivedItem.item.url)= receivedItem.item.name]
             td= receivedItem.quantity
 
-    a(href=`/inventory/receiving/${receipt._id}/remove`) Delete Receipt
+    form(method='POST' action='')
+      div.form-group
+        input#receiptId.form-control(type='hidden',name='receiptId', required='true', value=receipt._id )
+
+      button.btn.btn-primary(type='submit') Delete
 
   else
     if errors

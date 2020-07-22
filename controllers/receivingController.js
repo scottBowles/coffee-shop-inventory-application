@@ -600,6 +600,7 @@ exports.receipt_delete_get = [
           select: "name",
         },
       })
+      .populate("orderReceived")
       .exec();
 
     if (receipt === null) {
@@ -614,9 +615,40 @@ exports.receipt_delete_get = [
   },
 ];
 
-exports.receipt_delete_post = function receiptDeletePost(req, res, next) {
-  // validate param
-  // delete receipt
-  // if receipt is an order receipt, unreceive order
-  res.send("NOT IMPLEMENTED");
-};
+exports.receipt_delete_post = [
+  param("id").isMongoId().withMessage("Invalid receipt id").escape(),
+  async function receiptDeletePost(req, res, next) {
+    try {
+      // validate param
+      const { errors } = validationResult(req);
+      if (errors.length > 0) {
+        return res.render("receiptDelete", { title: "Remove Receipt", errors });
+      }
+
+      // delete receipt
+      const receipt = await Receipt.findByIdAndDelete(req.params.id)
+        .populate("orderReceived")
+        .exec();
+
+      // handle receipt not found
+      if (receipt === null) {
+        const notFoundError = new Error("Order not found");
+        notFoundError.status = 404;
+        return next(notFoundError);
+      }
+
+      // if receipt is an order receipt, unreceive order
+      if (receipt.orderReceived) {
+        const order = receipt.orderReceived;
+        order.status = "Ordered";
+        order.deliveryDate = undefined;
+        order.lastUpdated = Date.now();
+        await order.save();
+      }
+
+      return res.redirect("/inventory/receiving");
+    } catch (error) {
+      return next(error);
+    }
+  },
+];

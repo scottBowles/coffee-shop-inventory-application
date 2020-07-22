@@ -57,4 +57,4 @@ block content
     if errors
       ul
         for error in errors
-          li!= error.msg
+          li #[strong!= error.msg]
