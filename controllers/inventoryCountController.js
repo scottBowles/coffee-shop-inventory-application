@@ -115,7 +115,7 @@ exports.count_detail_post = [
 exports.count_create_get = async function countCreateGet(req, res, next) {
   const { filter } = req.query || undefined;
   const fetchItems = Item.find(
-    {},
+    { active: true },
     "name description category sku quantityInStock"
   )
     .populate("category")
@@ -306,9 +306,16 @@ exports.count_update_get = [
       .exec()
       .catch((err) => next(err));
 
+    const countHash = {};
+
+    count.countedQuantities.forEach((countItem) => {
+      const id = countItem.item._id.toString();
+      countHash[id] = countItem.quantity;
+    });
+
     // If category count, grab the category from the first item in the count and filter accordingly
     // If that item has no category, filter for items with no category
-    const filteredItems =
+    const itemsMatchingCountType =
       filter === "Full" || filter === "AdHoc"
         ? items
         : items.filter((item) => {
@@ -324,16 +331,13 @@ exports.count_update_get = [
             );
           });
 
-    const countHash = {};
-
-    count.countedQuantities.forEach((countItem) => {
-      const id = countItem.item._id.toString();
-      countHash[id] = countItem.quantity;
-    });
+    const activeOrCountItemsMatchingCountType = itemsMatchingCountType.filter(
+      (item) => item.active || countHash[item._id] !== undefined
+    );
 
     const itemsModifiedByCount = [];
 
-    filteredItems.forEach((item) => {
+    activeOrCountItemsMatchingCountType.forEach((item) => {
       const newItem = item;
       newItem.quantityInStock =
         countHash[newItem._id.toString()] || item.quantityInStock;

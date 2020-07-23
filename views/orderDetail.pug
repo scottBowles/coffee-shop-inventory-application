@@ -46,6 +46,8 @@ block content
             tr
               td= orderedItem.quantity
               td #[a(href=orderedItem.item.url)= orderedItem.item.name]
+                if !orderedItem.item.active
+                  strong  Archived Item
               td= orderedItem.item.sku
               if orderedItem.item.category
                 td #[a(href=orderedItem.item.category.url)= orderedItem.item.category.name]

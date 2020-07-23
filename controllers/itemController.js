@@ -18,9 +18,10 @@ exports.item_home = function itemHome(req, res, next) {
           const categoryNames = results.categories.map(
             (category) => category.name
           );
-          const sanitizedFilter = categoryNames.includes(filter)
-            ? filter
-            : "All";
+          const sanitizedFilter =
+            categoryNames.includes(filter) || filter === "Archived"
+              ? filter
+              : "All";
           callback(null, sanitizedFilter);
         },
       ],
@@ -29,14 +30,19 @@ exports.item_home = function itemHome(req, res, next) {
         "categories",
         (results, callback) => {
           const { categories, queryFilter } = results;
-          if (queryFilter !== "All") {
-            const category = categories.find((cat) => cat.name === queryFilter);
-            Item.find({ category: category._id })
+          if (queryFilter === "Archived") {
+            Item.find({ active: false })
+              .sort({ sku: "ascending", name: "ascending" })
+              .populate("category")
+              .exec(callback);
+          } else if (queryFilter === "All") {
+            Item.find({ active: true })
               .sort({ sku: "ascending", name: "ascending" })
               .populate("category")
               .exec(callback);
           } else {
-            Item.find({})
+            const category = categories.find((cat) => cat.name === queryFilter);
+            Item.find({ category: category._id, active: true })
               .sort({ sku: "ascending", name: "ascending" })
               .populate("category")
               .exec(callback);

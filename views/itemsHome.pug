@@ -6,10 +6,12 @@ block content
     a(href="/inventory/item/create-new") Create a New Item
     ul(class="nav nav-tabs mt-4")
       li(class="nav-item")
-        a(class=(filter==='All' || filter===undefined) ? "nav-link active" : "nav-link" href="/inventory/items/?filter=all") All
+        a(class=(filter==='All' || filter===undefined) ? "nav-link active" : "nav-link" href="/inventory/items/?filter=All") All
       each category in categories  
         li(class="nav-item")
           a(class=filter===category.name ? "nav-link active" : "nav-link" href=`/inventory/items/?filter=${category.name}`)= category.name
+      li(class="nav-item")
+        a(class=(filter==="Archived") ? "nav-link active" : "nav-link" href="/inventory/items/?filter=Archived") Archived
     
     .container
       .row
@@ -31,6 +33,8 @@ block content
               if item
                 tr
                   td #[a(href=item.url)= item.name]
+                    if !item.active
+                      strong(class="ml-3") Inactive
                   if (filter === 'All')
                     td #[a(href=(item.category ? item.category.url : "#"))= `${item.category ? item.category.name : "(None)"}`]
                   td= item.sku

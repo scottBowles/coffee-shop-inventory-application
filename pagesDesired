@@ -117,7 +117,4 @@ GET IT TO ORDER RECEIPTS THE WAY I WANT ON RECEIPT HOME PAGE. MAY NEED TO ADD LA
 SINCE ADDING A RECEIPT VIRTUAL TO THE ORDER SCHEMA, SHOULD BE ABLE TO CLEAN UP THE ORDER CONTROLLERS TO USE THIS RATHER THAN FETCHING THE MATCHING RECEIPT ON THEIR OWN
 TAKE A LOOK AT THE LANDING PAGE -- ITS VARIOUS LINKS, WHETHER ORDERS SHOW THE APPROPRIATE ONES, ETC.
 SORT ITEMS ON ORDER DETAIL GET PAGE
-FIGURE OUT FALLOUT OF ARCHIVING ITEMS
-  Item home page should show active items, optionally showing archived items. Archived items should be clearly marked as such or separated.
-  Order detail page should mark items as archived
-  Inventory count create and update pages should filter out archived items not already in count(Done?)
+  
