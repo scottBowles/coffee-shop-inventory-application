@@ -20,6 +20,7 @@ CategorySchema.virtual("numItems", {
   localField: "_id",
   foreignField: "category",
   count: true,
+  match: { active: true },
 });
 
 CategorySchema.virtual("url").get(function () {

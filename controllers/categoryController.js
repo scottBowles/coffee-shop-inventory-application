@@ -32,7 +32,12 @@ exports.category_detail = [
           notFoundError.status = 404;
           return next(notFoundError);
         }
-        return res.render("categoryDetail", { title: category.name, category });
+        const filteredItems = category.items.filter((item) => !!item.active);
+        return res.render("categoryDetail", {
+          title: category.name,
+          category,
+          items: filteredItems,
+        });
       });
   },
 ];

@@ -8,6 +8,8 @@ block content
     else
       p Category: (None)
     p Description: #{item.description}
+    if !item.active
+      p #[strong Archived]
     p Quantity in Stock: #{item.quantityInStock}
 
     if item.forSale
@@ -15,14 +17,16 @@ block content
       p Price: #{item.price}
     else
       p [Not marked for sale]
-
-    p Are you sure you want to archive this item?
+    if item.active
+      p Are you sure you want to archive this item?
+    else
+      p Are you sure you want to restore this item out of archive?
 
     form(method='POST' action='')
         div.form-group
-          input#itemId.form-control(type='hidden',name='itemId', required='true', value=item._id )
+          input#itemId.form-control(type='hidden',name='submitType', required='true', value=`${item.active ? "archive" : "restore"}` )
 
-        button.btn.btn-primary(type='submit') Archive
+        button.btn.btn-primary(type='submit')= item.active ? "Archive" : "Restore"
   
   else
     ul

@@ -26,7 +26,7 @@ exports.index = function inventoryHome(req, res, next) {
           .exec(callback);
       },
       items(callback) {
-        Item.find()
+        Item.find({ active: true })
           .populate("category")
           .sort([["itemLastUpdated", "descending"]])
           .exec(callback);
@@ -203,7 +203,10 @@ exports.order_detail_post = [
 
 exports.order_create_get = async function orderCreateGet(req, res, next) {
   // get items
-  const fetchItems = Item.find({}, "name sku quantityInStock").exec();
+  const fetchItems = Item.find(
+    { active: true },
+    "name sku quantityInStock"
+  ).exec();
 
   // create a hash of items -- { id: quantity on order }
   async function getItemsOnOrder() {

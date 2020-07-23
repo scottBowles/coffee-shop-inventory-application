@@ -6,7 +6,7 @@ block content
     h6= category.description
 
     table(class="table table-striped")
-      caption #{category.items.length} Items
+      caption #{items.length} Items
       thead
         tr
           th(scope="col") Name
@@ -14,10 +14,10 @@ block content
           th(scope="col") SKU
           th(scope="col") Price
       tbody
-        if category.items.length === 0
+        if items.length === 0
           tr
             td No items to display
-        each item in category.items
+        each item in items
           if item
             tr
               td #[a(href=item.url)= item.name]

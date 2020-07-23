@@ -8,6 +8,8 @@ block content
     else
       p Category: (None)
     p Description: #{item.description}
+    if !item.active
+      p #[strong Archived]
     p Quantity in Stock: #{item.quantityInStock}
 
     if item.forSale
@@ -17,6 +19,7 @@ block content
       p [Not marked for sale]
 
     a(href=item.url + "/update") Update Item
+    a.ml-5(href=item.url + "/archive")= item.active ? "Archive Item" : "Restore Item"
   
   else
     ul

@@ -113,7 +113,7 @@ exports.receipt_create_get = [
     const orderId = req.params.order || undefined;
 
     // get items and, if receiving an order, order
-    const fetchItems = Item.find({}, "name sku quantityInStock")
+    const fetchItems = Item.find({}, "name sku quantityInStock active")
       .populate("category")
       .exec()
       .catch((err) => next(err));
@@ -152,8 +152,13 @@ exports.receipt_create_get = [
       thisReceiptItems = undefined;
     }
 
+    // filter out archived items not in order
+    const itemsFiltered = order
+      ? items.filter((item) => item.active || !!thisReceiptItems[item._id])
+      : items.filter((item) => item.active);
+
     // sort items
-    items.sort((a, b) => {
+    itemsFiltered.sort((a, b) => {
       if (a.category && b.category && a.category.name !== b.category.name) {
         return a.category.name.toLowerCase() > b.category.name.toLowerCase()
           ? 1
@@ -165,7 +170,7 @@ exports.receipt_create_get = [
     // render receipt form
     return res.render("receiptForm", {
       title: "Create New Receipt",
-      items,
+      items: itemsFiltered,
       thisReceiptItems,
     });
   },
@@ -364,7 +369,7 @@ exports.receipt_update_get = [
       .exec();
 
     // promise items
-    const fetchItems = Item.find({}, "name sku quantityInStock")
+    const fetchItems = Item.find({}, "name sku quantityInStock active")
       .populate("category")
       .exec();
 
@@ -393,20 +398,25 @@ exports.receipt_update_get = [
       });
     }
 
-    items.sort((a, b) => {
-      return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
-    });
-
     const thisReceiptItems = {};
     receipt.receivedItems.forEach((receivedItem) => {
       const id = receivedItem.item._id.toString();
       thisReceiptItems[id] = receivedItem.quantity;
     });
 
+    // filter out archived items not in order
+    const itemsFiltered = items.filter(
+      (item) => item.active || !!thisReceiptItems[item._id]
+    );
+
+    itemsFiltered.sort((a, b) => {
+      return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+    });
+
     return res.render("receiptForm", {
       title: "Update Receipt",
       receipt,
-      items,
+      items: itemsFiltered,
       thisReceiptItems,
     });
   },

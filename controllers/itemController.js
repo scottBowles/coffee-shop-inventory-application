@@ -274,71 +274,69 @@ exports.item_update_post = [
   param("id").isMongoId().withMessage("Item not found").escape(),
 
   async function itemUpdatePost(req, res, next) {
-    const { errors } = validationResult(req);
-    // if the item Id from params is bad, handle before we try to fetch the item
-    const paramErrors = errors.filter((error) => error.location === "params");
-    if (paramErrors.length > 0) {
-      return res.render("itemForm", {
-        title: "Update Item",
-        errors,
-      });
-    }
-
-    const existingItem = await Item.findById(req.params.id).exec();
-
-    if (existingItem === null) {
-      const notFoundError = new Error("Item not found");
-      notFoundError.status = 404;
-      return next(notFoundError);
-    }
-
-    const updatedItem = {
-      name: req.body.name,
-      description: req.body.description,
-      sku: req.body.sku,
-      price: req.body.price,
-      quantityInStock: req.body.quantityInStock,
-      category: req.body.category,
-      itemLastUpdated: req.body.itemLastUpdated,
-      _id: req.params.id,
-    };
-
-    let newCount;
-    if (existingItem.quantityInStock !== updatedItem.quantityInStock) {
-      updatedItem.qtyLastUpdated = Date.now();
-
-      newCount = new InventoryCount({
-        dateInitiated: Date.now(),
-        dateSubmitted: Date.now(),
-        countedQuantities: [
-          { item: updatedItem._id, quantity: updatedItem.quantityInStock },
-        ],
-        type: "Ad Hoc",
-      });
-    }
-
-    const item = new Item(updatedItem);
-
-    if (errors.length > 0) {
-      const categories = await Category.find({}).exec();
-      return res.render("itemForm", {
-        title: `Update Item: ${req.body.name}`,
-        item,
-        categories,
-        errors,
-      });
-    }
-    Item.findByIdAndUpdate(req.params.id, item).exec((err, newItem) => {
-      if (err) {
-        return next(err);
-      }
-      if (newCount) {
-        newCount.save((saveCountError) => {
-          if (saveCountError) return next(saveCountError);
+    try {
+      const { errors } = validationResult(req);
+      // if the item Id from params is bad, handle before we try to fetch the item
+      const paramErrors = errors.filter((error) => error.location === "params");
+      if (paramErrors.length > 0) {
+        return res.render("itemForm", {
+          title: "Update Item",
+          errors,
         });
       }
-      return res.redirect(newItem.url);
-    });
+
+      const item = await Item.findById(req.params.id).exec();
+
+      if (item === null) {
+        const notFoundError = new Error("Item not found");
+        notFoundError.status = 404;
+        return next(notFoundError);
+      }
+
+      let newCount;
+      if (item.quantityInStock !== req.body.quantityInStock) {
+        item.qtyLastUpdated = Date.now();
+
+        newCount = new InventoryCount({
+          dateInitiated: Date.now(),
+          dateSubmitted: Date.now(),
+          countedQuantities: [
+            { item: item._id, quantity: req.body.quantityInStock },
+          ],
+          type: "Ad Hoc",
+        });
+      }
+
+      item.name = req.body.name;
+      item.description = req.body.description;
+      item.sku = req.body.sku;
+      item.price = req.body.price;
+      item.quantityInStock = req.body.quantityInStock;
+      item.category = req.body.category;
+      if (item.itemLastUpdated === null) item.itemLastUpdated = Date.now();
+
+      if (errors.length > 0) {
+        const categories = await Category.find({}).exec();
+        return res.render("itemForm", {
+          title: `Update Item: ${req.body.name}`,
+          item,
+          categories,
+          errors,
+        });
+      }
+
+      if (newCount) {
+        await Promise.all([item.save(), newCount.save()]).catch((err) => {
+          return next(err);
+        });
+      } else {
+        await item.save();
+      }
+
+      return res.redirect(item.url);
+    } catch (error) {
+      return next(error);
+    }
   },
 ];
 
@@ -369,6 +367,7 @@ exports.item_archive_get = [
 
 exports.item_archive_post = [
   param("id").isMongoId().withMessage("Invalid item id").escape(),
+  body("submitType").isIn(["archive", "restore"]).escape(),
   async function itemDeletePost(req, res, next) {
     try {
       const { errors } = validationResult(req);
@@ -381,8 +380,10 @@ exports.item_archive_post = [
         notFoundError.status = 404;
         return next(notFoundError);
       }
-      item.active = false;
-      item.save();
+      const { submitType } = req.body;
+      item.active = submitType === "restore";
+      item.itemLastUpdated = Date.now();
+      await item.save();
       return res.redirect(item.url);
     } catch (error) {
       return next(error);
