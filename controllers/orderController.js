@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const async = require("async");
+const moment = require("moment");
 const { body, param, validationResult } = require("express-validator");
 const Order = require("../models/order");
 const InventoryCount = require("../models/inventoryCount");
@@ -193,9 +194,11 @@ exports.order_detail_post = [
       });
     }
 
-    order.status = "Ordered";
     order.orderDate = Date.now();
+    order.deliveryDate = moment().add(7, "days");
     order.lastUpdated = Date.now();
+    order.status = "Ordered";
+
     await order.save();
     return res.redirect(order.url);
   },
@@ -265,6 +268,8 @@ exports.order_create_post = [
     // construct new Order
     const newOrder = {
       orderDate: submitType === "placeOrder" ? Date.now() : undefined,
+      deliveryDate:
+        submitType === "placeOrder" ? moment().add(7, "days") : undefined,
       status: submitType === "placeOrder" ? "Ordered" : "Saved",
       orderedItems: orderedItems.map((orderedItem) => {
         return {
@@ -495,13 +500,12 @@ exports.order_update_post = [
         fetchReceipt,
       ]).catch((err) => next(err));
 
-      res.render("orderDetail", {
+      return res.render("orderDetail", {
         title: "Order Details",
         order: populatedOrder,
         receipt,
         errors: [{ msg: "Cannot update an order once it has been placed." }],
       });
-      return;
     }
 
     // update order.orderedItems
@@ -553,7 +557,7 @@ exports.order_update_post = [
         thisOrderItems[id] = orderedItem.quantity;
       });
 
-      res.render("orderForm", {
+      return res.render("orderForm", {
         title: "Update Order",
         order,
         items,
@@ -561,11 +565,12 @@ exports.order_update_post = [
         thisOrderItems,
         errors,
       });
-      return;
     }
 
     // no errors: update order
     order.orderDate = submitType === "placeOrder" ? Date.now() : undefined;
+    order.deliveryDate =
+      submitType === "placeOrder" ? moment().add(7, "days") : undefined;
     order.status = submitType === "placeOrder" ? "Ordered" : "Saved";
     order.lastUpdated = Date.now();
 
@@ -573,7 +578,7 @@ exports.order_update_post = [
     await order.save();
 
     // redirect to order.url
-    res.redirect(order.url);
+    return res.redirect(order.url);
   },
 ];
 
