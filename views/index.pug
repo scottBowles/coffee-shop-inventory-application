@@ -20,13 +20,15 @@ block content
           tr
             td #[a(href=order.url)= order.orderDateFormatted]
             td= order.status
-            if order.deliveryDate
+            if order.status === 'Received'
               td= order.deliveryDateFormatted
-              // TODO
-              td #[a(href="NEED TO IMPLEMENT WITH POST") Receive]
+              td #[a(href=order.receipt.url) View Receipt]
+            else if order.status === 'Ordered'
+              td= order.deliveryDateFormatted
+              td #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
             else
               td Order not yet submitted
-              td #[a(href="order.url") Place order]
+              td #[a(href=order.url) Place order]
             
   if orders.length > 5
     a(href="/inventory/orders") See More
@@ -53,10 +55,7 @@ block content
             td #[a(href=count.url) Continue count]
   if counts.length > 5
     a(href="/inventory/counts") See More
-  h6 Start a New Inventory Count
-  ul
-    li
-      // TODO - BUTTONS FOR NEW FULL, CATEGORY, AND AD HOC COUNTS
+  h6 #[a(href="inventory/count/create-new") Start a New Inventory Count]
 
   h2 #[a(href="/inventory/items") Items]
   table(class="table table-striped")
@@ -82,8 +81,7 @@ block content
               else
                 td (None)
               td= item.itemLastUpdatedFormatted
-              // TODO - IMPLEMENT UPDATE BUTTON (CREATE NEW COUNT WITH ITEM)
-              td #[button Update]
+              td #[a(href=item.url + "/update") Update]
   if items.length > 5
     a(href="/inventory/items") See More
   h6 #[a(href="/inventory/item/create-new") Add a New Item]

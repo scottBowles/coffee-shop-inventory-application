@@ -36,10 +36,9 @@ block content
             td= order.lastUpdatedFormatted
             if order.status === 'Received'
               td= order.deliveryDateFormatted
-              td 
+              td #[a(href=order.receipt.url) View Receipt]
             else if order.status === 'Ordered'
               td= order.deliveryDateFormatted
-              // TODO
               td #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
             else
               td Order not yet submitted
