@@ -13,7 +13,7 @@ block content
         li Delivery Date: #{order.deliveryDateFormatted}
       if order.status === 'Received'
         li Ordered: #{order.orderDateFormatted}
-        li Received: #[a(href=receipt.url)= receipt.dateSubmittedFormatted]
+        li Received: #[a(href=order.receipt.url)= order.receipt.dateSubmittedFormatted]
     
     ul.d-flex
       if order.status === 'Saved'

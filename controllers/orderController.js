@@ -111,40 +111,28 @@ exports.order_detail_get = [
       });
     }
 
-    // Need 'order', 'receipt' if received, populate orderedItems->item, populate orderItems->item->category. Organize items by category then alpha?
-    async.parallel(
-      {
-        order(callback) {
-          Order.findById(req.params.id)
-            .populate("receipt")
-            .populate({
-              path: "orderedItems.item",
-              populate: {
-                path: "category",
-              },
-            })
-            .exec(callback);
+    Order.findById(req.params.id)
+      .populate("receipt")
+      .populate({
+        path: "orderedItems.item",
+        populate: {
+          path: "category",
         },
-        receipt(callback) {
-          Receipt.findOne({ orderReceived: req.params.id }).exec(callback);
-        },
-      },
-      (err, results) => {
+      })
+      .exec((err, order) => {
         if (err) {
           return next(err);
         }
-        if (results.order == null) {
+        if (order == null) {
           const notFoundError = new Error("Order not found");
           notFoundError.status = 404;
           return next(notFoundError);
         }
         return res.render("orderDetail", {
-          order: results.order,
-          receipt: results.receipt,
+          order,
           title: "Order Details",
         });
-      }
-    );
+      });
   },
 ];
 
@@ -161,14 +149,15 @@ exports.order_detail_post = [
     }
 
     const order = await Order.findById(req.params.id).exec();
-    if (order == null) {
+
+    if (order === null) {
       const notFoundError = new Error("Order not found");
       notFoundError.status = 404;
       return next(notFoundError);
     }
 
     if (order.status !== "Saved") {
-      const populateOrder = order
+      const populatedOrder = await order
         .populate({
           path: "orderedItems.item",
           populate: {
@@ -177,19 +166,10 @@ exports.order_detail_post = [
         })
         .execPopulate();
 
-      const fetchReceipt = Receipt.findOne({
-        orderReceived: req.params.id,
-      }).exec();
-
-      const [populatedOrder, receipt] = await Promise.all([
-        populateOrder,
-        fetchReceipt,
-      ]).catch((err) => next(err));
-
       return res.render("orderDetail", {
         title: "Order Details",
         order: populatedOrder,
-        receipt,
+        receipt: order.receipt,
         errors: [{ msg: "Order was already placed." }],
       });
     }
@@ -395,7 +375,7 @@ exports.order_update_get = [
 
     // if order has already been placed, re-render detail page with error message
     if (order.status !== "Saved") {
-      const populateOrder = order
+      const populatedOrder = await order
         .populate({
           path: "orderedItems.item",
           populate: {
@@ -403,18 +383,11 @@ exports.order_update_get = [
           },
         })
         .execPopulate();
-      const fetchReceipt = Receipt.findOne({
-        orderReceived: req.params.id,
-      }).exec();
-      const [populatedOrder, receipt] = await Promise.all([
-        populateOrder,
-        fetchReceipt,
-      ]).catch((err) => next(err));
 
       return res.render("orderDetail", {
         title: "Order Details",
         order: populatedOrder,
-        receipt,
+        receipt: order.receipt,
         errors: [{ msg: "Cannot update an order once it has been placed." }],
       });
     }
@@ -482,7 +455,7 @@ exports.order_update_post = [
 
     // if order.status !== "Saved", render detail page with errors
     if (order.status !== "Saved") {
-      const populateOrder = order
+      const populatedOrder = await order
         .populate({
           path: "orderedItems.item",
           populate: {
@@ -491,19 +464,10 @@ exports.order_update_post = [
         })
         .execPopulate();
 
-      const fetchReceipt = Receipt.findOne({
-        orderReceived: req.params.id,
-      }).exec();
-
-      const [populatedOrder, receipt] = await Promise.all([
-        populateOrder,
-        fetchReceipt,
-      ]).catch((err) => next(err));
-
       return res.render("orderDetail", {
         title: "Order Details",
         order: populatedOrder,
-        receipt,
+        receipt: order.receipt,
         errors: [{ msg: "Cannot update an order once it has been placed." }],
       });
     }
