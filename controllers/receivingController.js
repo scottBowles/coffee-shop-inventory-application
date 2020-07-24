@@ -20,11 +20,11 @@ exports.receiving_home = function receivingHome(req, res, next) {
         receipts(callback) {
           if (req.query.filter === "all") {
             Receipt.find({})
-              .sort({ submitted: "descending", dateInitiated: "descending" })
+              .sort({ dateInitiated: "descending" })
               .exec(callback);
           } else {
             Receipt.find({})
-              .sort({ submitted: "descending", dateInitiated: "descending" })
+              .sort({ dateInitiated: "descending" })
               .limit(5)
               .exec(callback);
           }
