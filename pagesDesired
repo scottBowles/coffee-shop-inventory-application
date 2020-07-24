@@ -105,8 +105,3 @@ Each inventory count amending page     gp inventory/count/<id>/update         Do
 Each inventory count deleting page     gp inventory/count/<id>/remove         Done
 Create new inventory count             gp inventory/count/create-new          Done
 
-
-TODO
-STILL NEED TO:
-
-SINCE ADDING A RECEIPT VIRTUAL TO THE ORDER SCHEMA, SHOULD BE ABLE TO CLEAN UP THE ORDER CONTROLLERS TO USE THIS RATHER THAN FETCHING THE MATCHING RECEIPT ON THEIR OWN

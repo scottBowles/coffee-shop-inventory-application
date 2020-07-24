@@ -185,34 +185,16 @@ exports.order_detail_post = [
 ];
 
 exports.order_create_get = async function orderCreateGet(req, res, next) {
-  // get items
   const fetchItems = Item.find(
     { active: true },
     "name sku quantityInStock"
   ).exec();
 
-  // create a hash of items -- { id: quantity on order }
-  async function getItemsOnOrder() {
-    const orders = await Order.find(
-      { status: "Ordered" },
-      "orderedItems"
-    ).exec();
+  const fetchOrders = Order.find({ status: "Ordered" }, "orderedItems").exec();
 
-    const itemQtyHash = {};
-    orders.forEach((order) => {
-      order.orderedItems.forEach((orderedItem) => {
-        const id = orderedItem.item.toString();
-        if (itemQtyHash[id]) itemQtyHash[id] += orderedItem.quantity;
-        else itemQtyHash[id] = orderedItem.quantity;
-      });
-    });
-
-    return itemQtyHash;
-  }
-
-  const [items, onOrder] = await Promise.all([
+  const [items, orders] = await Promise.all([
     fetchItems,
-    getItemsOnOrder(),
+    fetchOrders,
   ]).catch((err) => next(err));
 
   items.sort((a, b) => {
@@ -222,7 +204,16 @@ exports.order_create_get = async function orderCreateGet(req, res, next) {
     return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
   });
 
-  // render order form
+  // create hash of {[id]: [qty]} for item quantities currently on order
+  const onOrder = {};
+  orders.forEach((order) => {
+    order.orderedItems.forEach((orderedItem) => {
+      const id = orderedItem.item.toString();
+      if (onOrder[id]) onOrder[id] += orderedItem.quantity;
+      else onOrder[id] = orderedItem.quantity;
+    });
+  });
+
   return res.render("orderForm", { title: "Create New Order", items, onOrder });
 };
 
@@ -239,14 +230,10 @@ exports.order_create_post = [
   body("submitType").isIn(["placeOrder", "save"]).escape(),
 
   async function orderCreatePost(req, res, next) {
-    // grab errors
     const { errors } = validationResult(req);
-
-    // get submit type
     const { submitType, orderedItems } = req.body;
 
-    // construct new Order
-    const newOrder = {
+    const newOrder = new Order({
       orderDate: submitType === "placeOrder" ? Date.now() : undefined,
       deliveryDate:
         submitType === "placeOrder" ? moment().add(7, "days") : undefined,
@@ -258,66 +245,60 @@ exports.order_create_post = [
         };
       }),
       lastUpdated: Date.now(),
-    };
+    });
 
-    const order = new Order(newOrder);
-
-    // if errors
-    if (errors.length > 0) {
-      // get items -- name, sku, quantityInStock
-      const fetchItems = Item.find({}, "name sku quantityInStock").exec();
-
-      // create a hash of items -- { id: quantity on order }
-      async function getItemsOnOrder() {
-        const orders = await Order.find(
-          { status: "Ordered" },
-          "orderedItems"
-        ).exec();
-
-        const itemQtyHash = {};
-        orders.forEach((order) => {
-          order.orderedItems.forEach((orderedItem) => {
-            const id = orderedItem.item.toString();
-            if (itemQtyHash[id]) itemQtyHash[id] += orderedItem.quantity;
-            else itemQtyHash[id] = orderedItem.quantity;
-          });
-        });
-
-        return itemQtyHash;
-      }
-
-      const [items, onOrder] = await Promise.all([
-        fetchItems,
-        getItemsOnOrder(),
-      ]).catch((err) => next(err));
-
-      items.sort((a, b) => {
-        if (a.sku !== b.sku) {
-          return a.sku > b.sku ? 1 : -1;
-        }
-        return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
-      });
-
-      const thisOrderItems = {};
-      order.orderedItems.forEach((orderedItem) => {
-        const id = orderedItem.item.toString();
-        thisOrderItems[id] = orderedItem.quantity;
-      });
-
-      // render order form
-      res.render("orderForm", {
-        title: "Create New Order",
-        items,
-        thisOrderItems,
-        onOrder,
-        errors,
-      });
-      return;
+    if (errors.length === 0) {
+      // no validation errors -- save order and redirect to new order's page
+      await newOrder.save().catch((err) => next(err));
+      return res.redirect(newOrder.url);
     }
 
-    // no validation errors -- save order and redirect to new order's page
-    const savedOrder = await order.save().catch((err) => next(err));
-    res.redirect(savedOrder.url);
+    /*
+     *  VALIDATION ERRORS -- RE-RENDER ORDER FORM
+     */
+
+    const fetchItems = Item.find({}, "name sku quantityInStock").exec();
+    const fetchOrders = Order.find(
+      { status: "Ordered" },
+      "orderedItems"
+    ).exec();
+
+    const [items, orders] = await Promise.all([
+      fetchItems,
+      fetchOrders,
+    ]).catch((err) => next(err));
+
+    items.sort((a, b) => {
+      if (a.sku !== b.sku) {
+        return a.sku > b.sku ? 1 : -1;
+      }
+      return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+    });
+
+    // create hash of {[id]: [qty]} of items on order
+    const onOrder = {};
+    orders.forEach((order) => {
+      order.orderedItems.forEach((orderedItem) => {
+        const id = orderedItem.item.toString();
+        if (onOrder[id]) onOrder[id] += orderedItem.quantity;
+        else onOrder[id] = orderedItem.quantity;
+      });
+    });
+
+    const thisOrderItems = {};
+    newOrder.orderedItems.forEach((orderedItem) => {
+      const id = orderedItem.item.toString();
+      thisOrderItems[id] = orderedItem.quantity;
+    });
+
+    // render order form
+    return res.render("orderForm", {
+      title: "Create New Order",
+      items,
+      thisOrderItems,
+      onOrder,
+      errors,
+    });
   },
 ];
 
@@ -430,7 +411,7 @@ exports.order_update_post = [
   body("orderedItems.*.quantity").isInt({ lt: 10000000 }).escape(),
   body("submitType").isIn(["placeOrder", "save"]).escape(),
 
-  async function updatePost(req, res, next) {
+  async function orderUpdatePost(req, res, next) {
     // grab errors & submitType
     const { errors } = validationResult(req);
     const { submitType } = req.body;
@@ -447,7 +428,7 @@ exports.order_update_post = [
     // fetch order
     const order = await Order.findById(req.params.id);
 
-    if (order == null) {
+    if (order === null) {
       const notFoundError = new Error("Order not found");
       notFoundError.status = 404;
       return next(notFoundError);
