@@ -36,6 +36,7 @@ block content
             td= order.lastUpdatedFormatted
             if order.status === 'Received'
               td= order.deliveryDateFormatted
+              td 
             else if order.status === 'Ordered'
               td= order.deliveryDateFormatted
               // TODO

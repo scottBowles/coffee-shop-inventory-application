@@ -24,11 +24,11 @@ ReceivingSchema.virtual("totalQuantityInItems").get(function () {
 });
 
 ReceivingSchema.virtual("dateInitiatedFormatted").get(function () {
-  return moment(this.dateInitiated).format("dddd, MMMM Do YYYY, h:mm:ss a");
+  return moment(this.dateInitiated).format("MMMM Do YYYY, h:mm a");
 });
 
 ReceivingSchema.virtual("dateSubmittedFormatted").get(function () {
-  return moment(this.dateSubmitted).format("dddd, MMMM Do YYYY, h:mm:ss a");
+  return moment(this.dateSubmitted).format("MMMM Do YYYY, h:mm a");
 });
 
 ReceivingSchema.virtual("submitted").get(function () {

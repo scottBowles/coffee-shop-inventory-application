@@ -29,15 +29,15 @@ OrderSchema.virtual("receipt", {
 });
 
 OrderSchema.virtual("orderDateFormatted").get(function () {
-  return moment(this.orderDate).format("dddd, MMMM Do YYYY, h:mm:ss a");
+  return moment(this.orderDate).format("MMMM Do YYYY, h:mm a");
 });
 
 OrderSchema.virtual("deliveryDateFormatted").get(function () {
-  return moment(this.deliveryDate).format("dddd, MMMM Do YYYY, h:mm:ss a");
+  return moment(this.deliveryDate).format("MMMM Do YYYY, h:mm a");
 });
 
 OrderSchema.virtual("lastUpdatedFormatted").get(function () {
-  return moment(this.lastUpdated).format("dddd, MMMM Do YYYY, h:mm:ss a");
+  return moment(this.lastUpdated).format("MMMM Do YYYY, h:mm a");
 });
 
 OrderSchema.virtual("url").get(function () {

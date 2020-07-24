@@ -25,11 +25,11 @@ InventoryCountSchema.virtual("submitted").get(function () {
 });
 
 InventoryCountSchema.virtual("dateInitiatedFormatted").get(function () {
-  return moment(this.dateInitiated).format("dddd, MMMM Do YYYY, h:mm:ss a");
+  return moment(this.dateInitiated).format("MMMM Do YYYY, h:mm a");
 });
 
 InventoryCountSchema.virtual("dateSubmittedFormatted").get(function () {
-  return moment(this.dateSubmitted).format("dddd, MMMM Do YYYY, h:mm:ss a");
+  return moment(this.dateSubmitted).format("MMMM Do YYYY, h:mm a");
 });
 
 InventoryCountSchema.virtual("url").get(function () {

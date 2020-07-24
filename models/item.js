@@ -17,13 +17,13 @@ const ItemSchema = new Schema({
 
 ItemSchema.virtual("qtyLastUpdatedFormatted").get(
   function lastQtyUpdateFormatted() {
-    return moment(this.qtyLastUpdated).format("dddd, MMMM Do YYYY, h:mm:ss a");
+    return moment(this.qtyLastUpdated).format("MMMM Do YYYY, h:mm a");
   }
 );
 
 ItemSchema.virtual("itemLastUpdatedFormatted").get(
   function lastItemUpdateFormatted() {
-    return moment(this.itemLastUpdated).format("dddd, MMMM Do YYYY, h:mm:ss a");
+    return moment(this.itemLastUpdated).format("MMMM Do YYYY, h:mm a");
   }
 );
 
