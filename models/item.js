@@ -13,6 +13,10 @@ const ItemSchema = new Schema({
   qtyLastUpdated: { type: Date, required: true, default: Date.now() },
   itemLastUpdated: { type: Date, required: true, default: Date.now() },
   active: { type: Boolean, default: true },
+  image: {
+    data: Buffer,
+    contentType: String,
+  },
 });
 
 ItemSchema.virtual("qtyLastUpdatedFormatted").get(

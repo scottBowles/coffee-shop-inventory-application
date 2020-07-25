@@ -17,9 +17,12 @@ block content
       p Price: #{item.price}
     else
       p [Not marked for sale]
-
-    a(href=item.url + "/update") Update Item
-    a.ml-5(href=item.url + "/archive")= item.active ? "Archive Item" : "Restore Item"
+    
+    if item.image && item.image.data
+      img(style='height: 100px;' src=`data:image/${item.image.contentType};base64, ${item.image.data.toString('base64')}`) 
+    div
+      a(href=item.url + "/update") Update Item
+      a.ml-5(href=item.url + "/archive")= item.active ? "Archive Item" : "Restore Item"
   
   else
     ul

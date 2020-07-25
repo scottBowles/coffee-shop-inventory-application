@@ -3,7 +3,7 @@ extends layout
 block content
   h1= title
   
-  form(method="POST" action="")
+  form(method="POST" action="" enctype="multipart/form-data")
     div.form-group
       label(for="name") Name:
       input#name.form-control(type="text", placeholder="Name", name="name", value=(item === undefined ? "" : item.name) required)
@@ -37,6 +37,9 @@ block content
             else
               option(value=category._id) #{category.name}
         a(href="../category/create-new") Create a New Category
+    div.form-group
+      label(for="imageUpload") Upload Image
+      input(type="file" name="imageUpload")
     div.form-group
       input#itemLastUpdated.form-control(type="hidden", name="itemLastUpdated", value=Date.now())
     button.btn.btn-primary(type="submit") Submit

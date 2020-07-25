@@ -1,5 +1,19 @@
 const { body, param, validationResult } = require("express-validator");
+const multer = require("multer");
+const fs = require("fs");
 const Category = require("../models/category");
+
+const upload = multer({
+  dest: "../public/images/",
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.match(/jpg$|png$|jpeg/)) {
+      cb(new Error("Filetype must be .png, .jpg or .jpeg"), false);
+    } else {
+      cb(null, true);
+    }
+  },
+  limits: { fieldSize: 1000000 },
+});
 
 exports.category_home = function categoryHome(req, res, next) {
   Category.find()
@@ -47,6 +61,7 @@ exports.category_create_get = function categoryCreateGet(req, res, next) {
 };
 
 exports.category_create_post = [
+  upload.single("imageUpload"),
   body("name", "Category name required").trim().isLength({ min: 1 }).escape(),
   body("description", "Category description required")
     .trim()
@@ -59,6 +74,13 @@ exports.category_create_post = [
     const category = new Category({
       name: req.body.name,
       description: req.body.description,
+      image:
+        req.file === undefined
+          ? undefined
+          : {
+              data: fs.readFileSync(req.file.path),
+              contentType: req.file.mimetype,
+            },
     });
 
     if (errors.length > 0) {
@@ -112,6 +134,7 @@ exports.category_update_get = [
 ];
 
 exports.category_update_post = [
+  upload.single("imageUpload"),
   body("name", "Category name required").trim().isLength({ min: 1 }).escape(),
   body("description", "Category description required")
     .trim()
@@ -134,6 +157,13 @@ exports.category_update_post = [
     const category = new Category({
       name: req.body.name,
       description: req.body.description,
+      image:
+        req.file === undefined
+          ? undefined
+          : {
+              data: fs.readFileSync(req.file.path),
+              contentType: req.file.mimetype,
+            },
       _id: req.params.id,
     });
 

@@ -1,9 +1,23 @@
 const async = require("async");
+const fs = require("fs");
 const { body, param, validationResult } = require("express-validator");
+const multer = require("multer");
 const Item = require("../models/item");
 const Category = require("../models/category");
 const Order = require("../models/order");
 const InventoryCount = require("../models/inventoryCount");
+
+const upload = multer({
+  dest: "../public/images/",
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.match(/jpg$|png$|jpeg/)) {
+      cb(new Error("Filetype must be .png, .jpg or .jpeg"), false);
+    } else {
+      cb(null, true);
+    }
+  },
+  limits: { fieldSize: 1000000 },
+});
 
 exports.item_home = function itemHome(req, res, next) {
   async.auto(
@@ -127,6 +141,7 @@ exports.item_create_get = function itemCreateGet(req, res, next) {
 };
 
 exports.item_create_post = [
+  upload.single("imageUpload"),
   body("name", "Item name required").trim().isLength({ min: 1 }).escape(),
   body("description").escape(),
   body("sku").escape(),
@@ -145,6 +160,13 @@ exports.item_create_post = [
       price: req.body.price || undefined,
       quantityInStock: req.body.quantityInStock || 0,
       category: req.body.category || undefined,
+      image:
+        req.file === undefined
+          ? undefined
+          : {
+              data: fs.readFileSync(req.file.path),
+              contentType: req.file.mimetype,
+            },
     });
 
     // If there are errors, re-render the form with the errors
@@ -248,6 +270,7 @@ exports.item_update_get = [
 ];
 
 exports.item_update_post = [
+  upload.single("imageUpload"),
   body("name")
     .trim()
     .isLength({ min: 1 })
@@ -319,6 +342,10 @@ exports.item_update_post = [
       item.price = req.body.price;
       item.quantityInStock = req.body.quantityInStock;
       item.category = req.body.category;
+      item.image = {
+        data: fs.readFileSync(req.file.path),
+        contentType: req.file.mimetype,
+      };
       if (item.itemLastUpdated === null) item.itemLastUpdated = Date.now();
 
       if (errors.length > 0) {
@@ -330,6 +357,8 @@ exports.item_update_post = [
           errors,
         });
       }
+
+      item.itemLastUpdated = Date.now();
 
       if (newCount) {
         await Promise.all([item.save(), newCount.save()]).catch((err) => {

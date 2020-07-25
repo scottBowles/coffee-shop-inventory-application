@@ -4,6 +4,8 @@ block content
   h1= title
   if category
     h6= category.description
+    if category.image && category.image.data
+      img(style='height: 100px;' src=`data:image/${category.image.contentType};base64, ${category.image.data.toString('base64')}`) 
 
     table(class="table table-striped")
       caption #{items.length} Items

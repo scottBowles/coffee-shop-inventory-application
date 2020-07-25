@@ -5,6 +5,10 @@ const { Schema } = mongoose;
 const CategorySchema = new Schema({
   name: { type: String, required: true, maxlength: 100 },
   description: { type: String, required: true, maxlength: 256 },
+  image: {
+    data: Buffer,
+    contentType: String,
+  },
 });
 
 CategorySchema.virtual("items", {
