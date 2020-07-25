@@ -424,18 +424,34 @@ exports.item_archive_get = [
 exports.item_archive_post = [
   param("id").isMongoId().withMessage("Invalid item id").escape(),
   body("submitType").isIn(["archive", "restore"]).escape(),
+  body("password")
+    .custom((value) => {
+      if (value !== process.env.ADMIN_PASSWORD) {
+        throw new Error("Invalid password");
+      }
+      return true;
+    })
+    .escape(),
+
   async function itemDeletePost(req, res, next) {
     try {
       const { errors } = validationResult(req);
-      if (errors.length > 0) {
-        return res.render("itemArchive", { title: "Archive Item", errors });
-      }
       const item = await Item.findById(req.params.id).exec();
+
+      if (errors.length > 0) {
+        return res.render("itemArchive", {
+          title: "Archive Item",
+          item,
+          errors,
+        });
+      }
+
       if (item === null) {
         const notFoundError = new Error("Item not found");
         notFoundError.status = 404;
         return next(notFoundError);
       }
+
       const { submitType } = req.body;
       item.active = submitType === "restore";
       item.itemLastUpdated = Date.now();

@@ -241,13 +241,36 @@ exports.category_delete_get = [
 ];
 
 exports.category_delete_post = [
+  body("password")
+    .custom((value) => {
+      if (value !== process.env.ADMIN_PASSWORD) {
+        throw new Error("Invalid password");
+      }
+      return true;
+    })
+    .escape(),
   param("id").isMongoId().withMessage("Invalid category id").escape(),
 
   async function categoryDeletePost(req, res, next) {
     // handle validation error
     const { errors } = validationResult(req);
+
     if (errors.length > 0) {
-      return res.render("categoryDelete", { title: "Remove Category", errors });
+      // Get category
+      const category = await Category.findById(req.params.id)
+        .populate("items")
+        .exec();
+
+      // If no category is found, redirect
+      if (category === null) {
+        return res.redirect("/inventory/categories");
+      }
+
+      return res.render("categoryDelete", {
+        title: `Remove Category: ${category.name}`,
+        category,
+        errors,
+      });
     }
 
     // get category, populating items

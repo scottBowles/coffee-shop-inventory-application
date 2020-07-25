@@ -642,13 +642,46 @@ exports.receipt_delete_get = [
 ];
 
 exports.receipt_delete_post = [
+  body("password")
+    .custom((value) => {
+      if (value !== process.env.ADMIN_PASSWORD) {
+        throw new Error("Invalid password");
+      }
+      return true;
+    })
+    .escape(),
+
   param("id").isMongoId().withMessage("Invalid receipt id").escape(),
   async function receiptDeletePost(req, res, next) {
     try {
       // validate param
       const { errors } = validationResult(req);
       if (errors.length > 0) {
-        return res.render("receiptDelete", { title: "Remove Receipt", errors });
+        const receipt = await Receipt.findById(req.params.id)
+          .populate({
+            path: "receivedItems.item",
+            select: "category name",
+            populate: {
+              path: "category",
+              select: "name",
+            },
+          })
+          .populate("orderReceived")
+          .exec();
+
+        if (receipt === null) {
+          const notFoundError = new Error("Receipt not found");
+          notFoundError.status = 404;
+          return next(notFoundError);
+        }
+        receipt.receivedItems.sort((a, b) =>
+          b.item.name.toLowerCase() < a.item.name.toLowerCase() ? 1 : -1
+        );
+        return res.render("receiptDelete", {
+          title: "Remove Receipt",
+          receipt,
+          errors,
+        });
       }
 
       // delete receipt

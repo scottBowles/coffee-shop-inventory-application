@@ -35,9 +35,15 @@ block content
         div.form-group
           input#categoryId.form-control(type='hidden',name='categoryId', required='true', value=category._id )
 
+        div#password-group.form-group.hidden
+          label(for="password") Enter Admin Password to Make Change
+          input#password.form-control(type="password" name="password")
+
         button.btn.btn-primary(type='submit') Delete
   
   if errors
     ul
       for error in errors
         li!= error.msg
+
+  script(src="/javascripts/form.js")

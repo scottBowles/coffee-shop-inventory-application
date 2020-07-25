@@ -553,16 +553,53 @@ exports.count_delete_get = [
 ];
 
 exports.count_delete_post = [
+  body("password")
+    .custom((value) => {
+      if (value !== process.env.ADMIN_PASSWORD) {
+        throw new Error("Invalid password");
+      }
+      return true;
+    })
+    .escape(),
   param("id").isMongoId().withMessage("Invalid count id").escape(),
 
   async function countDeletePost(req, res, next) {
     const { errors } = validationResult(req);
+
     if (errors.length > 0) {
-      return res.render("countDelete", {
-        title: "Remove Inventory Count",
-        errors,
-      });
+      try {
+        const { id } = req.params;
+        const count = await InventoryCount.findById(id)
+          .populate({
+            path: "countedQuantities.item",
+            populate: "category",
+          })
+          .exec();
+
+        if (count === null) {
+          const notFoundError = new Error("Inventory Count not found");
+          notFoundError.status = 404;
+          return next(notFoundError);
+        }
+
+        count.countedQuantities.sort((a, b) => {
+          if (a.item.sku !== b.item.sku) {
+            return a.item.sku > b.item.sku ? 1 : -1;
+          }
+          return a.item.name > b.item.name ? 1 : -1;
+        });
+
+        return res.render("countDelete", {
+          title: "Remove Inventory Count",
+          count,
+          errors,
+        });
+      } catch (error) {
+        return next(error);
+      }
     }
+
+    // no errors -- delete count and redirect to counts home
     try {
       const count = await InventoryCount.findByIdAndRemove(
         req.params.id

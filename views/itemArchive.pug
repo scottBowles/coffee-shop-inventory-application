@@ -25,11 +25,16 @@ block content
     form(method='POST' action='')
         div.form-group
           input#itemId.form-control(type='hidden',name='submitType', required='true', value=`${item.active ? "archive" : "restore"}` )
+        
+        div#password-group.form-group.hidden
+          label(for="password") Enter Admin Password to Make Change
+          input#password.form-control(type="password" name="password")
 
         button.btn.btn-primary(type='submit')= item.active ? "Archive" : "Restore"
   
-  else
+  if errors
     ul
       for error in errors
         li!= error.msg
-        
+  
+  script(src="/javascripts/form.js")

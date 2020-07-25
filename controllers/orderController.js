@@ -588,12 +588,50 @@ exports.order_delete_get = [
 ];
 
 exports.order_delete_post = [
+  body("password")
+    .custom((value) => {
+      if (value !== process.env.ADMIN_PASSWORD) {
+        throw new Error("Invalid password");
+      }
+      return true;
+    })
+    .escape(),
   param("id").isMongoId().withMessage("Order not found").escape(),
+
   async function orderDeletePost(req, res, next) {
     try {
       const { errors } = validationResult(req);
       if (errors.length > 0) {
-        return res.render("orderDelete", { title: "Delete Order", errors });
+        const { id } = req.params;
+
+        const order = await Order.findById(id)
+          .populate("receipt")
+          .populate({
+            path: "orderedItems.item",
+            populate: {
+              path: "category",
+            },
+          })
+          .exec();
+
+        if (order === null) {
+          const notFoundError = new Error("Order not found");
+          notFoundError.status = 404;
+          return next(notFoundError);
+        }
+
+        order.orderedItems.sort((a, b) => {
+          if (a.item.sku !== b.item.sku) {
+            return a.item.sku > b.item.sku ? 1 : -1;
+          }
+          return a.item.name.toLowerCase() > b.item.name.toLowerCase() ? 1 : -1;
+        });
+
+        return res.render("orderDelete", {
+          title: "Delete Order",
+          order,
+          errors,
+        });
       }
 
       // delete order and, if receipt, receipt
