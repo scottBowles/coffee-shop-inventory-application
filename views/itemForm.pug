@@ -12,7 +12,7 @@ block content
       input#description.form-control(type="text", placeholder="Description", name="description", value=(item === undefined ? "" : item.description))
     div.form-group
       label(for="sku") SKU (Leave empty if not for sale):
-      input#sku.form-control(type="text", placeholder="SKU", name="sku", value=(item === undefined ? "" : item.sku))
+      input#sku.form-control(type="text", placeholder="SKU", name="sku", value=(item === undefined || item.sku === "Not marked for sale" ? "" : item.sku))
     div.form-group
       div.form-row
         label(for="price") Price (Leave empty if not for sale):
@@ -39,7 +39,10 @@ block content
         a(href="../category/create-new") Create a New Category
     div.form-group
       label(for="imageUpload") Upload Image
-      input(type="file" name="imageUpload")
+      input#imageUpload.form-control-file(type="file" name="imageUpload")
+    div#password-group.form-group.hidden
+      label(for="password") Enter Admin Password to Make Change
+      input#password.form-control(type="password" name="password")
     div.form-group
       input#itemLastUpdated.form-control(type="hidden", name="itemLastUpdated", value=Date.now())
     button.btn.btn-primary(type="submit") Submit
@@ -54,4 +57,5 @@ block content
     ul
       for error in errors
         li!= error.msg
-  
+
+  script(src="/javascripts/form.js")

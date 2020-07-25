@@ -149,6 +149,14 @@ exports.item_create_post = [
   body("quantityInStock").escape(),
   body("category").escape(),
   body("itemLastUpdated").escape(),
+  body("password")
+    .custom((value) => {
+      if (value !== process.env.ADMIN_PASSWORD) {
+        throw new Error("Invalid password");
+      }
+      return true;
+    })
+    .escape(),
 
   (req, res, next) => {
     const { errors } = validationResult(req);
@@ -300,6 +308,15 @@ exports.item_update_post = [
     "itemLastUpdated",
     "ItemLastUpdated must be a valid date. (If you are seeing this as an end user, please report this error.)"
   ).toDate(),
+  body("password")
+    .custom((value) => {
+      if (value !== process.env.ADMIN_PASSWORD) {
+        throw new Error("Invalid password");
+      }
+      return true;
+    })
+    .escape(),
+
   param("id").isMongoId().withMessage("Item not found").escape(),
 
   async function itemUpdatePost(req, res, next) {
@@ -342,10 +359,14 @@ exports.item_update_post = [
       item.price = req.body.price;
       item.quantityInStock = req.body.quantityInStock;
       item.category = req.body.category;
-      item.image = {
-        data: fs.readFileSync(req.file.path),
-        contentType: req.file.mimetype,
-      };
+      item.image =
+        req.file === undefined
+          ? undefined
+          : {
+              data: fs.readFileSync(req.file.path),
+              contentType: req.file.mimetype,
+            };
+
       if (item.itemLastUpdated === null) item.itemLastUpdated = Date.now();
 
       if (errors.length > 0) {

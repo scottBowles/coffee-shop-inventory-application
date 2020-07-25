@@ -157,6 +157,14 @@ exports.count_create_post = [
   body("items.*.quantity").isInt({ lt: 10000000 }).escape(),
   body("filter").escape(),
   body("submitButton").isIn(["submit", "save"]).escape(),
+  body("password")
+    .custom((value) => {
+      if (value !== process.env.ADMIN_PASSWORD) {
+        throw new Error("Invalid password");
+      }
+      return true;
+    })
+    .escape(),
 
   async function createPost(req, res, next) {
     // grab errors
@@ -370,6 +378,14 @@ exports.count_update_post = [
   body("filter").escape(),
   body("submitButton").isIn(["submit", "save"]).escape(),
   param("id").isMongoId().withMessage("Invalid count id").escape(),
+  body("password")
+    .custom((value) => {
+      if (value !== process.env.ADMIN_PASSWORD) {
+        throw new Error("Invalid password");
+      }
+      return true;
+    })
+    .escape(),
 
   async function updatePost(req, res, next) {
     // grab errors & filter

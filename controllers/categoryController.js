@@ -67,6 +67,14 @@ exports.category_create_post = [
     .trim()
     .isLength({ min: 1 })
     .escape(),
+  body("password")
+    .custom((value) => {
+      if (value !== process.env.ADMIN_PASSWORD) {
+        throw new Error("Invalid password");
+      }
+      return true;
+    })
+    .escape(),
 
   (req, res, next) => {
     const { errors } = validationResult(req);
@@ -141,6 +149,14 @@ exports.category_update_post = [
     .isLength({ min: 1 })
     .escape(),
   param("id").isMongoId().withMessage("Invalid category id").escape(),
+  body("password")
+    .custom((value) => {
+      if (value !== process.env.ADMIN_PASSWORD) {
+        throw new Error("Invalid password");
+      }
+      return true;
+    })
+    .escape(),
 
   (req, res, next) => {
     const { errors } = validationResult(req);

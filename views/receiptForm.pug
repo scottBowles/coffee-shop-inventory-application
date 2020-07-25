@@ -5,7 +5,7 @@ block content
 
   if items
     form(method="POST" action="")
-      table(class="table table-striped")
+      table.form-group.table.table-striped
         thead
           tr
             th(scope="col") Quantity to Receive
@@ -24,6 +24,11 @@ block content
               td= item.sku
               td.hidden
                 input(type="hidden" name=`receivedItems[${index}][id]` value=item._id)
+      
+      div#password-group.form-group.hidden
+        label(for="password") Enter Admin Password to Make Change
+        input#password.form-control(type="password" name="password")
+
       .d-flex.w-25.justify-content-between
         button.btn.btn-primary.submit-button(type="submit" name="submitType" value="submit") Submit Receipt
         button.btn.btn-primary.mr-3.save-button(type="submit" name="submitType" value="save") Save
@@ -33,3 +38,4 @@ block content
       for error in errors
         li!= error.msg
 
+  script(src="/javascripts/form.js")

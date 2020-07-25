@@ -189,6 +189,14 @@ exports.receipt_create_post = [
     .isInt({ lt: 10000000 })
     .escape(),
   body("submitType").isIn(["submit", "save"]).escape(),
+  body("password")
+    .custom((value) => {
+      if (value !== process.env.ADMIN_PASSWORD) {
+        throw new Error("Invalid password");
+      }
+      return true;
+    })
+    .escape(),
 
   async function receiptCreatePost(req, res, next) {
     const { errors } = validationResult(req);
@@ -431,6 +439,14 @@ exports.receipt_update_post = [
     .isInt({ lt: 10000000 })
     .escape(),
   body("submitType").isIn(["submit", "save"]).escape(),
+  body("password")
+    .custom((value) => {
+      if (value !== process.env.ADMIN_PASSWORD) {
+        throw new Error("Invalid password");
+      }
+      return true;
+    })
+    .escape(),
 
   async function receiptUpdatePost(req, res, next) {
     const { errors } = validationResult(req);

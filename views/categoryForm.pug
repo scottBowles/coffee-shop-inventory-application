@@ -13,10 +13,15 @@ block content
       input#description.form-control(type="text", placeholder="Description", name="description", value=(category === undefined ? "" : category.description))
     div.form-group
       label(for="imageUpload") Upload Image
-      input(type="file" name="imageUpload")
+      input#imageUpload.form-control-file(type="file" name="imageUpload")
+    div#password-group.form-group.hidden
+      label(for="password") Enter Admin Password to Make Change
+      input#password.form-control(type="password" name="password")
     button.btn.btn-primary(type="submit") Submit
 
   if errors
     ul
       for error in errors
         li!= error.msg
+
+  script(src="/javascripts/form.js")
