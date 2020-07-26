@@ -59,3 +59,7 @@ table.dataTable thead .sorting_desc_disabled:after,
 table.dataTable thead .sorting_desc_disabled:before {
   bottom: 0.5em;
 }
+
+ul.nav-tabs .nav-item a:hover {
+  color: #3e2723;
+}
