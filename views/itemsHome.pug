@@ -3,9 +3,10 @@ extends layout
 block content
   main
     .container
-      h1.mt-3= title
-      a(href="/inventory/item/create-new") Create a New Item
-      ul.nav.nav-tabs.mt-4
+      h1#title.col-md-6.mt-3= title
+      a.col-md-6(href="/inventory/item/create-new") Create a New Item
+
+      ul.nav.nav-tabs.mt-4.mb-3
         li.nav-item
           a(class=(filter==='All' || filter===undefined) ? "nav-link active" : "nav-link" href="/inventory/items/?filter=All") All
         each category in categories  
@@ -14,18 +15,18 @@ block content
         li(class="nav-item")
           a(class=(filter==="Archived") ? "nav-link active" : "nav-link" href="/inventory/items/?filter=Archived") Archived
       
-      .container
+      .container#container
         .row.table-responsive.text-nowrap
 
-          table.table.table-hover
+          table.table.table-hover.datatable
             thead
               tr
-                th(scope="col") Name
+                th.th-sm(scope="col") Name
                 if (filter === 'All')
-                  th(scope="col") Category
-                th(scope="col") In Stock
-                th(scope="col") Ordered
-                th(scope="col") SKU
+                  th.th-sm(scope="col") Category
+                th.th-sm(scope="col") In Stock
+                th.th-sm(scope="col") Ordered
+                th.th-sm(scope="col") SKU
             tbody
               if items.length === 0
                 tr
@@ -42,5 +43,8 @@ block content
                     td= orderedQty[item]
                     td= item.sku
       
-      a(href="item/create-new") Create a New Item
+      div.mb-5
+        a(href="#top") Return to Top
+
+  script(src="/javascripts/datatables.js")
       

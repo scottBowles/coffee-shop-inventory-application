@@ -4,6 +4,7 @@ module.exports = {
   entry: {
     main: "./src/index.js",
     form: "./src/form.js",
+    datatables: "./src/datatables.js",
   },
   output: {
     filename: "[name].js",
