@@ -1,24 +1,33 @@
 extends layout
 
 block content
-  .container
-    h1.mt-3= title
-    
-    table(class="table table-striped mt-4")
-      thead
-        tr
-          th(scope="col") Name
-          th(scope="col") Number of Items
-          th(scope="col") Description
-      tbody
-        if categories.length === 0
-          tr
-            td No categories to display
-        each category in categories
-          if category
-            tr
-              td #[a(href=category.url)= category.name]
-              td= category.numItems
-              td= category.description
+  main
+    .container
+      h1#title.col-md-6.mt-3= title
+      .mb-2
+        a.col-md-6(href="/inventory/category/create-new") Create a New Category
 
-  p #[a(href="/inventory/category/create-new") Create New Category]
+      .container#container
+        .row.table-responsive.text-nowrap
+      
+          table.table.table-hover
+            thead
+              tr
+                th(scope="col") Name
+                th(scope="col") Items
+                th(scope="col") Description
+            tbody
+              if categories.length === 0
+                tr
+                  td No categories to display
+              each category in categories
+                if category
+                  tr
+                    td #[a(href=category.url)= category.name]
+                    td #[a(href=category.url)= category.numItems]
+                    td #[a(href=category.url)= category.description]
+    
+    if categories.length > 10
+      div.mb-5
+        a(href="#top") Return to Top
+    

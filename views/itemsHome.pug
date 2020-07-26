@@ -18,15 +18,15 @@ block content
       .container#container
         .row.table-responsive.text-nowrap
 
-          table.table.table-hover.datatable
+          table.table.table-hover.datatable(cellspacing="0" width="100%")
             thead
               tr
-                th.th-sm(scope="col") Name
+                th(scope="col") Name
                 if (filter === 'All')
-                  th.th-sm(scope="col") Category
-                th.th-sm(scope="col") In Stock
-                th.th-sm(scope="col") Ordered
-                th.th-sm(scope="col") SKU
+                  th(scope="col") Category
+                th(scope="col") In Stock
+                th(scope="col") Ordered
+                th(scope="col") SKU
             tbody
               if items.length === 0
                 tr
@@ -39,12 +39,13 @@ block content
                         strong(class="ml-3") Inactive
                     if (filter === 'All')
                       td #[a(href=(item.category ? item.category.url : "#"))= `${item.category ? item.category.name : "(None)"}`]
-                    td= item.quantityInStock
-                    td= orderedQty[item]
-                    td= item.sku
-      
-      div.mb-5
-        a(href="#top") Return to Top
+                    td #[a(href=item.url)= item.quantityInStock]
+                    td #[a(href=item.url)= orderedQty[item]]
+                    td #[a(href=item.url)= item.sku]
 
-  script(src="/javascripts/datatables.js")
+      if items.length > 9
+        div.mb-5
+          a(href="#top") Return to Top
+  
+  
       

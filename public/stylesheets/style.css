@@ -57,9 +57,16 @@ table.dataTable thead .sorting_desc:after,
 table.dataTable thead .sorting_desc:before,
 table.dataTable thead .sorting_desc_disabled:after,
 table.dataTable thead .sorting_desc_disabled:before {
-  bottom: 0.5em;
+  bottom: 0.95em;
 }
 
-ul.nav-tabs .nav-item a:hover {
+.container ul.nav-tabs .nav-item a,
+.container ul.nav-tabs .nav-item a:hover {
   color: #3e2723;
+}
+
+@media (min-width: 992px) {
+  .receiving-home__awaiting {
+    margin-bottom: 50px;
+  }
 }

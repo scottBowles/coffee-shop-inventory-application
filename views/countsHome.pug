@@ -1,36 +1,43 @@
 extends layout
 
 block content
-  .container
-    h1.mt-3= title
-    a(href="/inventory/count/create-new") Create New Count
+  main
+    .container
+      h1#title.col-md-6.mt-3= title
+      a.col-md-6(href="/inventory/count/create-new") Create a New Count
 
-    ul(class="nav nav-tabs mt-4")
-      li(class="nav-item")
-        a(class=filter==="recent" ? "nav-link active" : "nav-link" href="/inventory/counts/?filter=recent") Recent Counts
-      li(class="nav-item")
-        a(class=filter==="all" ? "nav-link active" : "nav-link" href="/inventory/counts/?filter=all") All Counts
-      li(class="nav-item")
-        a(class=filter==="unsubmitted" ? "nav-link active" : "nav-link" href="/inventory/counts/?filter=unsubmitted") Unsubmitted Counts
-    
-    table(class="table table-striped")
-      thead
-        tr
-          th(scope="col") Type
-          th(scope="col") Items Counted
-          th(scope="col") Status
-          th(scope="col")
-      tbody
-        if counts.length === 0
-          tr
-            td No counts to display
-        each count in counts
-          tr
-            td= count.type
-            td= count.countedQuantities.length
-            if count.submitted
-              td Submitted #{count.dateSubmittedFormatted}
-            else
-              td Initiated #{count.dateInitiatedFormatted}
-            td #[a(href=count.url) View Count]
-            
+      ul.nav.nav-tabs.mt-4.mb-3
+        li.nav-item
+          a(class=filter==="recent" ? "nav-link active" : "nav-link" href="/inventory/counts/?filter=recent") Recent Counts
+        li.nav-item
+          a(class=filter==="all" ? "nav-link active" : "nav-link" href="/inventory/counts/?filter=all") All Counts
+        li.nav-item
+          a(class=filter==="unsubmitted" ? "nav-link active" : "nav-link" href="/inventory/counts/?filter=unsubmitted") Unsubmitted Counts
+      
+      .container#container
+          .row.table-responsive.text-nowrap
+
+            table.table.table-hover.datatable
+              thead
+                tr
+                  th(scope="col") Type
+                  th(scope="col") Items Counted
+                  th(scope="col") Status
+                  
+              tbody
+                if counts.length === 0
+                  tr
+                    td No counts to display
+                each count in counts
+                  tr
+                    td #[a(href=count.url)= count.type]
+                    td #[a(href=count.url)= count.countedQuantities.length]
+                    if count.submitted
+                      td #[a(href=count.url) Submitted #{count.dateSubmittedFormatted}]
+                    else
+                      td #[a(href=count.url) Initiated #{count.dateInitiatedFormatted}]
+                      
+      if counts.length > 9
+        div.mb-5
+          a(href="#top") Return to Top
+

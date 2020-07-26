@@ -37,7 +37,7 @@ OrderSchema.virtual("orderDateBrief").get(function () {
 });
 
 OrderSchema.virtual("deliveryDateFormatted").get(function () {
-  return moment(this.deliveryDate).format("MMMM Do YYYY, h:mm a");
+  return moment(this.deliveryDate).format("MMMM Do YYYY");
 });
 
 OrderSchema.virtual("deliveryDateBrief").get(function () {

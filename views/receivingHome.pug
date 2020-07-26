@@ -1,52 +1,59 @@
 extend layout
 
 block content
-  h1= title
-  h6 #[a(href="/inventory/receiving/create-new") Create New Receipt]
+  main
+    .container
+      h1#title.col-md-6.mt-3= title
+      .mb-4
+        a.col-md-6(href="/inventory/receiving/create-new") Create a New Receipt
 
-  table(class="table table-striped")
-    caption Orders Awaiting Receipt
-    thead
-      tr
-        th(scope="col") Order Date
-        th(scope="col") Expected Delivery
-        th(scope="col") View
-        th(scope="col") Receive
-    tbody
-      if orders.length === 0
-        tr
-          td No orders to display
-      each order in orders
-        tr
-          td= order.orderDateFormatted
-          td= order.deliveryDateFormatted
-          td #[a(href=order.url) View Order]
-          td #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
+      .container#container
+        .row.d-flex.justify-content-between
+          .col-lg-6.pr-4
+            h4.receiving-home__awaiting Orders Awaiting Receipt
+            table.table.table.table-hover.datatable
+              thead
+                tr
+                  th(scope="col") Ordered
+                  th(scope="col") Expected
+                  th(scope="col") Receive
+              tbody
+                if orders.length === 0
+                  tr
+                    td No orders to display
+                each order in orders
+                  tr
+                    td #[a(href=order.url)= order.orderDateFormatted]
+                    td #[a(href=order.url)= order.deliveryDateBrief]
+                    td #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
+          .col-lg-6.pl-4
+            h4 Receipts
+            ul(class="nav nav-tabs")
+              li(class="nav-item")
+                a(class=filter==="recent" ? "nav-link active" : "nav-link" href="/inventory/receiving/?filter=recent") Recent Receipts
+              li(class="nav-item")
+                a(class=filter==="all" ? "nav-link active" : "nav-link" href="/inventory/receiving/?filter=all") All Receipts
+            
+            table.table.table.table-hover.datatable
+              thead
+                tr
+                  th(scope="col") Status & Date
+                  th(scope="col") Quantity Received
+              tbody
+                if receipts.length === 0
+                  tr
+                    td No receipts to display
+                each receipt in receipts
+                  tr
+                    if receipt.submitted
+                      td #[a(href=receipt.url) Received #{receipt.dateSubmittedBrief}]
+                      td #[a(href=receipt.url)= receipt.totalQuantityInItems]
 
-  ul(class="nav nav-tabs")
-    li(class="nav-item")
-      a(class=filter==="recent" ? "nav-link active" : "nav-link" href="/inventory/receiving/?filter=recent") Recent Receipts
-    li(class="nav-item")
-      a(class=filter==="all" ? "nav-link active" : "nav-link" href="/inventory/receiving/?filter=all") All Receipts
-  
-  table(class="table table-striped")
-    thead
-      tr
-        th(scope="col") Status & Date
-        th(scope="col") Quantity Received
-        th(scope="col")
-    tbody
-      if receipts.length === 0
-        tr
-          td No receipts to display
-      each receipt in receipts
-        tr
-          if receipt.submitted
-            td Received #{receipt.dateSubmittedFormatted}
-            td= receipt.totalQuantityInItems
-            td #[a(href=receipt.url) View Receipt]
-          else
-            td Opened #{receipt.dateInitiatedFormatted}
-            td= receipt.totalQuantityInItems
-            td #[a(href=receipt.url) View Receipt]
+                    else
+                      td #[a(href=receipt.url) Opened #{receipt.dateInitiatedBrief}]
+                      td #[a(href=receipt.url)= receipt.totalQuantityInItems]
       
+      if orders.length > 9 || receipts.length > 9
+        div.mb-5
+          a(href="#top") Return to Top
+                
