@@ -1,45 +1,46 @@
 extends layout
 
 block content
-  div.container
-    h1.mt-3=title
-    a(href="/inventory/item/create-new") Create a New Item
-    ul(class="nav nav-tabs mt-4")
-      li(class="nav-item")
-        a(class=(filter==='All' || filter===undefined) ? "nav-link active" : "nav-link" href="/inventory/items/?filter=All") All
-      each category in categories  
-        li(class="nav-item")
-          a(class=filter===category.name ? "nav-link active" : "nav-link" href=`/inventory/items/?filter=${category.name}`)= category.name
-      li(class="nav-item")
-        a(class=(filter==="Archived") ? "nav-link active" : "nav-link" href="/inventory/items/?filter=Archived") Archived
-    
+  main
     .container
-      .row
+      h1.mt-3= title
+      a(href="/inventory/item/create-new") Create a New Item
+      ul.nav.nav-tabs.mt-4
+        li.nav-item
+          a(class=(filter==='All' || filter===undefined) ? "nav-link active" : "nav-link" href="/inventory/items/?filter=All") All
+        each category in categories  
+          li(class="nav-item")
+            a(class=filter===category.name ? "nav-link active" : "nav-link" href=`/inventory/items/?filter=${category.name}`)= category.name
+        li(class="nav-item")
+          a(class=(filter==="Archived") ? "nav-link active" : "nav-link" href="/inventory/items/?filter=Archived") Archived
+      
+      .container
+        .row.table-responsive.text-nowrap
 
-        table(class="table table-striped")
-          thead
-            tr
-              th(scope="col") Name
-              if (filter === 'All')
-                th(scope="col") Category
-              th(scope="col") SKU
-              th(scope="col") In Stock
-              th(scope="col") Ordered
-          tbody
-            if items.length === 0
+          table.table.table-hover
+            thead
               tr
-                td No orders to display
-            each item in items
-              if item
+                th(scope="col") Name
+                if (filter === 'All')
+                  th(scope="col") Category
+                th(scope="col") In Stock
+                th(scope="col") Ordered
+                th(scope="col") SKU
+            tbody
+              if items.length === 0
                 tr
-                  td #[a(href=item.url)= item.name]
-                    if !item.active
-                      strong(class="ml-3") Inactive
-                  if (filter === 'All')
-                    td #[a(href=(item.category ? item.category.url : "#"))= `${item.category ? item.category.name : "(None)"}`]
-                  td= item.sku
-                  td= item.quantityInStock
-                  td= orderedQty[item]
-    
-    a(href="item/create-new") Create a New Item
-    
+                  td No orders to display
+              each item in items
+                if item
+                  tr
+                    td #[a(href=item.url)= item.name]
+                      if !item.active
+                        strong(class="ml-3") Inactive
+                    if (filter === 'All')
+                      td #[a(href=(item.category ? item.category.url : "#"))= `${item.category ? item.category.name : "(None)"}`]
+                    td= item.quantityInStock
+                    td= orderedQty[item]
+                    td= item.sku
+      
+      a(href="item/create-new") Create a New Item
+      

@@ -45,10 +45,7 @@ exports.item_home = function itemHome(req, res, next) {
         (results, callback) => {
           const { categories, queryFilter } = results;
           if (queryFilter === "Archived") {
-            Item.find({ active: false })
-              .sort({ sku: "ascending", name: "ascending" })
-              .populate("category")
-              .exec(callback);
+            Item.find({ active: false }).populate("category").exec(callback);
           } else if (queryFilter === "All") {
             Item.find({ active: true })
               .sort({ sku: "ascending", name: "ascending" })
@@ -95,6 +92,19 @@ exports.item_home = function itemHome(req, res, next) {
       if (err) {
         return next(err);
       }
+      // sort items by sku, then by category, then by name
+      results.items.sort((a, b) => {
+        if (a.sku === b.sku) {
+          if (a.category.name === b.category.name) {
+            if (a.name > b.name) return 1;
+            return -1;
+          }
+          if (a.category.name > b.category.name) return 1;
+          return -1;
+        }
+        if (a.sku > b.sku) return 1;
+        return -1;
+      });
       res.render("itemsHome", {
         title: "Items",
         orderedQty: results.orderedQuantities,
