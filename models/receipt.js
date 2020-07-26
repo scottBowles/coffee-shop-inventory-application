@@ -27,8 +27,16 @@ ReceivingSchema.virtual("dateInitiatedFormatted").get(function () {
   return moment(this.dateInitiated).format("MMMM Do YYYY, h:mm a");
 });
 
+ReceivingSchema.virtual("dateInitiatedBrief").get(function () {
+  return moment(this.orderDate).format("MMMM Do");
+});
+
 ReceivingSchema.virtual("dateSubmittedFormatted").get(function () {
   return moment(this.dateSubmitted).format("MMMM Do YYYY, h:mm a");
+});
+
+ReceivingSchema.virtual("dateSubmittedBrief").get(function () {
+  return moment(this.orderDate).format("MMMM Do");
 });
 
 ReceivingSchema.virtual("submitted").get(function () {

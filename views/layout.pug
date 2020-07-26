@@ -5,32 +5,50 @@ html(lang='en')
     meta(charset='utf-8')
     meta(name='viewport', content='width=device-width, initial-scale=1, shrink-to-fit=no')
     link(rel='stylesheet', href='/stylesheets/reset.css')
-    link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css' integrity='sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh' crossorigin='anonymous')
+    // Font Awesome
+    link(rel='stylesheet' href='https://use.fontawesome.com/releases/v5.8.2/css/all.css')
+    // Google Fonts
+    link(rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap')
+    // Bootstrap core CSS
+    link(href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css' rel='stylesheet')
+    // Material Design Bootstrap
+    link(href='https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css' rel='stylesheet')
     link(rel='stylesheet', href='/stylesheets/style.css')
   body
-    div(class="container")
-      nav(class="navbar navbar-expand-md fixed-top navbar-light bg-light")
-        a(class="navbar-brand col-3" href="/") Caf&eacute; Corcovado
-        button(class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation")
-          span(class="navbar-toggler-icon")
-        div(class="collapse navbar-collapse col-9 justify-content-end" id="navbarNav")
-          ul(class="navbar-nav")
-            li(class="nav-item")
-              a(class="nav-link" href="/inventory") Inventory Home
-            li(class="nav-item")
-              a(class="nav-link" href="/inventory/orders") Orders
-            li(class="nav-item")
-              a(class="nav-link" href="/inventory/receiving") Receiving
-            li(class="nav-item")
-              a(class="nav-link" href="/inventory/counts") Inventory Counts
-            li(class="nav-item")
-              a(class="nav-link" href="/inventory/items") Items
-            li(class="nav-item")
-              a(class="nav-link" href="/inventory/categories") Categories 
+    header
+      nav.navbar.navbar-expand-lg.navbar-dark.brown.darken-4.fixed-top
+        .container
+          // Navbar brand
+          a.navbar-brand(href='/inventory') Caf&eacute; Corcovado
+          // Collapse button
+          button.navbar-toggler(type='button' data-toggle='collapse' data-target='#basicExampleNav' aria-controls='basicExampleNav' aria-expanded='false' aria-label='Toggle navigation')
+            span.navbar-toggler-icon
+          // Collapsible content
+          #basicExampleNav.collapse.navbar-collapse
+            // Links
+            ul.navbar-nav.ml-auto
+              li.nav-item
+                a.nav-link(href='/inventory') Inventory Home
+              li.nav-item
+                a.nav-link(href='/inventory/orders') Orders
+              li.nav-item
+                a.nav-link(href='/inventory/receiving') Receiving
+              li.nav-item
+                a.nav-link(href='/inventory/counts') Inventory Counts
+              li.nav-item
+                a.nav-link(href='/inventory/items') Items
+              li.nav-item
+                a.nav-link(href='/inventory/categories') Categories
+            
 
     block content
 
-    script(src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous")
-    script(src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous")
-    script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous")
+    // JQuery
+    script(type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js')
+    // Bootstrap tooltips
+    script(type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js')
+    // Bootstrap core JavaScript
+    script(type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js')
+    // MDB core JavaScript
+    script(type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js')
     script(src="/javascripts/main.js")

@@ -28,8 +28,16 @@ InventoryCountSchema.virtual("dateInitiatedFormatted").get(function () {
   return moment(this.dateInitiated).format("MMMM Do YYYY, h:mm a");
 });
 
+InventoryCountSchema.virtual("dateInitiatedBrief").get(function () {
+  return moment(this.orderDate).format("MMMM Do");
+});
+
 InventoryCountSchema.virtual("dateSubmittedFormatted").get(function () {
   return moment(this.dateSubmitted).format("MMMM Do YYYY, h:mm a");
+});
+
+InventoryCountSchema.virtual("dateSubmittedBrief").get(function () {
+  return moment(this.orderDate).format("MMMM Do");
 });
 
 InventoryCountSchema.virtual("url").get(function () {

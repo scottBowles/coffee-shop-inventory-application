@@ -25,11 +25,19 @@ ItemSchema.virtual("qtyLastUpdatedFormatted").get(
   }
 );
 
+ItemSchema.virtual("qtyLastUpdatedBrief").get(function () {
+  return moment(this.orderDate).format("MMMM Do");
+});
+
 ItemSchema.virtual("itemLastUpdatedFormatted").get(
   function lastItemUpdateFormatted() {
     return moment(this.itemLastUpdated).format("MMMM Do YYYY, h:mm a");
   }
 );
+
+ItemSchema.virtual("itemLastUpdatedBrief").get(function () {
+  return moment(this.orderDate).format("MMMM Do");
+});
 
 ItemSchema.virtual("url").get(function itemUrl() {
   return `/inventory/item/${this._id}`;

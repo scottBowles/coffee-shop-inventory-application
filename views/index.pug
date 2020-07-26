@@ -1,89 +1,109 @@
 extends layout
 
 block content
-  h1= title
-  h2 #[a(href="/inventory/orders") Orders]
-  table(class="table table-striped")
-    caption Open Orders
-    thead
-      tr
-        th(scope="col") Order Date
-        th(scope="col") Status
-        th(scope="col") Expected Delivery
-        th(scope="col") 
-    tbody
-      if orders.length === 0
-        tr
-          td No open orders
-      each order in orders.slice(0, 5)
-        if order
-          tr
-            td #[a(href=order.url)= order.orderDateFormatted]
-            td= order.status
-            if order.status === 'Received'
-              td= order.deliveryDateFormatted
-              td #[a(href=order.receipt.url) View Receipt]
-            else if order.status === 'Ordered'
-              td= order.deliveryDateFormatted
-              td #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
-            else
-              td Order not yet submitted
-              td #[a(href=order.url) Place order]
-            
-  if orders.length > 5
-    a(href="/inventory/orders") See More
-  h6 #[a(href="/inventory/order/create-new") Start an Order]
-  h6 #[a(href="/inventory/receiving/create-new") Receive New Product]
+  .container#container
 
-  h2 #[a(href="/inventory/counts") Inventory Counts]
-  table(class="table table-striped")
-    caption Open Inventory Counts
-    thead
-      tr
-        th(scope="col") Date Initiated
-        th(scope="col") Count Type
-        th(scope="col") 
-    tbody
-      if counts.length === 0
-        tr
-          td No open inventory counts
-      each count in counts.slice(0, 5)
-        if count
-          tr
-            td #[a(href=count.url)= count.dateInitiatedFormatted]
-            td= count.type
-            td #[a(href=count.url) Continue count]
-  if counts.length > 5
-    a(href="/inventory/counts") See More
-  h6 #[a(href="inventory/count/create-new") Start a New Inventory Count]
-
-  h2 #[a(href="/inventory/items") Items]
-  table(class="table table-striped")
-    caption Recently Updated
-    thead
-      tr
-        th(scope="col") Name
-        th(scope="col") Quantity in Stock
-        th(scope="col") Category
-        th(scope="col") Last Updated
-        th(scope="col") 
-      tbody
-        if items.length === 0
-          tr
-            td No items to display
-        each item in items.slice(0, 5)
-          if item
+    h1.mb-4= title
+    .row
+      .col-lg-6.px-3.pb-5
+        h2 #[a(href="/inventory/orders") Orders]
+        table.table.table-sm.table-hover
+          caption Open Orders
+          thead
             tr
-              td #[a(href=item.url)= item.name]
-              td= item.quantityInStock
-              if item.category
-                td #[a(href=item.category.url)= item.category.name]
-              else
-                td (None)
-              td= item.itemLastUpdatedFormatted
-              td #[a(href=item.url + "/update") Update]
-  if items.length > 5
-    a(href="/inventory/items") See More
-  h6 #[a(href="/inventory/item/create-new") Add a New Item]
-  h6 #[a(href="/inventory/category/create-new") Add a New Category]
-  
+              th(scope="col") Ordered
+              th(scope="col") Status
+              th(scope="col") Delivery
+              th(scope="col") Action
+          tbody
+            if orders.length === 0
+              tr
+                td No open orders
+            each order in orders.slice(0, 5)
+              if order
+                tr
+                  td #[a(href=order.url)= order.orderDateBrief]
+                  td #[a(href=order.url)= order.status]
+                  if order.status === 'Received'
+                    td #[a(href=order.url)= order.deliveryDateBrief]
+                    td #[a(href=order.receipt.url) View Receipt]
+                  else if order.status === 'Ordered'
+                    td #[a(href=order.url)= order.deliveryDateBrief]
+                    td #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive Order]
+                  else
+                    td #[a(href=order.url) (Not Yet Submitted)]
+                    td #[a(href=order.url) Place Order]
+        .d-flex
+          if orders.length > 5
+            a(href="/inventory/orders") See More
+          span.pl-2.dark-brown |
+          a.pl-2(href="/inventory/order/create-new") Start an Order
+          span.pl-2.dark-brown |
+          a.pl-2(href="/inventory/receiving/create-new") Receive New Product
+
+      .col-lg-6.px-3.pb-5
+        h2 #[a(href="/inventory/counts") Inventory Counts]
+        table.table.table-sm.table-hover
+          caption Open Inventory Counts
+          thead
+            tr
+              th(scope="col") Initiated
+              th(scope="col") Type
+              th(scope="col") Action
+          tbody
+            if counts.length === 0
+              tr
+                td No open inventory counts
+            each count in counts.slice(0, 5)
+              if count
+                tr
+                  td #[a(href=count.url)= count.dateInitiatedBrief]
+                  td #[a(href=count.url)= count.type]
+                  td #[a(href=count.url) Continue Count]
+        .d-flex
+          if counts.length > 5
+            a(href="/inventory/counts") See More
+            span.pl-2.dark-brown |
+            a.pl-2(href="inventory/count/create-new") New Inventory Count
+          else
+            a(href="inventory/count/create-new") New Inventory Count
+    
+    .row
+      .col-lg-6.pb-5
+        h2 #[a(href="/inventory/items") Items]
+        table.table.table-sm.table-hover
+          caption Recently Updated
+          thead
+            tr
+              th(scope="col") Name
+              th(scope="col") In Stock
+              th(scope="col") Category
+              th(scope="col") Last Updated
+              th(scope="col") Action
+            tbody
+              if items.length === 0
+                tr
+                  td No items to display
+              each item in items.slice(0, 5)
+                if item
+                  tr
+                    td #[a(href=item.url)= item.name]
+                    td #[a(href=item.url)= item.quantityInStock]
+                    if item.category
+                      td #[a(href=item.category.url)= item.category.name]
+                    else
+                      td #[a(href=item.url) (None)]
+                    td #[a(href=item.url)= item.itemLastUpdatedBrief]
+                    td #[a(href=item.url + "/update") Update Item]
+        .d-flex
+          if items.length > 5
+            a(href="/inventory/items") See More
+            span.pl-2.dark-brown |
+            a.pl-2(href="/inventory/item/create-new") New Item
+            span.pl-2.dark-brown |
+            a.pl-2(href="/inventory/category/create-new") New Category
+          else
+            a.pl-2(href="/inventory/item/create-new") New Item
+            span.pl-2.dark-brown |
+            a.pl-2(href="/inventory/category/create-new") New Category
+      

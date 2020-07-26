@@ -32,12 +32,24 @@ OrderSchema.virtual("orderDateFormatted").get(function () {
   return moment(this.orderDate).format("MMMM Do YYYY, h:mm a");
 });
 
+OrderSchema.virtual("orderDateBrief").get(function () {
+  return moment(this.orderDate).format("MMMM Do");
+});
+
 OrderSchema.virtual("deliveryDateFormatted").get(function () {
   return moment(this.deliveryDate).format("MMMM Do YYYY, h:mm a");
 });
 
+OrderSchema.virtual("deliveryDateBrief").get(function () {
+  return moment(this.orderDate).format("MMMM Do");
+});
+
 OrderSchema.virtual("lastUpdatedFormatted").get(function () {
   return moment(this.lastUpdated).format("MMMM Do YYYY, h:mm a");
+});
+
+OrderSchema.virtual("lastUpdatedBrief").get(function () {
+  return moment(this.orderDate).format("MMMM Do");
 });
 
 OrderSchema.virtual("url").get(function () {

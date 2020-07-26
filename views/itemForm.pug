@@ -17,7 +17,9 @@ block content
       div.form-row
         label(for="price") Price (Leave empty if not for sale):
       div.input-group
-        span(class="input-group-addon") $
+        <div class="input-group-prepend">
+          <span class="input-group-text">$</span>
+        </div>
         input#price.form-control.currency.two-decimal(type="number", placeholder="Price", name="price", value=(item === undefined ? 0 : item.price) step="0.01" data-number-to-fixed="2" data-number-stepfactor="100")
     div.form-group
       if item
