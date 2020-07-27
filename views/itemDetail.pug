@@ -1,31 +1,63 @@
 extends layout
 
 block content
-  if item
-    h1= item.name
-    if item.category
-      p Category: #[a(href=item.category.url)= item.category.name]
-    else
-      p Category: (None)
-    p Description: #{item.description}
-    if !item.active
-      p #[strong Archived]
-    p Quantity in Stock: #{item.quantityInStock}
-
-    if item.forSale
-      p SKU: #{item.sku}
-      p Price: #{item.price}
-    else
-      p [Not marked for sale]
-    
-    if item.image && item.image.data
-      img(style='height: 100px;' src=`data:image/${item.image.contentType};base64, ${item.image.data.toString('base64')}`) 
-    div
-      a(href=item.url + "/update") Update Item
-      a.ml-5(href=item.url + "/archive")= item.active ? "Archive Item" : "Restore Item"
-  
-  else
-    ul
-      for error in errors
-        li!= error.msg
+  main
+    if item
+      .container.dark-brown
+        h1#title.mt-3= item.name
+        if !item.active
+          .row    
+            .col-lg-10.alert.alert-warning(role="alert") #[strong Archived]
+        if item.image && item.image.data
+          img(style='height: 100px;' src=`data:image/${item.image.contentType};base64, ${item.image.data.toString('base64')}`)
+        .row.mt-3
+          .col-lg-9.d-flex
+            div.d-flex.justify-content-end.fa-container.pt-1
+              i.fab.fa-elementor.brown-text
+            if item.category
+              div.ml-3 #[strong Category:] #[a(href=itemCategoryUrl)= item.category.name]
+            else
+              div.ml-3 #[strong Category:] (None)]
+        .row.mt-3.d-flex.flex-nowrap
+          .col-lg-9.d-flex
+            div.d-flex.justify-content-end.fa-container.pt-1
+              i.far.fa-comment-alt.brown-text
+            div.ml-3
+              div.text-wrap #[strong Description:] #[span= item.description]
+        .row.mt-3
+          .col-lg-9.d-flex
+            div.d-flex.justify-content-end.fa-container.pt-1
+              i.fas.fa-list-ol.brown-text
+            div.ml-3 #[strong In Stock:] #[span= item.quantityInStock]
+        if item.forSale    
+          .row.mt-3
+            .col-lg-9.d-flex
+              div.d-flex.justify-content-end.fa-container.pt-1
+                i.fas.fa-barcode.brown-text
+              div.ml-3 #[strong SKU:] #[span= item.sku]
+          .row.mt-3
+            .col-lg-9.d-flex
+              div.d-flex.justify-content-end.fa-container.pt-1
+                i.fas.fa-dollar-sign.brown-text
+              div.ml-3 #[strong Price:] #[span= item.price]
+        else
+          .row.mt-3
+            .col-lg-9.d-flex
+              div.d-flex.justify-content-end.fa-container.pt-1
+                i.fas.fa-barcode.brown-text
+              div.ml-3 [Not marked for sale]
         
+      .container
+        .row.mt-4
+          a.btn.btn-primary.btn-outline-brown.mr-4(href=item.url + "/update") #[i.fas.fa-edit.mr-2] Update Item
+          a.btn.btn-primary.btn-outline-brown(href=item.url + "/archive") #[i.fas.fa-archive.mr-2] Archive Item
+    else
+      .container  
+        ul
+          for error in errors
+            li
+              .row.mt-3
+                .col-lg-10.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
+                  button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
+  
+  

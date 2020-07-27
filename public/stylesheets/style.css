@@ -39,6 +39,11 @@ a {
   left: 54px;
 }
 
+i.fas,
+i.far {
+  white-space: normal;
+}
+
 .table {
   margin-bottom: 9px;
 }
@@ -72,4 +77,8 @@ table.dataTable thead .sorting_desc_disabled:before {
   .hide-gt-md {
     display: none;
   }
+}
+
+.fa-container {
+  width: 16px;
 }
