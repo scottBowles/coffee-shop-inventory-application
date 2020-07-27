@@ -10,9 +10,9 @@ block content
         li.nav-item
           a(class=(filter==='All' || filter===undefined) ? "nav-link active" : "nav-link" href="/inventory/items/?filter=All") All
         each category in categories  
-          li(class="nav-item")
+          li.nav-item
             a(class=filter===category.name ? "nav-link active" : "nav-link" href=`/inventory/items/?filter=${category.name}`)= category.name
-        li(class="nav-item")
+        li.nav-item
           a(class=(filter==="Archived") ? "nav-link active" : "nav-link" href="/inventory/items/?filter=Archived") Archived
       
       .container#container
