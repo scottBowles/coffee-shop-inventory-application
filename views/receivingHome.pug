@@ -4,13 +4,15 @@ block content
   main
     .container
       h1#title.col-md-6.mt-3= title
-      .mb-4
-        a.col-md-6(href="/inventory/receiving/create-new") Create a New Receipt
+      .mb-4.col-md-6
+        a(href="/inventory/receiving/create-new").pr-3 Create a New Receipt
+        span.hide-gt-md.pr-3.dark-brown |
+        a(href="#receipts").hide-gt-md Jump to Receipts
 
       .container#container
         .row.d-flex.justify-content-between
           .col-lg-6.pr-4
-            h4.receiving-home__awaiting Orders Awaiting Receipt
+            h4.receiving-home__awaiting.dark-brown Orders Awaiting Receipt
             table.table.table.table-hover.datatable
               thead
                 tr
@@ -26,8 +28,8 @@ block content
                     td #[a(href=order.url)= order.orderDateFormatted]
                     td #[a(href=order.url)= order.deliveryDateBrief]
                     td #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
-          .col-lg-6.pl-4
-            h4 Receipts
+          .col-lg-6.pl-4#receipts
+            h4.dark-brown Receipts
             ul(class="nav nav-tabs")
               li(class="nav-item")
                 a(class=filter==="recent" ? "nav-link active" : "nav-link" href="/inventory/receiving/?filter=recent") Recent Receipts

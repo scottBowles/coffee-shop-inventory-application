@@ -24,7 +24,7 @@ input:invalid {
 
 h1,
 a {
-  color: #4e2723;
+  color: #3e2723;
 }
 
 #container table.table a:hover {
@@ -43,7 +43,7 @@ a {
   margin-bottom: 9px;
 }
 
-.dark-brown {
+#top .dark-brown {
   color: #3e2723;
 }
 
@@ -68,5 +68,8 @@ table.dataTable thead .sorting_desc_disabled:before {
 @media (min-width: 992px) {
   .receiving-home__awaiting {
     margin-bottom: 50px;
+  }
+  .hide-gt-md {
+    display: none;
   }
 }
