@@ -365,13 +365,13 @@ exports.item_update_post = [
 
       item.name = req.body.name;
       item.description = req.body.description;
-      item.sku = req.body.sku;
+      item.sku = req.body.sku || undefined;
       item.price = req.body.price;
       item.quantityInStock = req.body.quantityInStock;
       item.category = req.body.category;
       item.image =
         req.file === undefined
-          ? undefined
+          ? item.image
           : {
               data: fs.readFileSync(req.file.path),
               contentType: req.file.mimetype,
