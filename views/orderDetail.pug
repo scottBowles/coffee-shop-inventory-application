@@ -1,71 +1,69 @@
 extends layout
 
 block content
-  h1= title
-  if order
-    h6= order.status
-    ul
-      if order.status === 'Saved'
-        li Last Updated: #{order.lastUpdatedFormatted}
-      if order.status === 'Ordered'
-        li Ordered: #{order.orderDateFormatted}
-      if order.deliveryDate
-        li Delivery Date: #{order.deliveryDateFormatted}
-      if order.status === 'Received'
-        li Ordered: #{order.orderDateFormatted}
-        li Received: #[a(href=order.receipt.url)= order.receipt.dateSubmittedFormatted]
-    
-    ul.d-flex
-      if order.status === 'Saved'
-        li
-          form(method="POST" action="")
-            button.mr-5(type="submit") Place Order
-        li #[a(href=`${order.url}/update`) Update Order]
-      if order.status === 'Ordered'
-        li #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
+  main
+    .container
+      h1#title.mt-3.mb-4= title
+      if order
+        ul
+          if order.status === 'Saved'
+            li.mb-1 Saved
+            li.mb-1 Last Updated #{order.lastUpdatedFormatted}
+          if order.status === 'Ordered'
+            li.mb-1 Ordered #{order.orderDateFormatted}
+          if order.deliveryDate
+            li.mb-1 Delivery Date #{order.deliveryDateFormatted}
+          if order.status === 'Received'
+            li.mb-1 Ordered #{order.orderDateFormatted}
+            li.mb-1 Received #[a(href=order.receipt.url)= order.receipt.dateSubmittedFormatted]
+      if errors
+        .container  
+          ul
+            for error in errors
+              li
+                .row.mt-3
+                  .col-lg-10.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
+                    button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
+      if order
+        .container#container.mt-4
+          .row.table-responsive.text-nowrap
 
-    if errors
-      ul
-        for error in errors
-          li #[strong!= error.msg]
+            table.table.table-hover.datatable(cellspacing="0" width="100%")
+              caption Items
+              thead
+                tr
+                  th(scope="col") Qty Ordered
+                  th(scope="col") Name
+                  th(scope="col") SKU
+                  th(scope="col") Category
+              tbody
+                if order.orderedItems.length === 0
+                  tr
+                    td No items to display
+                each orderedItem in order.orderedItems
+                  if orderedItem
+                    tr
+                      td= orderedItem.quantity
+                      td #[a(href=orderedItem.item.url)= orderedItem.item.name]
+                        if !orderedItem.item.active
+                          strong #[em  Archived Item]
+                      td #[a(href=orderedItem.item.url)= orderedItem.item.sku]
+                      if orderedItem.item.category
+                        td #[a(href=orderedItem.item.category.url)= orderedItem.item.category.name]
+                      else
+                        td (None)
 
-    table(class="table table-striped")
-      caption Items
-      thead
-        tr
-          th(scope="col") Qty Ordered
-          th(scope="col") Name
-          th(scope="col") SKU
-          th(scope="col") Category
-      tbody
-        if order.orderedItems.length === 0
-          tr
-            td No items to display
-        each orderedItem in order.orderedItems
-          if orderedItem
-            tr
-              td= orderedItem.quantity
-              td #[a(href=orderedItem.item.url)= orderedItem.item.name]
-                if !orderedItem.item.active
-                  strong  Archived Item
-              td= orderedItem.item.sku
-              if orderedItem.item.category
-                td #[a(href=orderedItem.item.category.url)= orderedItem.item.category.name]
-              else
-                td (None)
-
-    ul.d-flex
-      if order.status === 'Saved'
-        li
-          form(method="POST" action="")
-            button.mr-5(type="submit") Place Order
-        li #[a(href=`${order.url}/update`) Update Order]
-      if order.status === 'Ordered'
-        li #[a(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) Receive]
-      li #[a.ml-5(href=`/inventory/order/${order._id}/remove`) Delete Order]
-
-  else
-    if errors
-      ul
-        for error in errors
-          li!= error.msg
+        .container
+          
+          .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
+            if order.status === "Saved"
+              form(method="POST" action="")
+                  button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-check.mr-2] Place Order
+              a.btn.btn-primary.btn-outline-brown(href=order.url + "/update") #[i.fas.fa-edit.mr-2] Update Order
+            if order.status === "Ordered"
+              a.btn.btn-primary.btn-outline-brown(href=(order.receipt ? `/inventory/receiving/${order.receipt._id}/update` : `/inventory/receiving/create-new/${order._id}`)) #[i.fas.fa-receipt.mr-2] Receive Order
+            a.btn.btn-primary.btn-outline-brown(href=order.url + "/remove") #[i.fas.fa-trash.mr-2] Delete Order
+          
+        if order.orderedItems.length > 9
+          div.mb-5
+            a(href="#top") Return to Top
