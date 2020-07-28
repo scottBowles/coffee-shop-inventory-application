@@ -3,8 +3,8 @@ extends layout
 block content
   main
     .container
-      h1#title.col-md-6.mt-3= title
-      a.col-md-6(href="/inventory/count/create-new") Create a New Count
+      h1#title.mt-3= title
+      a(href="/inventory/count/create-new") Create a New Count
 
       ul.nav.nav-tabs.mt-4.mb-3
         li.nav-item
@@ -36,7 +36,7 @@ block content
                       td #[a(href=count.url) Submitted #{count.dateSubmittedFormatted}]
                     else
                       td #[a(href=count.url) Initiated #{count.dateInitiatedFormatted}]
-                      
+
       if counts.length > 9
         div.mb-5
           a(href="#top") Return to Top
