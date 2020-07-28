@@ -1,52 +1,58 @@
 extends layout
 
 block content
-  h1= title
-  if receipt
-    h6= receipt.submitted ? "Submitted " + receipt.dateSubmittedFormatted : 'Open'
-    h6 Initiated #{receipt.dateInitiatedFormatted}
-    if receipt.orderReceived
-      h6 #[a(href=receipt.orderReceivedUrl) Order Received]
-    else
-      h6 Ad Hoc
-    if !receipt.submitted
-      a(href=`${receipt.url}/update`) Update Receipt
+  main
+    .container
+      h1#title.mt-3= title
+      if receipt
+        p= receipt.submitted ? "Submitted " + receipt.dateSubmittedFormatted : 'Open'
+        p Initiated #{receipt.dateInitiatedFormatted}
+        if receipt.orderReceived
+          p #[a(href=receipt.orderReceivedUrl) Order Received]
+        else
+          p Ad Hoc
 
-    if errors
-      ul
-        for error in errors
-          li #[strong!= error.msg]
+      if errors
+        .container  
+          ul
+            for error in errors
+              li
+                .row.mt-3
+                  .col-lg-10.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
+                    button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
 
-    h4 Items
-    table(class="table table-striped")
-      - const numItems = receipt.receivedItems.length
-      - const totQty = receipt.totalQuantityInItems
-      caption #{numItems === 1 ? `${numItems} Line Item` : `${numItems} Line Items`} / #{totQty === 1 ? `${totQty} Item Received` : `${totQty} Items Received`}
-      thead
-        tr
-          th(scope="col") Category
-          th(scope="col") Item
-          th(scope="col") Quantity Received
-      tbody
-        if receipt.receivedItems.length === 0
-          tr
-            td No items to display
-        each receivedItem in receipt.receivedItems
-          tr
-            if receivedItem.item.category
-              td #[a(href=receivedItem.item.category.url)= receivedItem.item.category.name]
-            else
-              td (None)
-            td #[a(href=receivedItem.item.url)= receivedItem.item.name]
-            td= receivedItem.quantity
+      if receipt
+        .container#container.mt-4
+          .row.table-responsive.text-nowrap
 
-    a(href=`/inventory/receiving/${receipt._id}/remove`) Delete Receipt
+            table.table.table-hover.datatable(cellspacing="0" width="100%")
+              - const numItems = receipt.receivedItems.length
+              - const totQty = receipt.totalQuantityInItems
+              caption #{numItems === 1 ? `${numItems} Line Item` : `${numItems} Line Items`} / #{totQty === 1 ? `${totQty} Item Received` : `${totQty} Items Received`}
+              thead
+                tr
+                  th(scope="col") Category
+                  th(scope="col") Item
+                  th(scope="col") Quantity Received
+              tbody
+                if receipt.receivedItems.length === 0
+                  tr
+                    td No items to display
+                each receivedItem in receipt.receivedItems
+                  tr
+                    if receivedItem.item.category
+                      td #[a(href=receivedItem.item.category.url)= receivedItem.item.category.name]
+                    else
+                      td (None)
+                    td #[a(href=receivedItem.item.url)= receivedItem.item.name]
+                    td= receivedItem.quantity
 
-  else
-    if errors
-      ul
-        for error in errors
-          li #[strong!= error.msg]
-    else 
-      p No receipt found
-      p If this is unexpected contact an administrator
+        .container
+          .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
+            if !receipt.submitted
+              a.btn.btn-primary.btn-outline-brown(href=receipt.url + "/update") #[i.fas.fa-edit.mr-2] Update Receipt
+            a.btn.btn-primary.btn-outline-brown(href=receipt.url + "/remove") #[i.fas.fa-trash.mr-2] Delete Receipt
+        
+        if receipt.receivedItems.length > 9
+          div.mb-5
+            a(href="#top") Return to Top

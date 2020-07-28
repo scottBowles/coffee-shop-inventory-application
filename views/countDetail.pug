@@ -14,11 +14,15 @@ block content
           p Submitted #{count.dateSubmittedFormatted}
         else
           p Count not submitted
-              
+      
       if errors
-        ul
-          for error in errors
-            li!= error.msg
+        .container  
+          ul
+            for error in errors
+              li
+                .row.mt-3
+                  .col-lg-10.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
+                    button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
 
       if count
         .container#container
@@ -48,14 +52,15 @@ block content
                       else
                         td (None)
             
-      .container
-            .row.mb-4.d-flex.justify-content-center.justify-content-md-start
-                form(method="POST" action="")
-                  input(type="hidden" name="filter" value="filter")
-                  button.btn.btn-primary.btn-outline-brown #[i.fas.fa-check.mr-2] Submit
-                a.btn.btn-primary.btn-outline-brown(href=count.url + "/update") #[i.fas.fa-edit.mr-2] Update
-                a.btn.btn-primary.btn-outline-brown(href=count.url + "/remove") #[i.fas.fa-archive.mr-2] Delete Count 
-      
-      if count.countedQuantities.length > 9
-            div.mb-5
-              a(href="#top") Return to Top
+        .container
+          .row.mb-4.d-flex.justify-content-center.justify-content-md-start
+            if !count.submitted
+              form(method="POST" action="")
+                input(type="hidden" name="filter" value="filter")
+                button.btn.btn-primary.btn-outline-brown #[i.fas.fa-check.mr-2] Submit
+              a.btn.btn-primary.btn-outline-brown(href=count.url + "/update") #[i.fas.fa-edit.mr-2] Update
+            a.btn.btn-primary.btn-outline-brown(href=count.url + "/remove") #[i.fas.fa-trash.mr-2] Delete Count
+        
+        if count.countedQuantities.length > 9
+          div.mb-5
+            a(href="#top") Return to Top
