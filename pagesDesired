@@ -105,3 +105,5 @@ Each inventory count amending page     gp inventory/count/<id>/update         Do
 Each inventory count deleting page     gp inventory/count/<id>/remove         Done
 Create new inventory count             gp inventory/count/create-new          Done
 
+TODO
+Remove .col-md-6 from title lines
