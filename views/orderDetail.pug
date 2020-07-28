@@ -16,6 +16,7 @@ block content
           if order.status === 'Received'
             li.mb-1 Ordered #{order.orderDateFormatted}
             li.mb-1 Received #[a(href=order.receipt.url)= order.receipt.dateSubmittedFormatted]
+
       if errors
         .container  
           ul
@@ -24,6 +25,7 @@ block content
                 .row.mt-3
                   .col-lg-10.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
                     button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
+
       if order
         .container#container.mt-4
           .row.table-responsive.text-nowrap
@@ -54,7 +56,6 @@ block content
                         td (None)
 
         .container
-          
           .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
             if order.status === "Saved"
               form(method="POST" action="")

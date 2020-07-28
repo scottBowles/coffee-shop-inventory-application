@@ -1,66 +1,89 @@
 extends layout
 
 block content
-  h1= title
-  if order
-    h6= order.status
-    ul
-      if order.status === 'Saved'
-        li Last Updated: #{order.lastUpdatedFormatted}
-      if order.status === 'Ordered'
-        li Ordered: #{order.orderDateFormatted}
-      if order.deliveryDate
-        li Delivery Date: #{order.deliveryDateFormatted}
-      if order.status === 'Received'
-        li Ordered: #{order.orderDateFormatted}
-        li Received: #{order.receipt.dateSubmittedFormatted}
+  main
+    .container
+      h1#title.mt-3.mb-4= title
+      if order
+        ul
+          if order.status === 'Saved'
+            li.mb-1 Saved
+            li.mb-1 Last Updated #{order.lastUpdatedFormatted}
+          if order.status === 'Ordered'
+            li.mb-1 Ordered #{order.orderDateFormatted}
+          if order.deliveryDate
+            li.mb-1 Delivery Date #{order.deliveryDateFormatted}
+          if order.status === 'Received'
+            li.mb-1 Ordered #{order.orderDateFormatted}
+            li.mb-1 Received #[a(href=order.receipt.url)= order.receipt.dateSubmittedFormatted]
+      
+      .alert.alert-danger(role="alert") 
+        strong Are you sure you want to delete this order?
+        if order.receipt
+          p This will remove both this order and #[a(href=order.receipt.url) its receipt].
+      
+      .container
+          .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
+            form(method='POST' action='')
+              div.form-group
+                input#orderId.form-control(type='hidden',name='orderId', required='true', value=order._id )
 
-    p Are you sure you want to delete this order?
-    if order.receipt
-      p This will remove both this order and #[a(href=order.receipt.url) its receipt].
+              div#password-group.form-group.hidden
+                  label(for="password") Enter Admin Password to Make Change
+                  input#password.form-control(type="password" name="password")
+              button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] Delete Order
 
-    if errors
-      ul
-        for error in errors
-          li #[strong!= error.msg]
+      if errors
+          .container  
+            ul
+              for error in errors
+                li
+                  .row.mt-3
+                    .col-lg-10.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
+                      button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
 
-    table(class="table table-striped")
-      caption Items
-      thead
-        tr
-          th(scope="col") Qty Ordered
-          th(scope="col") Name
-          th(scope="col") SKU
-          th(scope="col") Category
-      tbody
-        if order.orderedItems.length === 0
-          tr
-            td No items to display
-        each orderedItem in order.orderedItems
-          if orderedItem
-            tr
-              td= orderedItem.quantity
-              td #[a(href=orderedItem.item.url)= orderedItem.item.name]
-              td= orderedItem.item.sku
-              if orderedItem.item.category
-                td #[a(href=orderedItem.item.category.url)= orderedItem.item.category.name]
-              else
-                td (None)
+      if order
+        .container#container.mt-4
+          .row.table-responsive.text-nowrap
 
-    form(method='POST' action='')
-      div.form-group
-        input#orderId.form-control(type='hidden',name='orderId', required='true', value=order._id )
+            table.table.table-hover.datatable(cellspacing="0" width="100%")
+              caption Items
+              thead
+                tr
+                  th(scope="col") Qty Ordered
+                  th(scope="col") Name
+                  th(scope="col") SKU
+                  th(scope="col") Category
+              tbody
+                if order.orderedItems.length === 0
+                  tr
+                    td No items to display
+                each orderedItem in order.orderedItems
+                  if orderedItem
+                    tr
+                      td= orderedItem.quantity
+                      td #[a(href=orderedItem.item.url)= orderedItem.item.name]
+                        if !orderedItem.item.active
+                          strong #[em  Archived Item]
+                      td #[a(href=orderedItem.item.url)= orderedItem.item.sku]
+                      if orderedItem.item.category
+                        td #[a(href=orderedItem.item.category.url)= orderedItem.item.category.name]
+                      else
+                        td (None)
 
-      div#password-group.form-group.hidden
-          label(for="password") Enter Admin Password to Make Change
-          input#password.form-control(type="password" name="password")
+        if order.orderedItems.length > 9
+          .container
+            .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
+              form(method='POST' action='')
+                div.form-group
+                  input#orderId.form-control(type='hidden',name='orderId', required='true', value=order._id )
 
-      button.btn.btn-primary(type='submit') Delete
+                div#password-group.form-group.hidden
+                    label(for="password") Enter Admin Password to Make Change
+                    input#password.form-control(type="password" name="password")
+                button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] Delete Order
 
-  else
-    if errors
-      ul
-        for error in errors
-          li #[strong!= error.msg]
+          div.mb-5
+            a(href="#top") Return to Top
 
   script(src="/javascripts/form.js")
