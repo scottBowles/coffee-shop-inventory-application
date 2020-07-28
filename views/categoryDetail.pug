@@ -38,9 +38,9 @@ block content
                   if item
                     tr
                       td #[a(href=item.url)= item.name]
-                      td= item.quantityInStock
-                      td= item.sku
-                      td= item.price
+                      td #[a(href=item.url)= item.quantityInStock]
+                      td #[a(href=item.url)= item.sku]
+                      td #[a(href=item.url)= item.price]
         
       .container
           .row.mb-4
