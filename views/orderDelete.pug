@@ -3,7 +3,7 @@ extends layout
 block content
   main
     .container
-      h1#title.mt-3.mb-4= title
+      h1#title.mt-3= title
       if order
         ul
           if order.status === 'Saved'
@@ -17,12 +17,12 @@ block content
             li.mb-1 Ordered #{order.orderDateFormatted}
             li.mb-1 Received #[a(href=order.receipt.url)= order.receipt.dateSubmittedFormatted]
       
-      .alert.alert-danger(role="alert") 
-        strong Are you sure you want to delete this order?
-        if order.receipt
-          p This will remove both this order and #[a(href=order.receipt.url) its receipt].
-      
-      .container
+        .alert.alert-danger(role="alert") 
+          strong Are you sure you want to delete this order?
+          if order.receipt
+            p This will remove both this order and #[a(href=order.receipt.url) its receipt].
+        
+        .container
           .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
             form(method='POST' action='')
               div.form-group

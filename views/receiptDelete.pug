@@ -1,66 +1,82 @@
 extends layout
 
 block content
-  h1= title
-  if receipt
-    h6= receipt.submitted ? "Submitted " + receipt.dateSubmittedFormatted : 'Open'
-    h6 Initiated #{receipt.dateInitiatedFormatted}
-    if receipt.orderReceived
-      h6 #[a(href=receipt.orderReceived.url) Order Received]
-    else
-      h6 Ad Hoc
-    if !receipt.submitted
-      a(href=`${receipt.url}/update`) Update Receipt
-  
-    p Are you sure you want to delete this receipt?
-      if receipt.orderReceived
-        p This will both remove this receipt and unreceive the #[a(href=receipt.orderReceived.url) order] it receives.
+  main
+    .container
+      h1#title.mt-3= title
+      if receipt
+        ul
+          li.mb-1= receipt.submitted ? "Submitted " + receipt.dateSubmittedFormatted : 'Open'
+          li.mb-1 Initiated #{receipt.dateInitiatedFormatted}
+          if receipt.orderReceived
+            li.mb-1 #[a(href=receipt.orderReceived.url) Order Received]
+          else
+            li.mb-1 Ad Hoc
+        
+        .alert.alert-danger(role="alert") 
+          strong Are you sure you want to delete this receipt?
+          if receipt.orderReceived
+            p This will both remove this receipt and unreceive the #[a(href=receipt.orderReceived.url) order] it receives.
 
-    if errors
-      ul
-        for error in errors
-          li #[strong!= error.msg]
+        .container
+          .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
+            form(method='POST' action='')
+              div.form-group
+                input#receiptId.form-control(type='hidden',name='receiptId', required='true', value=receipt._id )
 
-    h4 Items
-    table(class="table table-striped")
-      - const numItems = receipt.receivedItems.length
-      - const totQty = receipt.totalQuantityInItems
-      caption #{numItems === 1 ? `${numItems} Line Item` : `${numItems} Line Items`} / #{totQty === 1 ? `${totQty} Item Received` : `${totQty} Items Received`}
-      thead
-        tr
-          th(scope="col") Category
-          th(scope="col") Item
-          th(scope="col") Quantity Received
-      tbody
-        if receipt.receivedItems.length === 0
-          tr
-            td No items to display
-        each receivedItem in receipt.receivedItems
-          tr
-            if receivedItem.item.category
-              td #[a(href=receivedItem.item.category.url)= receivedItem.item.category.name]
-            else
-              td (None)
-            td #[a(href=receivedItem.item.url)= receivedItem.item.name]
-            td= receivedItem.quantity
+              div#password-group.form-group.hidden
+                label(for="password") Enter Admin Password to Make Change
+                input#password.form-control(type="password" name="password")
+              button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] Delete Receipt
 
-    form(method='POST' action='')
-      div.form-group
-        input#receiptId.form-control(type='hidden',name='receiptId', required='true', value=receipt._id )
+      if errors
+          .container  
+            ul
+              for error in errors
+                li
+                  .row.mt-3
+                    .col-lg-10.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
+                      button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
 
-      div#password-group.form-group.hidden
-        label(for="password") Enter Admin Password to Make Change
-        input#password.form-control(type="password" name="password")
+      if receipt
+        .container#container.mt-4
+          .row.table-responsive.text-nowrap
 
-      button.btn.btn-primary(type='submit') Delete
+            table.table.table-hover.datatable(cellspacing="0" width="100%")
+              - const numItems = receipt.receivedItems.length
+              - const totQty = receipt.totalQuantityInItems
+              caption #{numItems === 1 ? `${numItems} Line Item` : `${numItems} Line Items`} / #{totQty === 1 ? `${totQty} Item Received` : `${totQty} Items Received`}
+              thead
+                tr
+                  th(scope="col") Category
+                  th(scope="col") Item
+                  th(scope="col") Quantity Received
+              tbody
+                if receipt.receivedItems.length === 0
+                  tr
+                    td No items to display
+                each receivedItem in receipt.receivedItems
+                  tr
+                    if receivedItem.item.category
+                      td #[a(href=receivedItem.item.category.url)= receivedItem.item.category.name]
+                    else
+                      td (None)
+                    td #[a(href=receivedItem.item.url)= receivedItem.item.name]
+                    td= receivedItem.quantity
+      
+        if receipt.receivedItems.length > 9
+          .container
+            .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
+              form(method='POST' action='')
+                div.form-group
+                  input#receiptId.form-control(type='hidden',name='receiptId', required='true', value=receipt._id )
 
-  else
-    if errors
-      ul
-        for error in errors
-          li #[strong!= error.msg]
-    else 
-      p No receipt found
-      p If this is unexpected contact an administrator
+                div#password-group.form-group.hidden
+                  label(for="password") Enter Admin Password to Make Change
+                  input#password.form-control(type="password" name="password")
+                button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] Delete Receipt
+
+          div.mb-5
+            a(href="#top") Return to Top
 
   script(src="/javascripts/form.js")
