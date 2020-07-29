@@ -1,49 +1,78 @@
 extends layout
 
 block content
-  h1= title
-  if category
-    h6= category.description
+  main
+    .container
+      h1#title.mt-3= title
+      if category
+        h6= category.description
+        if category.image && category.image.data
+          img(style='height: 100px;' src=`data:image/${category.image.contentType};base64, ${category.image.data.toString('base64')}`) 
 
-    p Are you sure you want to remove this category?
-    
-    if category.items
+        .alert.alert-danger.mt-3(role="alert") 
+          strong Are you sure you want to delete this category?
+          if category.items
+            p The following items currently in category will have their category removed
 
-      p The following items currently in category will have their category removed:
+        .container
+          .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
+            form.form-top(method='POST' action='')
+              div.form-group.form-group-top
+                input#categoryId.form-control(type='hidden',name='categoryId', required='true', value=category._id )
 
-      table(class="table table-striped")
-        caption #{category.items.length} Items
-        thead
-          tr
-            th(scope="col") Name
-            th(scope="col") Quantity
-            th(scope="col") SKU
-            th(scope="col") Price
-        tbody
-          if category.items.length === 0
-            tr
-              td No items to display
-          each item in category.items
-            if item
-              tr
-                td #[a(href=item.url)= item.name]
-                td= item.quantityInStock
-                td= item.sku
-                td= item.price
+              div#password-group.password-group-top.form-group.form-group-top.hidden
+                  label(for="password") Enter Admin Password to Make Change
+                  input#password.form-control(type="password" name="password")
+              button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] Delete Category
 
-    form(method='POST' action='')
-        div.form-group
-          input#categoryId.form-control(type='hidden',name='categoryId', required='true', value=category._id )
+      if errors
+        .container  
+          ul
+            for error in errors
+              li
+                .row.mt-3
+                  .col-lg-10.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
+                    button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
 
-        div#password-group.form-group.hidden
-          label(for="password") Enter Admin Password to Make Change
-          input#password.form-control(type="password" name="password")
+      if category && category.items
+        .container#container
+          .row.table-responsive.text-nowrap
 
-        button.btn.btn-primary(type='submit') Delete
-  
-  if errors
-    ul
-      for error in errors
-        li!= error.msg
+            table.table.table-hover.datatable(cellspacing="0" width="100%")
+              caption #{category.items.length} Items
+              thead
+                tr
+                  th(scope="col") Name
+                  th(scope="col") Quantity
+                  th(scope="col") SKU
+                  th(scope="col") Price
+              tbody
+                if category.items.length === 0
+                  tr
+                    td No items to display
+                each item in category.items
+                  if item
+                    tr
+                      td #[a(href=item.url)= item.name]
+                        if !item.active
+                          strong #[em  Archived Item]
+                      td #[a(href=item.url)= item.quantityInStock]
+                      td #[a(href=item.url)= item.sku]
+                      td #[a(href=item.url)= item.price]
+      
+        if category.items.length > 9
+          .container
+            .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
+              form.form-bottom(method='POST' action='')
+                div.form-group.form-group-bottom
+                  input#categoryId.form-control(type='hidden',name='categoryId', required='true', value=category._id )
+
+                div#password-group.password-group-bottom.form-group.form-group-bottom.hidden
+                    label(for="password") Enter Admin Password to Make Change
+                    input#password.form-control(type="password" name="password")
+                button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] Delete Category
+      
+          div.mb-5
+            a(href="#top") Return to Top
 
   script(src="/javascripts/form.js")
