@@ -107,3 +107,4 @@ Create new inventory count             gp inventory/count/create-new          Do
 
 TODO
 Check item create & update to make sure it's properly applying model defaults when sku (e.g.) is left empty
+Consider adding sku to count form
