@@ -20,23 +20,23 @@ block content
 
         .container
           .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
-            form(method='POST' action='')
-              div.form-group
+            form.form-top(method='POST' action='')
+              div.form-group.form-group-top
                 input#receiptId.form-control(type='hidden',name='receiptId', required='true', value=receipt._id )
 
-              div#password-group.form-group.hidden
+              div#password-group.password-group-top.form-group.form-group-top.hidden
                 label(for="password") Enter Admin Password to Make Change
                 input#password.form-control(type="password" name="password")
               button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] Delete Receipt
 
       if errors
-          .container  
-            ul
-              for error in errors
-                li
-                  .row.mt-3
-                    .col-lg-10.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
-                      button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
+        .container  
+          ul
+            for error in errors
+              li
+                .row.mt-3
+                  .col-lg-10.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
+                    button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
 
       if receipt
         .container#container.mt-4
@@ -67,11 +67,11 @@ block content
         if receipt.receivedItems.length > 9
           .container
             .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
-              form(method='POST' action='')
-                div.form-group
+              form.form-bottom(method='POST' action='')
+                div.form-group.form-group-bottom
                   input#receiptId.form-control(type='hidden',name='receiptId', required='true', value=receipt._id )
 
-                div#password-group.form-group.hidden
+                div#password-group.password-group-bottom.form-group.form-group-bottom.hidden
                   label(for="password") Enter Admin Password to Make Change
                   input#password.form-control(type="password" name="password")
                 button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] Delete Receipt

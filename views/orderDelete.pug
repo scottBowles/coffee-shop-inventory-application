@@ -24,11 +24,11 @@ block content
         
         .container
           .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
-            form(method='POST' action='')
-              div.form-group
+            form.form-top(method='POST' action='')
+              div.form-group.form-group-top
                 input#orderId.form-control(type='hidden',name='orderId', required='true', value=order._id )
 
-              div#password-group.form-group.hidden
+              div#password-group.password-group-top.form-group.form-group-top.hidden
                   label(for="password") Enter Admin Password to Make Change
                   input#password.form-control(type="password" name="password")
               button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] Delete Order
@@ -74,11 +74,11 @@ block content
         if order.orderedItems.length > 9
           .container
             .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
-              form(method='POST' action='')
-                div.form-group
+              form.form-bottom(method='POST' action='')
+                div.form-group.form-group-bottom
                   input#orderId.form-control(type='hidden',name='orderId', required='true', value=order._id )
 
-                div#password-group.form-group.hidden
+                div#password-group.password-group-bottom.form-group.form-group-bottom.hidden
                     label(for="password") Enter Admin Password to Make Change
                     input#password.form-control(type="password" name="password")
                 button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] Delete Order

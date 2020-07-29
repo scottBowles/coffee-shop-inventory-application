@@ -1,10 +1,23 @@
-const form = document.querySelector("form");
-const passwordGroup = document.querySelector("#password-group");
-const formGroups = [...document.querySelectorAll(".form-group")];
+const formTop = document.querySelector(".form-top");
+const passwordGroupTop = document.querySelector(".password-group-top");
+const formGroupsTop = [...document.querySelectorAll(".form-group-top")];
 
-form.addEventListener("submit", (e) => {
-  if ([...passwordGroup.classList].includes("hidden")) {
+formTop.addEventListener("submit", (e) => {
+  if ([...passwordGroupTop.classList].includes("hidden")) {
     e.preventDefault();
-    formGroups.forEach((formGroup) => formGroup.classList.toggle("hidden"));
+    formGroupsTop.forEach((formGroup) => formGroup.classList.toggle("hidden"));
+  }
+});
+
+const formBotton = document.querySelector(".form-bottom");
+const passwordGroupBotton = document.querySelector(".password-group-bottom");
+const formGroupsBotton = [...document.querySelectorAll(".form-group-bottom")];
+
+formBotton.addEventListener("submit", (e) => {
+  if ([...passwordGroupBotton.classList].includes("hidden")) {
+    e.preventDefault();
+    formGroupsBotton.forEach((formGroup) =>
+      formGroup.classList.toggle("hidden")
+    );
   }
 });

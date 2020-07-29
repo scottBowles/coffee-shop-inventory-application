@@ -1,59 +1,85 @@
 extends layout
 
 block content
-  h1= title
-  if count
-    if count.type === "By Category"
-      p Category: #[span= count.countedQuantities[0].item.category ? count.countedQuantities[0].item.category.name : "(None)"]
-    else
-      p= count.type
-    p Initiated #{count.dateInitiatedFormatted}
-    if count.submitted
-      p Submitted #{count.dateSubmittedFormatted}
-    else
-      p Count not submitted
+  main
+    .container
+      h1#title.mt-3= title
+      if count
+        ul
+          if count.type === "By Category"
+            li.mb-1 Category: #[span= count.countedQuantities[0].item.category ? count.countedQuantities[0].item.category.name : "(None)"]
+          else
+            li.mb-1= count.type
+          li.mb-1 Initiated #{count.dateInitiatedFormatted}
+          if count.submitted
+            li.mb-1 Submitted #{count.dateSubmittedFormatted}
+          else
+            li.mb-1 Count not submitted
 
-    p Are you sure you want to delete this inventory count?
+        .alert.alert-danger(role="alert") 
+          strong Are you sure you want to delete this count?
 
-  if errors
-    ul
-      for error in errors
-        li #[strong!= error.msg]
-    
-  if count  
-    if count.countedQuantities
-      table(class="table table-striped")
-        caption #{count.countedQuantities.length} Items Counted
-        thead
-          tr
-            th(scope="col") Name
-            th(scope="col") Quantity
-            th(scope="col") SKU
-            if count.type !== "By Category"
-              th(scope="col") Category
-        tbody
-          if count.countedQuantities.length === 0
-            tr
-              td No items counted
-          each countedQuantity in count.countedQuantities
-            tr
-              td #[a(href=countedQuantity.item.url)= countedQuantity.item.name]
-              td= countedQuantity.quantity
-              td= countedQuantity.item.sku
-              if count.type !== "By Category"
-                if countedQuantity.item.category
-                  td #[a(href=countedQuantity.item.category.url)= countedQuantity.item.category.name]
-                else
-                  td (None)
+        .container
+          .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
+            form.form-top(method='POST' action='')
+              div.form-group.form-group-top
+                input#countId.form-control(type='hidden',name='countId', required='true', value=count._id )
 
-    form(method='POST' action='')
-        div.form-group
-          input#countId.form-control(type='hidden',name='countId', required='true', value=count._id )
+              div#password-group.password-group-top.form-group.form-group-top.hidden
+                label(for="password") Enter Admin Password to Make Change
+                input#password.form-control(type="password" name="password")
+              button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] Delete Count
 
-        div#password-group.form-group.hidden
-          label(for="password") Enter Admin Password to Make Change
-          input#password.form-control(type="password" name="password")
+      if errors
+        .container  
+          ul
+            for error in errors
+              li
+                .row.mt-3
+                  .col-lg-10.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
+                    button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
 
-        button.btn.btn-primary(type='submit') Delete
+      if count
+        if count.countedQuantities
+          .container#container.mt-4
+            .row.table-responsive.text-nowrap
+
+              table.table.table-hover.datatable(cellspacing="0" width="100%")
+                caption #{count.countedQuantities.length} Items Counted
+                thead
+                  tr
+                    th(scope="col") Name
+                    th(scope="col") Quantity
+                    th(scope="col") SKU
+                    if count.type !== "By Category"
+                      th(scope="col") Category
+                tbody
+                  if count.countedQuantities.length === 0
+                    tr
+                      td No items counted
+                  each countedQuantity in count.countedQuantities
+                    tr
+                      td #[a(href=countedQuantity.item.url)= countedQuantity.item.name]
+                      td= countedQuantity.quantity
+                      td= countedQuantity.item.sku
+                      if count.type !== "By Category"
+                        if countedQuantity.item.category
+                          td #[a(href=countedQuantity.item.category.url)= countedQuantity.item.category.name]
+                        else
+                          td (None)
+          if count.countedQuantities.length > 9
+            .container
+              .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
+                form.form-bottom(method='POST' action='')
+                  div.form-group.form-group-bottom
+                    input#countId.form-control(type='hidden',name='countId', required='true', value=count._id )
+
+                  div#password-group.password-group-bottom.form-group.form-group-bottom.hidden
+                    label(for="password") Enter Admin Password to Make Change
+                    input#password.form-control(type="password" name="password")
+                  button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] Delete Count
+
+            div.mb-5
+              a(href="#top") Return to Top
   
   script(src="/javascripts/form.js")
