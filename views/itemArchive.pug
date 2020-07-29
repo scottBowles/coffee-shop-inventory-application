@@ -1,40 +1,68 @@
 extends layout
 
 block content
-  if item
-    h1= item.name
-    if item.category
-      p Category: #[a(href=item.category.url)= item.category.name]
-    else
-      p Category: (None)
-    p Description: #{item.description}
-    if !item.active
-      p #[strong Archived]
-    p Quantity in Stock: #{item.quantityInStock}
+  main
+    if item
+      .container.dark-brown
+        h1#title.mt-3= item.name
+        if !item.active
+          .row    
+            .col-lg-10.alert.alert-warning(role="alert") #[strong Archived]
+        if item.image && item.image.data
+          img(style='height: 100px;' src=`data:image/${item.image.contentType};base64, ${item.image.data.toString('base64')}`)
+        .row.mt-3
+          .col-lg-9.d-flex
+            div.d-flex.justify-content-end.fa-container.pt-1
+              i.fab.fa-elementor.brown-text
+            if item.category
+              div.ml-3 #[strong Category:] #[a(href=itemCategoryUrl)= item.category.name]
+            else
+              div.ml-3 #[strong Category:] (None)
+        .row.mt-3.d-flex.flex-nowrap
+          .col-lg-9.d-flex
+            div.d-flex.justify-content-end.fa-container.pt-1
+              i.far.fa-comment-alt.brown-text
+            div.ml-3
+              div.text-wrap #[strong Description:] #[span= item.description]
+        .row.mt-3
+          .col-lg-9.d-flex
+            div.d-flex.justify-content-end.fa-container.pt-1
+              i.fas.fa-list-ol.brown-text
+            div.ml-3 #[strong In Stock:] #[span= item.quantityInStock]
+        if item.forSale    
+          .row.mt-3
+            .col-lg-9.d-flex
+              div.d-flex.justify-content-end.fa-container.pt-1
+                i.fas.fa-barcode.brown-text
+              div.ml-3 #[strong SKU:] #[span= item.sku]
+          .row.mt-3
+            .col-lg-9.d-flex
+              div.d-flex.justify-content-end.fa-container.pt-1
+                i.fas.fa-dollar-sign.brown-text
+              div.ml-3 #[strong Price:] #[span= item.price]
+        else
+          .row.mt-3
+            .col-lg-9.d-flex
+              div.d-flex.justify-content-end.fa-container.pt-1
+                i.fas.fa-barcode.brown-text
+              div.ml-3 [Not marked for sale]
 
-    if item.forSale
-      p SKU: #{item.sku}
-      p Price: #{item.price}
-    else
-      p [Not marked for sale]
-    if item.active
-      p Are you sure you want to archive this item?
-    else
-      p Are you sure you want to restore this item out of archive?
+        .alert.alert-danger.mt-3(role="alert")
+          if item.active
+            strong Are you sure you want to archive this item?
+          else
+            strong Are you sure you want to restore this item out of archive?
 
-    form(method='POST' action='')
-        div.form-group
-          input#itemId.form-control(type='hidden',name='submitType', required='true', value=`${item.active ? "archive" : "restore"}` )
-        
-        div#password-group.form-group.hidden
-          label(for="password") Enter Admin Password to Make Change
-          input#password.form-control(type="password" name="password")
+        .container
+          .row.mb-4.d-flex.justify-content-center.justify-content-sm-start
+            form.form-top(method='POST' action='')
+              div.form-group.form-group-top
+                input#itemId.form-control(type='hidden',name='submitType', required='true', value=`${item.active ? "archive" : "restore"}` )
 
-        button.btn.btn-primary(type='submit')= item.active ? "Archive" : "Restore"
-  
-  if errors
-    ul
-      for error in errors
-        li!= error.msg
+              div#password-group.password-group-top.form-group.form-group-top.hidden
+                  label(for="password") Enter Admin Password to Make Change
+                  input#password.form-control(type="password" name="password")
+              button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] #{item.active ? "Archive Item" : "Restore Item"}
+      
   
   script(src="/javascripts/form.js")
