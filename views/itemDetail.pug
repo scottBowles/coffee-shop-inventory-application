@@ -50,7 +50,11 @@ block content
       .container
         .row.mt-4
           a.btn.btn-primary.btn-outline-brown.mr-4(href=item.url + "/update") #[i.fas.fa-edit.mr-2] Update Item
-          a.btn.btn-primary.btn-outline-brown(href=item.url + "/archive") #[i.fas.fa-archive.mr-2] Archive Item
+          if item.active
+            a.btn.btn-primary.btn-outline-brown(href=item.url + "/archive") #[i.fas.fa-archive.mr-2] Archive Item
+          else
+            a.btn.btn-primary.btn-outline-brown(href=item.url + "/archive") #[i.fas.fa-undo-alt.mr-2] Restore Item
+    
     if errors
       .container  
         ul

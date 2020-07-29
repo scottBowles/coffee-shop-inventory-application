@@ -62,7 +62,10 @@ block content
               div#password-group.password-group-top.form-group.form-group-top.hidden
                   label(for="password") Enter Admin Password to Make Change
                   input#password.form-control(type="password" name="password")
-              button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-trash.mr-2] #{item.active ? "Archive Item" : "Restore Item"}
+              if item.active
+                button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-archive.mr-2] Archive Item
+              else
+                button.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-undo-alt.mr-2] Restore Item
       
   
   script(src="/javascripts/form.js")
