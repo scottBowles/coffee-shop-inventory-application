@@ -1,39 +1,64 @@
 extends layout
 
 block content
-  if items
-    h1= title
+  main
+    .container
+      h1#title.mt-3.mb-4= title
 
-    if !filter
-      div.btn-group-vertical#typeSelector(role="group" aria-label="Button group with nested dropdown")
-        a#test.btn.btn-outline-secondary(role="button" value="Full" href="/inventory/count/create-new?filter=Full") Full
-        div.btn-group.dropright(role="group")
-          button.btn.btn-outline-secondary.dropdown-toggle#dropdownMenu2(type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") By Category
-          div.dropdown-menu(aria-labelledby="dropdownMenu2")
-            for category in categories
-              a.dropdown-item(role="button" href=`/inventory/count/create-new?filter=${category.name}`) #{category.name}
-        a.btn.btn-outline-secondary(role="button" value="Ad Hoc" href="/inventory/count/create-new?filter=AdHoc") Ad Hoc
-    
-    else
-      form(method="POST" action="")
-        for item, index in items 
-          .form-group.d-flex.align-items-center.justify-content-end.flex-row-reverse
-            input(type="hidden" name=`items[${index}][id]` value=item._id)
-            label(for=`item${index}quantity`)= item.name
-            input.w-25.form-control.mr-3.item-quantity(name=`items[${index}][quantity]` id=`item${index}quantity` type="number" value=item.quantityInStock)
-        div#password-group.form-group.hidden
-          label(for="password") Enter Admin Password to Make Change
-          input#password.form-control(type="password" name="password")    
-        input(type="hidden" name="filter" id="filter" value=filter)
+      if errors
+        .container  
+          ul
+            for error in errors
+              li
+                .row.mt-3
+                  .col-lg-12.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
+                    button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
 
-        .d-flex.w-25.justify-content-between
-          button.btn.btn-primary.submit-button(type="submit" name="submitButton" value="submit") Submit
-          button.btn.btn-primary.mr-3.save-button(type="submit" name="submitButton" value="save") Save
+      if items
 
-  if errors
-    ul
-      for error in errors
-        li!= error.msg
+        if !filter
+          .btn-group(role="group" aria-label="Button group with nested dropdown")
+            div
+              a.btn.btn-outline-brown(role="button" value="Full" href="/inventory/count/create-new?filter=Full") Full
+            div
+              .btn-group(role="group")
+                button.btn.btn-outline-brown.dropdown-toggle#btnGroupDrop1(type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") By Category
+                div.dropdown-menu(aria-labelledby="dropdownMenu2")
+                  for category in categories
+                    a.dropdown-item(role="button" href=`/inventory/count/create-new?filter=${category.name}`) #{category.name}
+            div
+              a.btn.btn-outline-brown(role="button" value="Ad Hoc" href="/inventory/count/create-new?filter=AdHoc") Ad Hoc
+        
+        else
+          .container#container.mt-4
+            .row.table-responsive.text-nowrap
+              form.form-top(method="POST" action="")
+                table.table.table-hover.datatable(cellspacing="0" width="100%")
+                  thead
+                    tr
+                      th(scope="col") Quantity
+                      th(scope="col") Item
+                  tbody
+                    for item, index in items
+                      tr
+                        td.form-group
+                          input(name=`items[${index}][quantity]` id=`item${index}quantity` type="number" value=item.quantityInStock)
+                          input(type="hidden" name=`items[${index}][id]` value=item._id)
+                        td #[a(href=item.url)= item.name]
+                          
+                input(type="hidden" name="filter" id="filter" value=filter)
+                
+                div#password-group.password-group-top.form-group.form-group-top.hidden
+                  label(for="password") Enter Admin Password to Make Change
+                  input#password.form-control(type="password" name="password")    
+                          
+                .container
+                  .row.d-flex.justify-content-center.justify-content-sm-start
+                      button.btn.btn-primary.btn-outline-brown(type="submit" name="submitButton" value="submit") #[i.fas.fa-check.mr-2] Submit Count
+                      button.btn.btn-primary.btn-outline-brown.darken-3(type="submit" name="submitButton" value="save") #[i.fas.fa-save.mr-2] Save
+
+        div.mb-5.mt-4
+          a(href="#top") Return to Top
 
   script(src="/javascripts/form.js")
   
