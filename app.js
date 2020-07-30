@@ -5,6 +5,8 @@ const path = require("path");
 const createError = require("http-errors");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
+const compression = require("compression");
+const helmet = require("helmet");
 
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
@@ -22,6 +24,11 @@ mongoose.connect(mongoDB, {
 });
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
+
+app.use(helmet());
+
+// Compress all routes
+app.use(compression());
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
