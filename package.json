@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "build": "webpack",
+    "webpack": "webpack",
     "watch": "npx webpack --watch",
     "devstart": "nodemon ./bin/www",
     "serverstart": "DEBUG=coffee-shop-inventory-application:* npm run devstart"
