@@ -64,4 +64,7 @@ app.use((err, req, res, next) => {
   res.render("error");
 });
 
+// start the server listening for requests
+app.listen(process.env.PORT || 3000, () => console.log("Server is running..."));
+
 module.exports = app;
