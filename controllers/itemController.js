@@ -176,7 +176,7 @@ exports.item_create_post = [
     const item = new Item({
       name: req.body.name,
       description: req.body.description,
-      sku: req.body.sku || undefined,
+      sku: req.body.sku || "Not marked for sale",
       price: req.body.price || undefined,
       quantityInStock: req.body.quantityInStock || 0,
       category: req.body.category || undefined,
@@ -204,55 +204,65 @@ exports.item_create_post = [
       });
     } else {
       // Check whether the item name or sku already exists. If so, re-render with foundItem
-      Item.findOne({
-        $or: [{ name: req.body.name }, { sku: req.body.sku }],
-      }).exec((err, foundItem) => {
-        if (err) {
-          return next(err);
-        }
-        if (foundItem) {
-          Category.find({}).exec((categoryFindErr, categories) => {
-            if (categoryFindErr) {
-              return next(categoryFindErr);
-            }
-            res.render("itemForm", {
-              item,
-              categories,
-              foundItem,
-              title: "Create New Item",
-            });
-          });
-        } else {
-          // Given no errors and no duplicate exists, save item, create an initial count, and redirect
-          async.parallel(
-            {
-              savedItem(callback) {
-                item.save((itemSaveError) => {
-                  if (itemSaveError) return next(itemSaveError);
-                  callback(null, item);
-                });
-              },
-              newCount(callback) {
-                const count = new InventoryCount({
-                  dateSubmitted: Date.now(),
-                  countedQuantities: [
-                    { item: item._id, quantity: item.quantityInStock },
-                  ],
-                  type: "Initial",
-                });
-                count.save((countSaveError) => {
-                  if (countSaveError) return next(countSaveError);
-                  callback(null, count);
-                });
-              },
-            },
-            (saveErrors, results) => {
-              if (saveErrors) return next(saveErrors);
-              res.redirect(results.savedItem.url);
-            }
+      Item.find()
+        .or([{ name: item.name }, { sku: item.sku }])
+        .exec((err, foundItems) => {
+          if (err) {
+            return next(err);
+          }
+          // Make sure that, if the name isn't a match but the sku is, the sku isn't just the default
+
+          const foundItemArray = foundItems.filter(
+            (fItem) =>
+              !fItem._id.equals(item._id) &&
+              (fItem.name === item.name ||
+                (fItem.sku === item.sku && fItem.sku !== "Not marked for sale"))
           );
-        }
-      });
+
+          const foundItem = foundItemArray[0];
+          if (foundItem) {
+            Category.find({}).exec((categoryFindErr, categories) => {
+              if (categoryFindErr) {
+                return next(categoryFindErr);
+              }
+              res.render("itemForm", {
+                item,
+                categories,
+                foundItem,
+                title: "Create New Item",
+              });
+            });
+          } else {
+            // Given no errors and no duplicate exists, save item, create an initial count, and redirect
+            async.parallel(
+              {
+                savedItem(callback) {
+                  item.save((itemSaveError) => {
+                    if (itemSaveError) return next(itemSaveError);
+                    callback(null, item);
+                  });
+                },
+                newCount(callback) {
+                  const count = new InventoryCount({
+                    dateSubmitted: Date.now(),
+                    countedQuantities: [
+                      { item: item._id, quantity: item.quantityInStock },
+                    ],
+                    type: "Initial",
+                  });
+                  count.save((countSaveError) => {
+                    if (countSaveError) return next(countSaveError);
+                    callback(null, count);
+                  });
+                },
+              },
+              (saveErrors, results) => {
+                if (saveErrors) return next(saveErrors);
+                res.redirect(results.savedItem.url);
+              }
+            );
+          }
+        });
     }
   },
 ];
@@ -388,6 +398,32 @@ exports.item_update_post = [
           item,
           categories,
           errors,
+        });
+      }
+
+      // Check whether the item name or sku already exists. If so, re-render with foundItem
+      const foundItems = await Item.find()
+        .or([{ name: item.name }, { sku: item.sku }])
+        .exec()
+        .catch((err) => next(err));
+
+      const foundItemArray = foundItems.filter(
+        (fItem) =>
+          !fItem._id.equals(item._id) &&
+          (fItem.name === item.name ||
+            (fItem.sku === item.sku && fItem.sku !== "Not marked for sale"))
+      );
+
+      const foundItem = foundItemArray[0];
+      if (foundItem) {
+        const categories = await Category.find({})
+          .exec()
+          .catch((err) => next(err));
+        res.render("itemForm", {
+          item,
+          categories,
+          foundItem,
+          title: "Create New Item",
         });
       }
 

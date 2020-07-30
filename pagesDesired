@@ -106,5 +106,4 @@ Each inventory count deleting page     gp inventory/count/<id>/remove         Do
 Create new inventory count             gp inventory/count/create-new          Done
 
 TODO
-Check item create & update to make sure it's properly applying model defaults when sku (e.g.) is left empty
 Consider whether skus may be different lengths, in which case we'll want to order by numerical value rather than by string
