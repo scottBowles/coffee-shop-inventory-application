@@ -154,13 +154,38 @@ exports.item_create_get = function itemCreateGet(req, res, next) {
 
 exports.item_create_post = [
   upload.single("imageUpload"),
-  body("name", "Item name required").trim().isLength({ min: 1 }).escape(),
-  body("description").escape(),
-  body("sku").escape(),
-  body("price").escape(),
-  body("quantityInStock").escape(),
-  body("category").escape(),
-  body("itemLastUpdated").escape(),
+  body("name")
+    .trim()
+    .isLength({ min: 1 })
+    .withMessage("Item name required")
+    .isLength({ max: 40 })
+    .withMessage("Item name max of 40 characters exceeded")
+    .escape(),
+  body("description", "Description max of 256 characters exceeded")
+    .optional({ checkFalsy: true })
+    .isLength({ max: 256 })
+    .escape(),
+  body("sku", "SKU must be 24 characters or less")
+    .optional({ checkFalsy: true })
+    .isLength({ max: 24 })
+    .escape(),
+  body("price", "We could never charge that!")
+    .optional({ checkFalsy: true })
+    .isFloat({ min: 0, max: 9999999 })
+    .escape(),
+  body(
+    "quantityInStock",
+    "Quantity must be an integer between 0 and 9999999 (but it's inclusive at least!)"
+  )
+    .isInt({ min: 0, max: 9999999 })
+    .toInt(),
+  body("category").optional({ checkFalsy: true }).escape(),
+  body(
+    "itemLastUpdated",
+    "ItemLastUpdated must be a valid date. (If you are seeing this as an end user, please report this error.)"
+  )
+    .toDate()
+    .escape(),
   body("password")
     .custom((value) => {
       if (value !== process.env.ADMIN_PASSWORD) {
@@ -316,20 +341,23 @@ exports.item_update_post = [
     .optional({ checkFalsy: true })
     .isLength({ max: 24 })
     .escape(),
-  body("price", "We could never charge that much!")
+  body("price", "We could never charge that!")
     .optional({ checkFalsy: true })
-    .isFloat({ min: 0, max: 9999999 }),
+    .isFloat({ min: 0, max: 9999999 })
+    .escape(),
   body(
     "quantityInStock",
     "Quantity must be an integer between 0 and 9999999 (but it's inclusive at least!)"
   )
     .isInt({ min: 0, max: 9999999 })
     .toInt(),
-  body("category").optional({ checkFalsy: true }),
+  body("category").optional({ checkFalsy: true }).escape(),
   body(
     "itemLastUpdated",
     "ItemLastUpdated must be a valid date. (If you are seeing this as an end user, please report this error.)"
-  ).toDate(),
+  )
+    .toDate()
+    .escape(),
   body("password")
     .custom((value) => {
       if (value !== process.env.ADMIN_PASSWORD) {
