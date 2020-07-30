@@ -6,9 +6,9 @@
   },
   "private": true,
   "scripts": {
+    "start": "node ./bin/www",
     "build": "webpack",
     "watch": "npx webpack --watch",
-    "start": "node ./bin/www",
     "devstart": "nodemon ./bin/www",
     "serverstart": "DEBUG=coffee-shop-inventory-application:* npm run devstart"
   },
