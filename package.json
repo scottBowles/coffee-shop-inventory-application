@@ -1,6 +1,9 @@
 {
   "name": "coffee-shop-inventory-application",
   "version": "0.0.0",
+  "engines": {
+    "node": "13.7.0"
+  },
   "private": true,
   "scripts": {
     "build": "webpack",
