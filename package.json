@@ -6,7 +6,7 @@
   },
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
+    "start": "node app.js",
     "webpack": "webpack",
     "watch": "npx webpack --watch",
     "devstart": "nodemon ./bin/www",
