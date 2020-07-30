@@ -25,7 +25,10 @@ mongoose.connect(mongoDB, {
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 
-app.set("port", process.env.PORT || 3000);
+app.use(helmet());
+// Compress all routes
+app.use(compression());
+
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
@@ -34,22 +37,15 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(helmet());
-
-// Compress all routes
-app.use(compression());
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use(
   "/scripts",
   express.static(path.join(__dirname, "/node_modules/mdbootstrap/"))
 );
-app.use(express.static(path.join(__dirname, "public")));
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/inventory", inventoryRouter);
-
-// // start the server listening for requests
-// app.listen(process.env.PORT || 3000, () => console.log("Server is running..."));
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
@@ -67,10 +63,4 @@ app.use((err, req, res, next) => {
   res.render("error");
 });
 
-app.set("port", process.env.PORT || 3000);
-
-app.listen(app.get("port"), () => {
-  console.log(`Express server listening on port ${app.get("port")}`);
-});
-
-// module.exports = app;
+module.exports = app;
