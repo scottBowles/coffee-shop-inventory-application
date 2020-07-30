@@ -133,9 +133,16 @@ exports.count_create_get = async function countCreateGet(req, res, next) {
       ? items
       : items.filter((item) => item.category && item.category.name === filter);
 
-  filteredItems.sort((item1, item2) =>
-    item1.name.toLowerCase() > item2.name.toLowerCase() ? 1 : -1
-  );
+  filteredItems.sort((item1, item2) => {
+    const cat1 = item1.category ? item1.category.name : "(None)";
+    const cat2 = item2.category ? item2.category.name : "(None)";
+    if (cat1 !== cat2) {
+      if (cat1 === "(None)") return 1;
+      if (cat2 === "(None)") return -1;
+      return cat1.toLowerCase() > cat2.toLowerCase() ? 1 : -1;
+    }
+    return item1.name.toLowerCase() > item2.name.toLowerCase() ? 1 : -1;
+  });
 
   res.render("countForm", {
     title: "Create New Count",
@@ -352,9 +359,20 @@ exports.count_update_get = [
       itemsModifiedByCount.push(newItem);
     });
 
-    itemsModifiedByCount.sort((item1, item2) =>
-      item1.name.toLowerCase() > item2.name.toLowerCase() ? 1 : -1
-    );
+    itemsModifiedByCount.sort((item1, item2) => {
+      const cat1 = item1.category ? item1.category.name : "(None)";
+      const cat2 = item2.category ? item2.category.name : "(None)";
+      if (cat1 !== cat2) {
+        if (cat1 === "(None)") return 1;
+        if (cat2 === "(None)") return -1;
+        return cat1.toLowerCase() > cat2.toLowerCase() ? 1 : -1;
+      }
+      return item1.name.toLowerCase() > item2.name.toLowerCase() ? 1 : -1;
+    });
+
+    itemsModifiedByCount.forEach((item) => {
+      console.dir(!!item.category);
+    });
 
     return res.render("countForm", {
       title: "Update Count",

@@ -38,6 +38,9 @@ block content
                     tr
                       th(scope="col") Quantity
                       th(scope="col") Item
+                      th(scope="col") SKU
+                      if filter === "Full" || filter === "Ad Hoc"
+                        th(scope="col") Category
                   tbody
                     for item, index in items
                       tr
@@ -45,6 +48,9 @@ block content
                           input(name=`items[${index}][quantity]` id=`item${index}quantity` type="number" value=item.quantityInStock)
                           input(type="hidden" name=`items[${index}][id]` value=item._id)
                         td #[a(href=item.url)= item.name]
+                        td #[a(href=item.url)= item.sku]
+                        if filter === "Full" || filter === "Ad Hoc"
+                          td #[a(href=item.url)= item.category ? item.category.name : (None)]
                           
                 input(type="hidden" name="filter" id="filter" value=filter)
                 
@@ -57,8 +63,8 @@ block content
                       button.btn.btn-primary.btn-outline-brown(type="submit" name="submitButton" value="submit") #[i.fas.fa-check.mr-2] Submit Count
                       button.btn.btn-primary.btn-outline-brown.darken-3(type="submit" name="submitButton" value="save") #[i.fas.fa-save.mr-2] Save
 
-        div.mb-5.mt-4
-          a(href="#top") Return to Top
+          div.mb-5.mt-4
+            a(href="#top") Return to Top
 
   script(src="/javascripts/form.js")
   
