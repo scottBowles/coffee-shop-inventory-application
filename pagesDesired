@@ -107,3 +107,4 @@ Create new inventory count             gp inventory/count/create-new          Do
 
 TODO
 Consider whether skus may be different lengths, in which case we'll want to order by numerical value rather than by string
+Align controller validation with model requirements

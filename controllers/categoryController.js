@@ -62,10 +62,16 @@ exports.category_create_get = function categoryCreateGet(req, res, next) {
 
 exports.category_create_post = [
   upload.single("imageUpload"),
-  body("name", "Category name required").trim().isLength({ min: 1 }).escape(),
-  body("description", "Category description required")
+  body("name", "Category name must between 1 and 100 characters long")
     .trim()
-    .isLength({ min: 1 })
+    .isLength({ min: 1, max: 100 })
+    .escape(),
+  body(
+    "description",
+    "Category description must be between 1 and 256 characters long"
+  )
+    .trim()
+    .isLength({ min: 1, max: 256 })
     .escape(),
   body("password")
     .custom((value) => {
@@ -143,10 +149,16 @@ exports.category_update_get = [
 
 exports.category_update_post = [
   upload.single("imageUpload"),
-  body("name", "Category name required").trim().isLength({ min: 1 }).escape(),
-  body("description", "Category description required")
+  body("name", "Category name must between 1 and 100 characters long")
     .trim()
-    .isLength({ min: 1 })
+    .isLength({ min: 1, max: 100 })
+    .escape(),
+  body(
+    "description",
+    "Category description must between 1 and 256 characters long"
+  )
+    .trim()
+    .isLength({ min: 1, max: 256 })
     .escape(),
   param("id").isMongoId().withMessage("Invalid category id").escape(),
   body("password")

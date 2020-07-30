@@ -1,27 +1,33 @@
 extends layout
 
 block content
-  h1= title
+  main
+    .container
+      h1#title.mt-3.mb-4= title
+
+      if errors
+        .container  
+          ul
+            for error in errors
+              li
+                .row.mt-3
+                  .col-12.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
+                    button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
 
   
-  form(method="POST" action="" enctype="multipart/form-data")
-    div.form-group
-      label(for="name") Name: 
-      input#name.form-control(type="text", placeholder="Name", name="name", value=(category === undefined ? "" : category.name))
-    div.form-group
-      label(for="description") Description: 
-      input#description.form-control(type="text", placeholder="Description", name="description", value=(category === undefined ? "" : category.description))
-    div.form-group
-      label(for="imageUpload") Upload Image
-      input#imageUpload.form-control-file(type="file" name="imageUpload")
-    div#password-group.form-group.hidden
-      label(for="password") Enter Admin Password to Make Change
-      input#password.form-control(type="password" name="password")
-    button.btn.btn-primary(type="submit") Submit
-
-  if errors
-    ul
-      for error in errors
-        li!= error.msg
+      form.form-top(method="POST" action="" enctype="multipart/form-data")
+        div.form-group
+          label(for="name") Name: 
+          input#name.form-control(type="text", placeholder="Name", name="name", value=(category === undefined ? "" : category.name))
+        div.form-group
+          label(for="description") Description: 
+          input#description.form-control(type="text", placeholder="Description", name="description", value=(category === undefined ? "" : category.description))
+        div.form-group
+          label(for="imageUpload") Upload Image
+          input#imageUpload.form-control-file(type="file" name="imageUpload")
+        div.mb-3.password-group-top.form-group.form-group-top.hidden#password-group
+          label(for="password") Enter Admin Password to Make Change
+          input#password.form-control(type="password" name="password")
+        button.mb-5.btn.btn-primary.btn-outline-brown(type="submit") #[i.fas.fa-check.mr-2] Submit
 
   script(src="/javascripts/form.js")
