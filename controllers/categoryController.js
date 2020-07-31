@@ -4,7 +4,7 @@ const fs = require("fs");
 const Category = require("../models/category");
 
 const upload = multer({
-  dest: "../public/images/",
+  dest: "public/images/",
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.match(/jpg$|png$|jpeg/)) {
       cb(new Error("Filetype must be .png, .jpg or .jpeg"), false);
