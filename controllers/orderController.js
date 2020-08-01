@@ -38,7 +38,7 @@ exports.index = function inventoryHome(req, res, next) {
         return next(err);
       }
       res.render("index", {
-        title: "Caf\xE9 Corcovado Inventory",
+        title: "Corcovado Caf\xE9 Inventory",
         orders: results.orders,
         counts: results.counts,
         items: results.items,
