@@ -108,3 +108,4 @@ Create new inventory count             gp inventory/count/create-new          Do
 TODO
 Consider whether skus may be different lengths, in which case we'll want to order by numerical value rather than by string
 Make sure images aren't being sent on pages where they aren't displayed
+Make it so hitting enter after entering a password does the action that was clicked to prompt for the password
