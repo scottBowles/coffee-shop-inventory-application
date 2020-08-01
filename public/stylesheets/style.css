@@ -1,6 +1,10 @@
 html,
 body,
-input {
+input,
+.form-control,
+.form-control input.form-control,
+input.form-control:focus,
+.custom-select {
   background-color: #f7f7f7;
 }
 
@@ -12,12 +16,6 @@ input {
 .nav-tabs .nav-link.active {
   background-color: #f7f7f7;
   border-bottom-color: #f7f7f7;
-}
-
-input.form-control,
-input.form-control:focus,
-.custom-select {
-  background-color: #f7f7f7;
 }
 
 .navbar-toggler-icon,
