@@ -94,17 +94,13 @@ exports.item_home = function itemHome(req, res, next) {
       }
       // sort items by sku, then by category, then by name
       results.items.sort((a, b) => {
-        if (a.sku === b.sku) {
-          const aCatName = a.category ? a.category.name : "(None)";
-          const bCatName = b.category ? b.category.name : "(None)";
-          if (aCatName === bCatName) {
-            if (a.name > b.name) return 1;
-            return -1;
-          }
-          if (aCatName > bCatName) return 1;
+        const aCatName = a.category ? a.category.name : "(None)";
+        const bCatName = b.category ? b.category.name : "(None)";
+        if (aCatName === bCatName) {
+          if (a.name.toLowerCase() > b.name.toLowerCase()) return 1;
           return -1;
         }
-        if (a.sku > b.sku) return 1;
+        if (aCatName > bCatName) return 1;
         return -1;
       });
       res.render("itemsHome", {
