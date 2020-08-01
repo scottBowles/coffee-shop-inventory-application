@@ -17,18 +17,18 @@ block content
       if items
 
         if !filter
-          .btn-group(role="group" aria-label="Button group with nested dropdown")
-            div
-              a.btn.btn-outline-brown(role="button" value="Full" href="/inventory/count/create-new?filter=Full") Full
-            div
-              .btn-group(role="group")
-                button.btn.btn-outline-brown.dropdown-toggle#btnGroupDrop1(type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") By Category
-                div.dropdown-menu(aria-labelledby="dropdownMenu2")
-                  for category in categories
-                    a.dropdown-item(role="button" href=`/inventory/count/create-new?filter=${category.name}`) #{category.name}
-            div
-              a.btn.btn-outline-brown(role="button" value="Ad Hoc" href="/inventory/count/create-new?filter=AdHoc") Ad Hoc
-        
+            .btn-group(role="group" aria-label="Button group with nested dropdown").d-flex.flex-wrap.justify-content-center.justify-content-sm-start
+              div
+                a.btn.btn-outline-brown(role="button" value="Full" href="/inventory/count/create-new?filter=Full") Full
+              div.order-sm-3
+                a.btn.btn-outline-brown(role="button" value="Ad Hoc" href="/inventory/count/create-new?filter=AdHoc") Ad Hoc
+              div
+                .btn-group(role="group")
+                  button.btn.btn-outline-brown.dropdown-toggle#btnGroupDrop1(type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") By Category
+                  div.dropdown-menu(aria-labelledby="dropdownMenu2")
+                    for category in categories
+                      a.dropdown-item(role="button" href=`/inventory/count/create-new?filter=${category.name}`) #{category.name}
+          
         else
           .container#container.mt-4
             .row.table-responsive.text-nowrap
