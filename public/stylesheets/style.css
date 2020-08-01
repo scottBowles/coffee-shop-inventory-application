@@ -1,3 +1,30 @@
+html,
+body,
+input {
+  background-color: #f7f7f7;
+}
+
+input {
+  border: 1px rgb(180, 180, 180) solid;
+  border-radius: 3px;
+}
+
+.nav-tabs .nav-link.active {
+  background-color: #f7f7f7;
+  border-bottom-color: #f7f7f7;
+}
+
+input.form-control,
+input.form-control:focus,
+.custom-select {
+  background-color: #f7f7f7;
+}
+
+.navbar-toggler-icon,
+.navbar-dark .navbar-brand {
+  color: #f7f7f7;
+}
+
 main {
   margin-top: 86px;
 }
