@@ -20,5 +20,11 @@ module.exports = {
     sourceType: "module",
   },
   plugins: ["vue"],
-  rules: {},
+  rules: {
+    "no-underscore-dangle": "off",
+    "consistent-return": "off",
+    "no-param-reassign": "off",
+    "no-unused-vars": "off",
+    "no-nested-ternary": "off"
+  },
 };
