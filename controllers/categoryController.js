@@ -5,7 +5,7 @@ const { uploadImage } = require("./utils")
 const validate = require("./validate")
 
 exports.category_home = function categoryHome(req, res, next) {
-  Category.find()
+  Category.find({}, "name description")
     .populate("numItems")
     .sort({ name: "ascending" })
     .exec((err, categories) => {
@@ -25,7 +25,7 @@ exports.category_detail = [
       return res.render("categoryDetail", { title: "Category Detail", errors });
     }
     Category.findById(req.params.id)
-      .populate("items")
+      .populate({ path: "items", match: { active: true }, select: "name quantityInStock sku price" })
       .exec((err, category) => {
         if (err) {
           return next(err);
@@ -35,11 +35,9 @@ exports.category_detail = [
           notFoundError.status = 404;
           return next(notFoundError);
         }
-        const filteredItems = category.items.filter((item) => !!item.active);
         return res.render("categoryDetail", {
           title: category.name,
           category,
-          items: filteredItems,
         });
       });
   },
@@ -177,6 +175,7 @@ exports.category_update_post = [
 
 exports.category_delete_get = [
   validate.id({ message: "Invalid category id" }),
+
   async function categoryDeleteGet(req, res, next) {
     try {
       const { errors } = validationResult(req);
@@ -188,7 +187,7 @@ exports.category_delete_get = [
       }
       // Get category
       const category = await Category.findById(req.params.id)
-        .populate("items")
+        .populate("items", "name quantityInStock sku price")
         .exec();
 
       // If no category is found, redirect
@@ -218,7 +217,7 @@ exports.category_delete_post = [
     if (errors.length > 0) {
       // Get category
       const category = await Category.findById(req.params.id)
-        .populate("items")
+        .populate("items", "name quantityInStock sku price")
         .exec();
 
       // If no category is found, redirect
@@ -235,7 +234,7 @@ exports.category_delete_post = [
 
     // get category, populating items
     const category = await Category.findByIdAndRemove(req.params.id)
-      .populate("items")
+      .populate("items", "category")
       .exec();
 
     // get each item in category and change item's category to undefined

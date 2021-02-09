@@ -3,7 +3,7 @@ const async = require("async");
 const { validationResult } = require("express-validator");
 const InventoryCount = require("../models/inventoryCount");
 const Item = require("../models/item");
-const { Category } = require("../models/category");
+const Category = require("../models/category");
 const validate = require("./validate")
 
 exports.count_home = function countHome(req, res, next) {
@@ -62,7 +62,7 @@ exports.count_detail_get = [
     InventoryCount.findById(req.params.id)
       .populate({
         path: "countedQuantities.item",
-        populate: "category",
+        populate: { path: "category", select: "name" },
       })
       .exec((err, count) => {
         if (err) {
@@ -86,13 +86,14 @@ exports.count_detail_get = [
 
 exports.count_detail_post = [
   validate.id({ message: "Invalid count id" }),
+
   async function countDetailPost(req, res, next) {
     const { errors } = validationResult(req);
     if (errors.length > 0) {
       return res.render("countDetail", { title: "Count Detail", errors });
     }
     const count = await InventoryCount.findById(req.params.id)
-      .populate({ path: "countedQuantities.item", populate: "category" })
+      .populate({ path: "countedQuantities.item", populate: { path: "category", select: "name" } })
       .exec();
     if (count === null) {
       const notFoundError = new Error("Inventory Count not found");
@@ -119,7 +120,7 @@ exports.count_create_get = async function countCreateGet(req, res, next) {
     { active: true },
     "name description category sku quantityInStock"
   )
-    .populate("category")
+    .populate("category", "name")
     .exec();
 
   const fetchCategories = Category.find({}, "name").exec();
@@ -194,7 +195,7 @@ exports.count_create_post = [
 
     // errors? rerender with items modified by count
     if (errors.length > 0) {
-      const items = await Item.find({}).populate("category").exec();
+      const items = await Item.find({}).populate("category", "name").exec();
 
       const filteredItems =
         filter === "Full" || filter === "AdHoc"
@@ -236,7 +237,7 @@ exports.count_create_post = [
         await Promise.all([
           count.save(),
           ...count.countedQuantities.map(async (qty) => {
-            const item = await Item.findById(qty.item).exec();
+            const item = await Item.findById(qty.item, "quantityInStock").exec();
             if (item.quantityInStock !== qty.quantity) {
               item.quantityInStock = qty.quantity;
               item.qtyLastUpdated = Date.now();
@@ -273,7 +274,8 @@ exports.count_update_get = [
     const count = await InventoryCount.findById(req.params.id)
       .populate({
         path: "countedQuantities.item",
-        populate: "category",
+        select: "name quantityInStock sku category",
+        populate: { path: "category", select: "name" },
       })
       .exec();
 
@@ -292,7 +294,6 @@ exports.count_update_get = [
 
     // Only matters here whether "By Category" or not, but this gives consistency to the front end & for POST
     const filter =
-      // eslint-disable-next-line no-nested-ternary
       count.type === "Full"
         ? "Full"
         : count.type === "Ad Hoc"
@@ -308,8 +309,8 @@ exports.count_update_get = [
       });
     }
 
-    const items = await Item.find({})
-      .populate("category")
+    const items = await Item.find({}, "name sku category quantityInStock")
+      .populate("category", "name")
       .exec()
       .catch((err) => next(err));
 
@@ -406,7 +407,8 @@ exports.count_update_post = [
     const count = await InventoryCount.findById(req.params.id)
       .populate({
         path: "countedQuantities.item",
-        populate: "category",
+        select: "name sku quantityInStock category",
+        populate: { path: "category", select: "name" },
       })
       .exec();
 
@@ -445,7 +447,7 @@ exports.count_update_post = [
 
     // errors? rerender with items modified by count
     if (errors.length > 0) {
-      const items = await Item.find({}).populate("category").exec();
+      const items = await Item.find({}, "name sku category quantityInStock").populate("category", "name").exec();
 
       // console.log({ items });
 
@@ -485,7 +487,7 @@ exports.count_update_post = [
       // save count, update each item whose quantity was changed
       return Promise.all([
         count.countedQuantities.map(async (qty) => {
-          const item = await Item.findById(qty.item).exec();
+          const item = await Item.findById(qty.item, "quantityInStock").exec();
           if (item.quantityInStock !== qty.quantity) {
             item.quantityInStock = qty.quantity;
             item.qtyLastUpdated = Date.now();
@@ -526,7 +528,8 @@ exports.count_delete_get = [
       const count = await InventoryCount.findById(id)
         .populate({
           path: "countedQuantities.item",
-          populate: "category",
+          select: "name sku category quantityInStock",
+          populate: { path: "category", select: "name" },
         })
         .exec();
 
@@ -566,7 +569,8 @@ exports.count_delete_post = [
         const count = await InventoryCount.findById(id)
           .populate({
             path: "countedQuantities.item",
-            populate: "category",
+            select: "name sku category quantityInStock",
+            populate: { path: "category", select: "name" },
           })
           .exec();
 

@@ -12,9 +12,11 @@ const validate = require("./validate")
 exports.item_home = function itemHome(req, res, next) {
   async.auto(
     {
+      // Query category names
       categories(callback) {
         Category.find({}, "name").sort({ name: "ascending" }).exec(callback);
       },
+      // If filter in category names or "Archived", pass filter. Otherwise pass "All" as the default filter.
       queryFilter: [
         "categories",
         (results, callback) => {
@@ -29,27 +31,31 @@ exports.item_home = function itemHome(req, res, next) {
           callback(null, sanitizedFilter);
         },
       ],
+      // Find all items appropriate to filter
       items: [
         "queryFilter",
         "categories",
         (results, callback) => {
           const { categories, queryFilter } = results;
           if (queryFilter === "Archived") {
-            Item.find({ active: false }).populate("category").exec(callback);
+            Item.find({ active: false }, 'name category sku quantityInStock active')
+              .populate("category", "name")
+              .exec(callback);
           } else if (queryFilter === "All") {
-            Item.find({ active: true })
+            Item.find({ active: true }, 'name category sku quantityInStock active')
               .sort({ sku: "ascending", name: "ascending" })
-              .populate("category")
+              .populate("category", "name")
               .exec(callback);
           } else {
             const category = categories.find((cat) => cat.name === queryFilter);
-            Item.find({ category: category._id, active: true })
+            Item.find({ category: category._id, active: true }, 'name category sku quantityInStock active')
               .sort({ sku: "ascending", name: "ascending" })
-              .populate("category")
+              .populate("category", "name")
               .exec(callback);
           }
         },
       ],
+      // Find quantities on order for each item to be displayed
       orderedQuantities: [
         "items",
         (results, callback) => {
@@ -93,6 +99,7 @@ exports.item_home = function itemHome(req, res, next) {
         if (aCatName > bCatName) return 1;
         return -1;
       });
+      // Render item home page with the gathered results
       res.render("itemsHome", {
         title: "Items",
         orderedQty: results.orderedQuantities,
@@ -114,7 +121,7 @@ exports.item_detail = [
       });
     }
     Item.findById(req.params.id)
-      .populate("category")
+      .populate("category", "name")
       .exec((err, item) => {
         if (err) {
           return next(err);
@@ -130,7 +137,7 @@ exports.item_detail = [
 ];
 
 exports.item_create_get = function itemCreateGet(req, res, next) {
-  Category.find({}).exec((err, categories) => {
+  Category.find({}, "name").exec((err, categories) => {
     if (err) {
       return next(err);
     }
@@ -165,7 +172,7 @@ exports.item_create_post = [
     // If there are errors, re-render the form with the errors
     if (errors.length > 0) {
       // Get categories for the form
-      Category.find({}).exec((err, categories) => {
+      Category.find({}, "name").exec((err, categories) => {
         if (err) return next(err);
         // Render
         res.render("itemForm", {
@@ -194,7 +201,7 @@ exports.item_create_post = [
 
           const foundItem = foundItemArray[0];
           if (foundItem) {
-            Category.find({}).exec((categoryFindErr, categories) => {
+            Category.find({}, "name").exec((categoryFindErr, categories) => {
               if (categoryFindErr) {
                 return next(categoryFindErr);
               }
@@ -253,7 +260,7 @@ exports.item_update_get = [
     }
 
     const fetchItem = Item.findById(req.params.id).exec();
-    const fetchCategories = Category.find({}).exec();
+    const fetchCategories = Category.find({}, "name").exec();
 
     Promise.all([fetchItem, fetchCategories])
       .catch((error) => next(error))
@@ -329,7 +336,7 @@ exports.item_update_post = [
       if (item.itemLastUpdated === null) item.itemLastUpdated = Date.now();
 
       if (errors.length > 0) {
-        const categories = await Category.find({}).exec();
+        const categories = await Category.find({}, "name").exec();
         return res.render("itemForm", {
           title: `Update Item: ${req.body.name}`,
           item,
@@ -353,7 +360,7 @@ exports.item_update_post = [
 
       const foundItem = foundItemArray[0];
       if (foundItem) {
-        const categories = await Category.find({})
+        const categories = await Category.find({}, "name")
           .exec()
           .catch((err) => next(err));
         res.render("itemForm", {
@@ -391,7 +398,7 @@ exports.item_archive_get = [
       }
 
       const item = await Item.findById(req.params.id)
-        .populate("category")
+        .populate("category", "name")
         .exec();
       if (item === null) {
         const notFoundError = new Error("Item not found");
