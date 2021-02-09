@@ -23,7 +23,7 @@ block content
           .row.table-responsive.text-nowrap
 
             table.table.table-hover.datatable(cellspacing="0" width="100%")
-              caption #{items.length} Items
+              caption #{category.items.length} Items
               thead
                 tr
                   th(scope="col") Name
@@ -31,10 +31,10 @@ block content
                   th(scope="col") SKU
                   th(scope="col") Price
               tbody
-                if items.length === 0
+                if category.items.length === 0
                   tr
                     td No items to display
-                each item in items
+                each item in category.items
                   if item
                     tr
                       td #[a(href=item.url)= item.name]
@@ -48,7 +48,7 @@ block content
             a.btn.btn-primary.btn-outline-brown(href=category.url + "/remove") #[i.fas.fa-trash.mr-2] Delete Category
     
       
-      if items.length > 9
+      if category.items.length > 9
             div.mb-5
               a(href="#top") Return to Top
 
