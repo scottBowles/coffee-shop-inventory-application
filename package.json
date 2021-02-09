@@ -10,7 +10,7 @@
     "webpack": "webpack",
     "watch": "npx webpack --watch",
     "devstart": "nodemon ./bin/www",
-    "serverstart": "DEBUG=coffee-shop-inventory-application:* npm run devstart"
+    "serverstart": "npm run devstart DEBUG=coffee-shop-inventory-application:*"
   },
   "dependencies": {
     "async": "^3.2.0",
