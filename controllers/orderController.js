@@ -1,11 +1,13 @@
 const mongoose = require("mongoose");
 const async = require("async");
 const moment = require("moment");
-const { body, param, validationResult } = require("express-validator");
+const { validationResult } = require("express-validator");
 const Order = require("../models/order");
 const InventoryCount = require("../models/inventoryCount");
 const Item = require("../models/item");
 const Receipt = require("../models/receipt");
+const { getQuantitiesOnOrder } = require("./utils")
+const validate = require("./validate")
 
 exports.index = function inventoryHome(req, res, next) {
   async.parallel(
@@ -48,7 +50,7 @@ exports.index = function inventoryHome(req, res, next) {
 };
 
 exports.order_home = [
-  param("filter").escape(),
+  validate.escapeParam("filter"),
 
   function orderHome(req, res, next) {
     async.waterfall(
@@ -100,7 +102,7 @@ exports.order_home = [
 ];
 
 exports.order_detail_get = [
-  param("id").isMongoId().withMessage("Order not found").escape(),
+  validate.id({ message: "Order not found" }),
 
   function orderDetail(req, res, next) {
     const { errors } = validationResult(req);
@@ -137,7 +139,7 @@ exports.order_detail_get = [
 ];
 
 exports.order_detail_post = [
-  param("id").isMongoId().withMessage("Order not found").escape(),
+  validate.id({ message: "Order not found" }),
 
   async function orderDetailPost(req, res, next) {
     const { errors } = validationResult(req);
@@ -225,17 +227,9 @@ exports.order_create_post = [
     next();
   },
 
-  body("orderedItems.*.id").escape(),
-  body("orderedItems.*.quantity").isInt({ lt: 10000000 }).escape(),
-  body("submitType").isIn(["placeOrder", "save"]).escape(),
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
+  validate.orderedItems(),
+  validate.submitType("submitType", ["placeOrder", "save"]),
+  validate.password(),
 
   async function orderCreatePost(req, res, next) {
     const { errors } = validationResult(req);
@@ -311,7 +305,7 @@ exports.order_create_post = [
 ];
 
 exports.order_update_get = [
-  param("id").isMongoId().withMessage("Order not found").escape(),
+  validate.id({ message: "Order not found" }),
 
   async function orderUpdateGet(req, res, next) {
     const { errors } = validationResult(req);
@@ -414,18 +408,10 @@ exports.order_update_post = [
   },
 
   // validate & sanitize
-  param("id").isMongoId().withMessage("Order not found").escape(),
-  body("orderedItems.*.id").escape(),
-  body("orderedItems.*.quantity").isInt({ lt: 10000000 }).escape(),
-  body("submitType").isIn(["placeOrder", "save"]).escape(),
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
+  validate.id({ message: "Order not found" }),
+  validate.orderedItems(),
+  validate.submitType("submitType", ["placeOrder", "save"]),
+  validate.password(),
 
   async function orderUpdatePost(req, res, next) {
     // grab errors & submitType
@@ -480,28 +466,9 @@ exports.order_update_post = [
       // fetch items
       const fetchItems = Item.find({}, "name sku quantityInStock").exec();
 
-      // create a hash of items -- { id: totalQuantityOnOrder }
-      async function getItemsOnOrder() {
-        const orders = await Order.find(
-          { status: "Ordered" },
-          "orderedItems"
-        ).exec();
-
-        const itemQtyHash = {};
-        orders.forEach((order) => {
-          order.orderedItems.forEach((orderedItem) => {
-            const id = orderedItem.item.toString();
-            if (itemQtyHash[id]) itemQtyHash[id] += orderedItem.quantity;
-            else itemQtyHash[id] = orderedItem.quantity;
-          });
-        });
-
-        return itemQtyHash;
-      }
-
       const [items, onOrder] = await Promise.all([
         fetchItems,
-        getItemsOnOrder(),
+        getQuantitiesOnOrder(),
       ]).catch((err) => next(err));
 
       items.sort((a, b) => {
@@ -544,7 +511,7 @@ exports.order_update_post = [
 ];
 
 exports.order_delete_get = [
-  param("id").isMongoId().withMessage("Order not found").escape(),
+  validate.id({ message: "Order not found" }),
   async function orderDeleteGet(req, res, next) {
     try {
       const { errors } = validationResult(req);
@@ -588,15 +555,8 @@ exports.order_delete_get = [
 ];
 
 exports.order_delete_post = [
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
-  param("id").isMongoId().withMessage("Order not found").escape(),
+  validate.password(),
+  validate.id({ message: "Order not found" }),
 
   async function orderDeletePost(req, res, next) {
     try {

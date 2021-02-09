@@ -1,7 +1,8 @@
-const { body, param, validationResult } = require("express-validator");
+const { validationResult } = require("express-validator");
 const fs = require("fs");
 const Category = require("../models/category");
-const { upload } = require("./utils")
+const { uploadImage } = require("./utils")
+const validate = require("./validate")
 
 exports.category_home = function categoryHome(req, res, next) {
   Category.find()
@@ -16,7 +17,7 @@ exports.category_home = function categoryHome(req, res, next) {
 };
 
 exports.category_detail = [
-  param("id").isMongoId().withMessage("Invalid category id").escape(),
+  validate.id({ message: "Invalid category id" }),
 
   function categoryDetail(req, res, next) {
     const { errors } = validationResult(req);
@@ -49,26 +50,9 @@ exports.category_create_get = function categoryCreateGet(req, res, next) {
 };
 
 exports.category_create_post = [
-  upload.single("imageUpload"),
-  body("name", "Category name must between 1 and 100 characters long")
-    .trim()
-    .isLength({ min: 1, max: 100 })
-    .escape(),
-  body(
-    "description",
-    "Category description must be between 1 and 256 characters long"
-  )
-    .trim()
-    .isLength({ min: 1, max: 256 })
-    .escape(),
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
+  uploadImage,
+  validate.category(),
+  validate.password(),
 
   (req, res, next) => {
     const { errors } = validationResult(req);
@@ -111,7 +95,7 @@ exports.category_create_post = [
 ];
 
 exports.category_update_get = [
-  param("id").isMongoId().withMessage("Invalid category id").escape(),
+  validate.id({ message: "Invalid category id" }),
 
   function categoryUpdateGet(req, res, next) {
     const { errors } = validationResult(req);
@@ -136,27 +120,10 @@ exports.category_update_get = [
 ];
 
 exports.category_update_post = [
-  upload.single("imageUpload"),
-  body("name", "Category name must between 1 and 100 characters long")
-    .trim()
-    .isLength({ min: 1, max: 100 })
-    .escape(),
-  body(
-    "description",
-    "Category description must between 1 and 256 characters long"
-  )
-    .trim()
-    .isLength({ min: 1, max: 256 })
-    .escape(),
-  param("id").isMongoId().withMessage("Invalid category id").escape(),
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
+  uploadImage,
+  validate.category(),
+  validate.id({ message: "Invalid Category Id" }),
+  validate.password(),
 
   (req, res, next) => {
     const { errors } = validationResult(req);
@@ -209,7 +176,7 @@ exports.category_update_post = [
 ];
 
 exports.category_delete_get = [
-  param("id").isMongoId().withMessage("Invalid category id").escape(),
+  validate.id({ message: "Invalid category id" }),
   async function categoryDeleteGet(req, res, next) {
     try {
       const { errors } = validationResult(req);
@@ -241,15 +208,8 @@ exports.category_delete_get = [
 ];
 
 exports.category_delete_post = [
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
-  param("id").isMongoId().withMessage("Invalid category id").escape(),
+  validate.password(),
+  validate.id({ message: "Invalid category id" }),
 
   async function categoryDeletePost(req, res, next) {
     // handle validation error

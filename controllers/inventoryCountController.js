@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 const async = require("async");
-const { body, param, validationResult } = require("express-validator");
+const { validationResult } = require("express-validator");
 const InventoryCount = require("../models/inventoryCount");
 const Item = require("../models/item");
-const Category = require("../models/category");
+const { Category } = require("../models/category");
+const validate = require("./validate")
 
 exports.count_home = function countHome(req, res, next) {
   if (!["all", "unsubmitted", "recent", undefined].includes(req.query.filter)) {
@@ -52,7 +53,7 @@ exports.count_home = function countHome(req, res, next) {
 };
 
 exports.count_detail_get = [
-  param("id").isMongoId().withMessage("Invalid count id").escape(),
+  validate.id({ message: "Invalid count id" }),
   function countDetailGet(req, res, next) {
     const { errors } = validationResult(req);
     if (errors.length > 0) {
@@ -84,7 +85,7 @@ exports.count_detail_get = [
 ];
 
 exports.count_detail_post = [
-  param("id").isMongoId().withMessage("Invalid count id").escape(),
+  validate.id({ message: "Invalid count id" }),
   async function countDetailPost(req, res, next) {
     const { errors } = validationResult(req);
     if (errors.length > 0) {
@@ -160,18 +161,9 @@ exports.count_create_post = [
   },
 
   // validate and sanitize input
-  body("items.*.id").escape(),
-  body("items.*.quantity").isInt({ lt: 10000000 }).escape(),
-  body("filter").escape(),
-  body("submitButton").isIn(["submit", "save"]).escape(),
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
+  validate.countInput(),
+  validate.submitType("submitButton", ["submit", "save"]),
+  validate.password(),
 
   async function createPost(req, res, next) {
     // grab errors
@@ -194,8 +186,8 @@ exports.count_create_post = [
         filter === "Full"
           ? "Full"
           : filter === "AdHoc"
-          ? "Ad Hoc"
-          : "By Category",
+            ? "Ad Hoc"
+            : "By Category",
     };
 
     const count = new InventoryCount(newCount);
@@ -270,7 +262,7 @@ exports.count_create_post = [
 ];
 
 exports.count_update_get = [
-  param("id").isMongoId().withMessage("Invalid count id").escape(),
+  validate.id({ message: "Invalid count id" }),
 
   async function countUpdateGet(req, res, next) {
     const { errors } = validationResult(req);
@@ -304,8 +296,8 @@ exports.count_update_get = [
       count.type === "Full"
         ? "Full"
         : count.type === "Ad Hoc"
-        ? "AdHoc"
-        : "By Category";
+          ? "AdHoc"
+          : "By Category";
 
     if (count.submitted) {
       return res.render("countDetail", {
@@ -334,17 +326,17 @@ exports.count_update_get = [
       filter === "Full" || filter === "AdHoc"
         ? items
         : items.filter((item) => {
-            if (!count.countedQuantities[0].item.category) {
-              return !item.category;
-            }
-            if (!item.category) {
-              return false;
-            }
-            return (
-              item.category.name ===
-              count.countedQuantities[0].item.category.name
-            );
-          });
+          if (!count.countedQuantities[0].item.category) {
+            return !item.category;
+          }
+          if (!item.category) {
+            return false;
+          }
+          return (
+            item.category.name ===
+            count.countedQuantities[0].item.category.name
+          );
+        });
 
     const activeOrCountItemsMatchingCountType = itemsMatchingCountType.filter(
       (item) => item.active || countHash[item._id] !== undefined
@@ -391,19 +383,10 @@ exports.count_update_post = [
   },
 
   // validate and sanitize input
-  body("items.*.id").escape(),
-  body("items.*.quantity").isInt({ lt: 10000000 }).escape(),
-  body("filter").escape(),
-  body("submitButton").isIn(["submit", "save"]).escape(),
-  param("id").isMongoId().withMessage("Invalid count id").escape(),
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
+  validate.countInput(),
+  validate.submitType("submitButton", ["submit", "save"]),
+  validate.id({ message: "Invalid count id" }),
+  validate.password(),
 
   async function updatePost(req, res, next) {
     // grab errors & filter
@@ -528,7 +511,7 @@ exports.count_update_post = [
 ];
 
 exports.count_delete_get = [
-  param("id").isMongoId().withMessage("Invalid count id").escape(),
+  validate.id({ message: "Invalid count id" }),
 
   async function countDeleteGet(req, res, next) {
     const { errors } = validationResult(req);
@@ -571,15 +554,8 @@ exports.count_delete_get = [
 ];
 
 exports.count_delete_post = [
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
-  param("id").isMongoId().withMessage("Invalid count id").escape(),
+  validate.password(),
+  validate.id({ message: "Invalid count id" }),
 
   async function countDeletePost(req, res, next) {
     const { errors } = validationResult(req);

@@ -1,11 +1,13 @@
 const async = require("async");
 const fs = require("fs");
-const { body, param, validationResult } = require("express-validator");
+const { validationResult } = require("express-validator");
 const Item = require("../models/item");
 const Category = require("../models/category");
 const Order = require("../models/order");
 const InventoryCount = require("../models/inventoryCount");
-const { upload } = require("./utils")
+const { uploadImage } = require("./utils")
+const validate = require("./validate")
+
 
 exports.item_home = function itemHome(req, res, next) {
   async.auto(
@@ -103,7 +105,7 @@ exports.item_home = function itemHome(req, res, next) {
 };
 
 exports.item_detail = [
-  param("id").isMongoId().withMessage("Item not found").escape(),
+  validate.id({ message: "Item not found" }),
   function itemDetail(req, res, next) {
     const { errors } = validationResult(req);
     if (errors.length > 0) {
@@ -137,47 +139,9 @@ exports.item_create_get = function itemCreateGet(req, res, next) {
 };
 
 exports.item_create_post = [
-  upload.single("imageUpload"),
-  body("name")
-    .trim()
-    .isLength({ min: 1 })
-    .withMessage("Item name required")
-    .isLength({ max: 40 })
-    .withMessage("Item name max of 40 characters exceeded")
-    .escape(),
-  body("description", "Description max of 256 characters exceeded")
-    .optional({ checkFalsy: true })
-    .isLength({ max: 256 })
-    .escape(),
-  body("sku", "SKU must be 24 characters or less")
-    .optional({ checkFalsy: true })
-    .isLength({ max: 24 })
-    .escape(),
-  body("price", "We could never charge that!")
-    .optional({ checkFalsy: true })
-    .isFloat({ min: 0, max: 9999999 })
-    .escape(),
-  body(
-    "quantityInStock",
-    "Quantity must be an integer between 0 and 9999999 (but it's inclusive at least!)"
-  )
-    .isInt({ min: 0, max: 9999999 })
-    .toInt(),
-  body("category").optional({ checkFalsy: true }).escape(),
-  body(
-    "itemLastUpdated",
-    "ItemLastUpdated must be a valid date. (If you are seeing this as an end user, please report this error.)"
-  )
-    .toDate()
-    .escape(),
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
+  uploadImage,
+  validate.item(),
+  validate.password(),
 
   (req, res, next) => {
     const { errors } = validationResult(req);
@@ -280,7 +244,7 @@ exports.item_create_post = [
 // Remember to change qtyLastUpdated if quantityInStock changes
 
 exports.item_update_get = [
-  param("id").isMongoId().withMessage("Item not found").escape(),
+  validate.id({ message: "Item not found" }),
 
   function itemUpdateGet(req, res, next) {
     const { errors } = validationResult(req);
@@ -309,49 +273,10 @@ exports.item_update_get = [
 ];
 
 exports.item_update_post = [
-  upload.single("imageUpload"),
-  body("name")
-    .trim()
-    .isLength({ min: 1 })
-    .withMessage("Item name required")
-    .isLength({ max: 40 })
-    .withMessage("Item name max of 40 characters exceeded")
-    .escape(),
-  body("description", "Description max of 256 characters exceeded")
-    .optional({ checkFalsy: true })
-    .isLength({ max: 256 })
-    .escape(),
-  body("sku", "SKU must be 24 characters or less")
-    .optional({ checkFalsy: true })
-    .isLength({ max: 24 })
-    .escape(),
-  body("price", "We could never charge that!")
-    .optional({ checkFalsy: true })
-    .isFloat({ min: 0, max: 9999999 })
-    .escape(),
-  body(
-    "quantityInStock",
-    "Quantity must be an integer between 0 and 9999999 (but it's inclusive at least!)"
-  )
-    .isInt({ min: 0, max: 9999999 })
-    .toInt(),
-  body("category").optional({ checkFalsy: true }).escape(),
-  body(
-    "itemLastUpdated",
-    "ItemLastUpdated must be a valid date. (If you are seeing this as an end user, please report this error.)"
-  )
-    .toDate()
-    .escape(),
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
-
-  param("id").isMongoId().withMessage("Item not found").escape(),
+  uploadImage,
+  validate.item(),
+  validate.password(),
+  validate.id({ message: "Item not found" }),
 
   async function itemUpdatePost(req, res, next) {
     try {
@@ -457,7 +382,7 @@ exports.item_update_post = [
 ];
 
 exports.item_archive_get = [
-  param("id").isMongoId().withMessage("Invalid item id").escape(),
+  validate.id({ message: "Invalid item id" }),
   async function itemDeleteGet(req, res, next) {
     try {
       const { errors } = validationResult(req);
@@ -482,16 +407,9 @@ exports.item_archive_get = [
 ];
 
 exports.item_archive_post = [
-  param("id").isMongoId().withMessage("Invalid item id").escape(),
-  body("submitType").isIn(["archive", "restore"]).escape(),
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
+  validate.id({ message: "Invalid item id" }),
+  validate.submitType("submitType", ["archive", "restore"]),
+  validate.password(),
 
   async function itemDeletePost(req, res, next) {
     try {

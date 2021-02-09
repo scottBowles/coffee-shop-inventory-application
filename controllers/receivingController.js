@@ -1,12 +1,13 @@
 const mongoose = require("mongoose");
 const async = require("async");
-const { body, param, validationResult } = require("express-validator");
+const { validationResult } = require("express-validator");
 const Receipt = require("../models/receipt");
 const Order = require("../models/order");
 const Item = require("../models/item");
+const validate = require("./validate")
 
 exports.receiving_home = function receivingHome(req, res, next) {
-  if (["all", "recent", undefined].includes(req.query.filter) === false) {
+  if (!["all", "recent", undefined].includes(req.query.filter)) {
     res.redirect("/inventory/receiving");
   } else {
     async.parallel(
@@ -51,12 +52,9 @@ exports.receiving_home = function receivingHome(req, res, next) {
 
 exports.receipt_detail = [
   // validate/sanitize
-  param("id")
-    .isMongoId()
-    .withMessage(
-      "Receipt not found. Was something changed in the string after '/receiving/' in the url?"
-    )
-    .escape(),
+  validate.id(
+    { message: "Receipt not found. Was something changed in the string after '/receiving/' in the url?" }
+  ),
 
   function receiptDetail(req, res, next) {
     const { errors } = validationResult(req);
@@ -92,13 +90,7 @@ exports.receipt_detail = [
 
 exports.receipt_create_get = [
   // validate/sanitize
-  param("order")
-    .optional()
-    .isMongoId()
-    .withMessage(
-      "Order not found. Was something added or changed after '/receiving/create-new/' in the url?"
-    )
-    .escape(),
+  validate.id({ message: "Order not found. Was something added or changed after '/receiving/create-new/' in the url?", name: "order" }),
 
   async function receiptCreateGet(req, res, next) {
     // handle validation errors
@@ -111,6 +103,7 @@ exports.receipt_create_get = [
     }
 
     const orderId = req.params.order || undefined;
+    console.log({ orderId })
 
     // get items and, if receiving an order, order
     const fetchItems = Item.find({}, "name sku quantityInStock active")
@@ -178,25 +171,10 @@ exports.receipt_create_get = [
 
 exports.receipt_create_post = [
   // validate/sanitize
-  param("order")
-    .optional()
-    .isMongoId()
-    .withMessage("Invalid order id")
-    .escape(),
-  body("receivedItems.*.id").escape(),
-  body("receivedItems.*.quantity")
-    .optional({ checkFalsy: true })
-    .isInt({ lt: 10000000 })
-    .escape(),
-  body("submitType").isIn(["submit", "save"]).escape(),
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
+  validate.id({ message: "Invalid order id", name: "order" }),
+  validate.receivedItems(),
+  validate.submitType("submitType", ["submit", "save"]),
+  validate.password(),
 
   async function receiptCreatePost(req, res, next) {
     const { errors } = validationResult(req);
@@ -348,12 +326,7 @@ exports.receipt_create_post = [
 ];
 
 exports.receipt_update_get = [
-  param("id")
-    .isMongoId()
-    .withMessage(
-      "Receipt not found. Was something added or changed in the string after '/receiving/' and before '/update' in the url?"
-    )
-    .escape(),
+  validate.id({ message: "Receipt not found. Was something added or changed in the string after '/receiving/' and before '/update' in the url?" }),
 
   async function receiptUpdateGet(req, res, next) {
     const { errors } = validationResult(req);
@@ -432,21 +405,10 @@ exports.receipt_update_get = [
 
 exports.receipt_update_post = [
   // validate/sanitize
-  param("id").isMongoId().withMessage("Invalid receipt").escape(),
-  body("receivedItems.*.id").escape(),
-  body("receivedItems.*.quantity")
-    .optional({ checkFalsy: true })
-    .isInt({ lt: 10000000 })
-    .escape(),
-  body("submitType").isIn(["submit", "save"]).escape(),
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
+  validate.id({ message: "Invalid receipt" }),
+  validate.receivedItems(),
+  validate.submitType("submitType", ["submit", "save"]),
+  validate.password(),
 
   async function receiptUpdatePost(req, res, next) {
     const { errors } = validationResult(req);
@@ -611,7 +573,7 @@ exports.receipt_update_post = [
 ];
 
 exports.receipt_delete_get = [
-  param("id").isMongoId().withMessage("Invalid receipt id").escape(),
+  validate.id({ message: "Invalid receipt id" }),
   async function receiptDeleteGet(req, res, next) {
     const { errors } = validationResult(req);
     if (errors.length > 0) {
@@ -642,16 +604,8 @@ exports.receipt_delete_get = [
 ];
 
 exports.receipt_delete_post = [
-  body("password")
-    .custom((value) => {
-      if (value !== process.env.ADMIN_PASSWORD) {
-        throw new Error("Invalid password");
-      }
-      return true;
-    })
-    .escape(),
-
-  param("id").isMongoId().withMessage("Invalid receipt id").escape(),
+  validate.password(),
+  validate.id({ message: "Invalid receipt id" }),
   async function receiptDeletePost(req, res, next) {
     try {
       // validate param
