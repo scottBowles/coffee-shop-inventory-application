@@ -1,7 +1,7 @@
 const multer = require("multer");
 const Order = require("../models/order");
 
-const upload = multer({
+const uploadImage = multer({
   dest: "public/images/",
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.match(/jpg$|png$|jpeg/)) {
@@ -11,7 +11,7 @@ const upload = multer({
     }
   },
   limits: { fieldSize: 1000000 },
-});
+}).single("imageUpload");
 
 // create a hash of items -- { id: totalQuantityOnOrder }
 async function getQuantitiesOnOrder() {
@@ -33,5 +33,5 @@ async function getQuantitiesOnOrder() {
 }
 
 module.exports = {
-  upload, getQuantitiesOnOrder
+  uploadImage, getQuantitiesOnOrder,
 }
