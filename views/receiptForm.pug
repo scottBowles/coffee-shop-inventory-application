@@ -14,38 +14,39 @@ block content
                   .col-12.alert.alert-warning.alert-dismissible.fade.show(role="alert")!= error.msg
                     button(type="button" class="close" data-dismiss="alert" aria-label="Close") #[span(aria-hidden="true") &times;]
       
-      .container#container.mt-4
-        .row.table-responsive.text-nowrap
-          form.form-top(method="POST" action="")
-            table.table.table-hover.datatable(cellspacing="0" width="100%")
-              thead
-                tr
-                  th(scope="col") Quantity to Receive
-                  th(scope="col") Item
-                  th(scope="col") In Stock
-                  th(scope="col") Category
-                  th(scope="col") SKU
-              tbody
-                for item, index in items
+      else
+        .container#container.mt-4
+          .row.table-responsive.text-nowrap
+            form.form-top(method="POST" action="")
+              table.table.table-hover.datatable(cellspacing="0" width="100%")
+                thead
                   tr
-                    td.form-group
-                      input(type="number" name=`receivedItems[${index}][quantity]` value=`${thisReceiptItems ? thisReceiptItems[item._id.toString()] || '' : ''}`)
-                    td #[a(href=item.url)= item.name]
-                    td= item.quantityInStock
-                    td= item.category ? item.category.name : "(None)"
-                    td= item.sku
-                    td.hidden
-                      input(type="hidden" name=`receivedItems[${index}][id]` value=item._id)
+                    th(scope="col") Quantity to Receive
+                    th(scope="col") Item
+                    th(scope="col") In Stock
+                    th(scope="col") Category
+                    th(scope="col") SKU
+                tbody
+                  for item, index in items
+                    tr
+                      td.form-group
+                        input(type="number" name=`receivedItems[${index}][quantity]` value=`${thisReceiptItems ? thisReceiptItems[item._id.toString()] || '' : ''}`)
+                      td #[a(href=item.url)= item.name]
+                      td= item.quantityInStock
+                      td= item.category ? item.category.name : "(None)"
+                      td= item.sku
+                      td.hidden
+                        input(type="hidden" name=`receivedItems[${index}][id]` value=item._id)
+              
+              div#password-group.password-group-top.form-group.form-group-top.hidden
+                label(for="password") Enter Admin Password to Make Change
+                input#password.password-input-top.form-control(type="password" name="password")
+              .container
+                .row.d-flex.justify-content-center.justify-content-sm-start
+                  button.btn.btn-primary.btn-outline-brown(type="submit" name="submitType" value="submit") #[i.fas.fa-check.mr-2] Submit
+                  button.btn.btn-primary.btn-outline-brown(type="submit" name="submitType" value="save") #[i.fas.fa-save.mr-2] Save
             
-            div#password-group.password-group-top.form-group.form-group-top.hidden
-              label(for="password") Enter Admin Password to Make Change
-              input#password.password-input-top.form-control(type="password" name="password")
-            .container
-              .row.d-flex.justify-content-center.justify-content-sm-start
-                button.btn.btn-primary.btn-outline-brown(type="submit" name="submitType" value="submit") #[i.fas.fa-check.mr-2] Submit
-                button.btn.btn-primary.btn-outline-brown(type="submit" name="submitType" value="save") #[i.fas.fa-save.mr-2] Save
-        
-      div.mb-5.mt-4
-        a(href="#top") Return to Top
+        div.mb-5.mt-4
+          a(href="#top") Return to Top
 
   script(src="/javascripts/form.js")
