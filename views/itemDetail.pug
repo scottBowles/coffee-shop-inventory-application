@@ -15,7 +15,7 @@ block content
             div.d-flex.justify-content-end.fa-container.pt-1
               i.fab.fa-elementor.brown-text
             if item.category
-              div.ml-3 #[strong Category:] #[a(href=itemCategoryUrl)= item.category.name]
+              div.ml-3 #[strong Category:] #[a(href=item.category.url)= item.category.name]
             else
               div.ml-3 #[strong Category:] (None)
         .row.mt-3.d-flex.flex-nowrap
