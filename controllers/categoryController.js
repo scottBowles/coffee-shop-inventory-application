@@ -1,19 +1,7 @@
 const { body, param, validationResult } = require("express-validator");
-const multer = require("multer");
 const fs = require("fs");
 const Category = require("../models/category");
-
-const upload = multer({
-  dest: "public/images/",
-  fileFilter: (req, file, cb) => {
-    if (!file.mimetype.match(/jpg$|png$|jpeg/)) {
-      cb(new Error("Filetype must be .png, .jpg or .jpeg"), false);
-    } else {
-      cb(null, true);
-    }
-  },
-  limits: { fieldSize: 1000000 },
-});
+const { upload } = require("./utils")
 
 exports.category_home = function categoryHome(req, res, next) {
   Category.find()
@@ -92,9 +80,9 @@ exports.category_create_post = [
         req.file === undefined
           ? undefined
           : {
-              data: fs.readFileSync(req.file.path),
-              contentType: req.file.mimetype,
-            },
+            data: fs.readFileSync(req.file.path),
+            contentType: req.file.mimetype,
+          },
     });
 
     if (errors.length > 0) {
@@ -189,9 +177,9 @@ exports.category_update_post = [
         req.file === undefined
           ? undefined
           : {
-              data: fs.readFileSync(req.file.path),
-              contentType: req.file.mimetype,
-            },
+            data: fs.readFileSync(req.file.path),
+            contentType: req.file.mimetype,
+          },
       _id: req.params.id,
     });
 

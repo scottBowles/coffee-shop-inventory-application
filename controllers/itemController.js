@@ -1,23 +1,11 @@
 const async = require("async");
 const fs = require("fs");
 const { body, param, validationResult } = require("express-validator");
-const multer = require("multer");
 const Item = require("../models/item");
 const Category = require("../models/category");
 const Order = require("../models/order");
 const InventoryCount = require("../models/inventoryCount");
-
-const upload = multer({
-  dest: "public/images/",
-  fileFilter: (req, file, cb) => {
-    if (!file.mimetype.match(/jpg$|png$|jpeg/)) {
-      cb(new Error("Filetype must be .png, .jpg or .jpeg"), false);
-    } else {
-      cb(null, true);
-    }
-  },
-  limits: { fieldSize: 1000000 },
-});
+const { upload } = require("./utils")
 
 exports.item_home = function itemHome(req, res, next) {
   async.auto(
@@ -205,9 +193,9 @@ exports.item_create_post = [
         req.file === undefined
           ? undefined
           : {
-              data: fs.readFileSync(req.file.path),
-              contentType: req.file.mimetype,
-            },
+            data: fs.readFileSync(req.file.path),
+            contentType: req.file.mimetype,
+          },
     });
 
     // If there are errors, re-render the form with the errors
@@ -409,9 +397,9 @@ exports.item_update_post = [
         req.file === undefined
           ? item.image
           : {
-              data: fs.readFileSync(req.file.path),
-              contentType: req.file.mimetype,
-            };
+            data: fs.readFileSync(req.file.path),
+            contentType: req.file.mimetype,
+          };
 
       if (item.itemLastUpdated === null) item.itemLastUpdated = Date.now();
 
