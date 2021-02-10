@@ -17,6 +17,7 @@ exports.index = function inventoryHome(req, res, next) {
           { status: { $in: ["Saved", "Ordered"] } },
           "orderDate deliveryDate status lastUpdated"
         )
+          .limit(5)
           .sort([["lastUpdated", "descending"]])
           .exec(callback);
       },
@@ -25,12 +26,14 @@ exports.index = function inventoryHome(req, res, next) {
           { dateSubmitted: undefined },
           "dateInitiated dateSubmitted type"
         )
+          .limit(5)
           .sort([["dateInitiated", "descending"]])
           .exec(callback);
       },
       items(callback) {
-        Item.find({ active: true })
-          .populate("category")
+        Item.find({ active: true }, "name quantityInStock category itemLastUpdated")
+          .limit(5)
+          .populate("category", "name")
           .sort([["itemLastUpdated", "descending"]])
           .exec(callback);
       },
@@ -117,8 +120,10 @@ exports.order_detail_get = [
       .populate("receipt")
       .populate({
         path: "orderedItems.item",
+        select: "name sku category active",
         populate: {
           path: "category",
+          select: "name"
         },
       })
       .exec((err, order) => {
@@ -162,8 +167,10 @@ exports.order_detail_post = [
       const populatedOrder = await order
         .populate({
           path: "orderedItems.item",
+          select: "name sku category active",
           populate: {
             path: "category",
+            select: "name"
           },
         })
         .execPopulate();
@@ -361,9 +368,11 @@ exports.order_update_get = [
       const populatedOrder = await order
         .populate({
           path: "orderedItems.item",
+          select: "name sku category active",
           populate: {
             path: "category",
-          },
+            select: "name"
+        },
         })
         .execPopulate();
 
@@ -441,8 +450,10 @@ exports.order_update_post = [
       const populatedOrder = await order
         .populate({
           path: "orderedItems.item",
+          select: "name sku category active",
           populate: {
             path: "category",
+            select: "name"
           },
         })
         .execPopulate();
@@ -528,8 +539,10 @@ exports.order_delete_get = [
         .populate("receipt")
         .populate({
           path: "orderedItems.item",
+          select: "name sku category active",
           populate: {
             path: "category",
+            select: "name"
           },
         })
         .exec();
@@ -568,8 +581,10 @@ exports.order_delete_post = [
           .populate("receipt")
           .populate({
             path: "orderedItems.item",
+            select: "name sku category active",
             populate: {
               path: "category",
+              select: "name"
             },
           })
           .exec();

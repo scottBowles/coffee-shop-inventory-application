@@ -20,7 +20,7 @@ block content
               if orders.length === 0
                 tr
                   td No open orders
-              each order in orders.slice(0, 5)
+              each order in orders
                 if order
                   tr
                     td #[a(href=order.url)= order.orderDateBrief]
