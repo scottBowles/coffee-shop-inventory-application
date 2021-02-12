@@ -9,9 +9,7 @@ exports.category_home = function categoryHome(req, res, next) {
     .populate("numItems")
     .sort({ name: "ascending" })
     .exec((err, categories) => {
-      if (err) {
-        return next(err);
-      }
+      if (err) return next(err);
       return res.render("categoriesHome", { title: "Categories", categories });
     });
 };
@@ -20,16 +18,16 @@ exports.category_detail = [
   validate.id({ message: "Invalid category id" }),
 
   function categoryDetail(req, res, next) {
+    // Check for validation errors. If errors, rerender category detail page.
     const { errors } = validationResult(req);
     if (errors.length > 0) {
       return res.render("categoryDetail", { title: "Category Detail", errors });
     }
+    // Find category, handle errors, render page
     Category.findById(req.params.id)
       .populate({ path: "items", match: { active: true }, select: "name quantityInStock sku price" })
       .exec((err, category) => {
-        if (err) {
-          return next(err);
-        }
+        if (err) return next(err);
         if (category === null) {
           const notFoundError = new Error("Category not found");
           notFoundError.status = 404;
@@ -54,41 +52,35 @@ exports.category_create_post = [
 
   (req, res, next) => {
     const { errors } = validationResult(req);
-
+    // create new category with the post data
     const category = new Category({
       name: req.body.name,
       description: req.body.description,
       image:
-        req.file === undefined
-          ? undefined
-          : {
-            data: fs.readFileSync(req.file.path),
-            contentType: req.file.mimetype,
-          },
+        req.file && {
+          data: fs.readFileSync(req.file.path),
+          contentType: req.file.mimetype,
+        },
     });
-
+    // handle validation errors
     if (errors.length > 0) {
-      res.render("categoryForm", {
+      return res.render("categoryForm", {
         title: "Create New Category",
         category,
         errors,
       });
-    } else {
-      Category.findOne({ name: req.body.name }).exec((err, foundCategory) => {
-        if (err) {
-          return next(err);
-        }
-        if (foundCategory) {
-          return res.redirect(foundCategory.url);
-        }
-        category.save((categorySaveError) => {
-          if (categorySaveError) {
-            return next(categorySaveError);
-          }
-          return res.redirect(category.url);
-        });
-      });
     }
+    // If a category with the given name already exists, redirect to the existing category page.
+    // Otherwise, save the new category and redirect to its newly-created page.
+    Category.findOne({ name: req.body.name }).exec((err, foundCategory) => {
+      if (err) return next(err);
+      if (foundCategory) return res.redirect(foundCategory.url);
+      category.save((saveError) => {
+        if (saveError) return next(saveError)
+        return res.redirect(category.url)
+      }
+      );
+    });
   },
 ];
 
@@ -96,23 +88,20 @@ exports.category_update_get = [
   validate.id({ message: "Invalid category id" }),
 
   function categoryUpdateGet(req, res, next) {
+    // handle any validation errors
     const { errors } = validationResult(req);
     if (errors.length > 0) {
       return res.render("categoryForm", { title: "Update Category", errors });
     }
+    // find the category, handle error conditions, and render update form
     Category.findById(req.params.id).exec((err, category) => {
-      if (err) {
-        return next(err);
-      }
+      if (err) return next(err);
       if (category === null) {
         const notFoundError = new Error("Category not found");
         notFoundError.status = 404;
         return next(notFoundError);
       }
-      return res.render("categoryForm", {
-        title: `Update Category: ${category.name}`,
-        category,
-      });
+      return res.render("categoryForm", { title: `Update Category: ${category.name}`, category, });
     });
   },
 ];
@@ -125,7 +114,7 @@ exports.category_update_post = [
 
   (req, res, next) => {
     const { errors } = validationResult(req);
-
+    // TODO: check whether this is at all necessary
     // if our orderId from params is bad, handle before we try to fetch the order
     const paramErrors = errors.filter((error) => error.location === "params");
     if (paramErrors.length > 0) {
@@ -139,12 +128,10 @@ exports.category_update_post = [
       name: req.body.name,
       description: req.body.description,
       image:
-        req.file === undefined
-          ? undefined
-          : {
-            data: fs.readFileSync(req.file.path),
-            contentType: req.file.mimetype,
-          },
+        req.file && {
+          data: fs.readFileSync(req.file.path),
+          contentType: req.file.mimetype,
+        },
       _id: req.params.id,
     });
 
@@ -159,9 +146,7 @@ exports.category_update_post = [
     // no errors. update category and redirect.
     Category.findByIdAndUpdate(req.params.id, category).exec(
       (err, newCategory) => {
-        if (err) {
-          return next(err);
-        }
+        if (err) return next(err);
         if (newCategory === null) {
           const notFoundError = new Error("Category not found");
           notFoundError.status = 404;
@@ -238,13 +223,11 @@ exports.category_delete_post = [
       .exec();
 
     // get each item in category and change item's category to undefined
-    const savedItems = [];
-    category.items.forEach((item) => {
+    const newlyCategorylessItems = category.items.map(item => {
       item.category = undefined;
-      const savedItem = item.save();
-      savedItems.push(savedItem);
-    });
-    await Promise.all(savedItems).catch((err) => next(err));
+      return item.save();
+    })
+    await Promise.all(newlyCategorylessItems).catch((err) => next(err));
 
     return res.redirect("/inventory/categories");
   },
