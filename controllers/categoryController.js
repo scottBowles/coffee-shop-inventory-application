@@ -1,48 +1,48 @@
-const { validationResult } = require("express-validator");
-const fs = require("fs");
-const Category = require("../models/category");
-const { uploadImage } = require("./utils")
-const validate = require("./validate")
+const { validationResult } = require('express-validator');
+const fs = require('fs');
+const Category = require('../models/category');
+const { uploadImage } = require('./utils');
+const validate = require('./validate');
+const { NotFoundError } = require('./errors');
 
 exports.category_home = function categoryHome(req, res, next) {
-  Category.find({}, "name description")
-    .populate("numItems")
-    .sort({ name: "ascending" })
+  Category.find({}, 'name description')
+    .populate('numItems')
+    .sort({ name: 'ascending' })
     .exec((err, categories) => {
       if (err) return next(err);
-      return res.render("categoriesHome", { title: "Categories", categories });
+      return res.render('categoriesHome', { title: 'Categories', categories });
     });
 };
 
 exports.category_detail = [
-  validate.id({ message: "Invalid category id" }),
+  validate.id({ message: 'Invalid category id' }),
 
   function categoryDetail(req, res, next) {
     // Check for validation errors. If errors, rerender category detail page.
     const { errors } = validationResult(req);
     if (errors.length > 0) {
-      return res.render("categoryDetail", { title: "Category Detail", errors });
+      return res.render('categoryDetail', { title: 'Category Detail', errors });
     }
     // Find category, handle errors, render page
     Category.findById(req.params.id)
-      .populate({ path: "items", match: { active: true }, select: "name quantityInStock sku price" })
+      .populate({
+        path: 'items',
+        match: { active: true },
+        select: 'name quantityInStock sku price',
+      })
       .exec((err, category) => {
         if (err) return next(err);
         if (category === null) {
-          const notFoundError = new Error("Category not found");
-          notFoundError.status = 404;
-          return next(notFoundError);
+          return next(NotFoundError('Category not found'));
         }
-        return res.render("categoryDetail", {
-          title: category.name,
-          category,
-        });
+        return res.render('categoryDetail', { title: category.name, category });
       });
   },
 ];
 
 exports.category_create_get = function categoryCreateGet(req, res, next) {
-  res.render("categoryForm", { title: "Create New Category" });
+  res.render('categoryForm', { title: 'Create New Category' });
 };
 
 exports.category_create_post = [
@@ -56,16 +56,15 @@ exports.category_create_post = [
     const category = new Category({
       name: req.body.name,
       description: req.body.description,
-      image:
-        req.file && {
-          data: fs.readFileSync(req.file.path),
-          contentType: req.file.mimetype,
-        },
+      image: req.file && {
+        data: fs.readFileSync(req.file.path),
+        contentType: req.file.mimetype,
+      },
     });
     // handle validation errors
     if (errors.length > 0) {
-      return res.render("categoryForm", {
-        title: "Create New Category",
+      return res.render('categoryForm', {
+        title: 'Create New Category',
         category,
         errors,
       });
@@ -76,32 +75,33 @@ exports.category_create_post = [
       if (err) return next(err);
       if (foundCategory) return res.redirect(foundCategory.url);
       category.save((saveError) => {
-        if (saveError) return next(saveError)
-        return res.redirect(category.url)
-      }
-      );
+        if (saveError) return next(saveError);
+        return res.redirect(category.url);
+      });
     });
   },
 ];
 
 exports.category_update_get = [
-  validate.id({ message: "Invalid category id" }),
+  validate.id({ message: 'Invalid category id' }),
 
   function categoryUpdateGet(req, res, next) {
     // handle any validation errors
     const { errors } = validationResult(req);
     if (errors.length > 0) {
-      return res.render("categoryForm", { title: "Update Category", errors });
+      return res.render('categoryForm', { title: 'Update Category', errors });
     }
+
     // find the category, handle error conditions, and render update form
     Category.findById(req.params.id).exec((err, category) => {
       if (err) return next(err);
       if (category === null) {
-        const notFoundError = new Error("Category not found");
-        notFoundError.status = 404;
-        return next(notFoundError);
+        return next(NotFoundError('Category not found'));
       }
-      return res.render("categoryForm", { title: `Update Category: ${category.name}`, category, });
+      return res.render('categoryForm', {
+        title: `Update Category: ${category.name}`,
+        category,
+      });
     });
   },
 ];
@@ -109,34 +109,24 @@ exports.category_update_get = [
 exports.category_update_post = [
   uploadImage,
   validate.category(),
-  validate.id({ message: "Invalid Category Id" }),
+  validate.id({ message: 'Invalid Category Id' }),
   validate.password(),
 
   (req, res, next) => {
-    const { errors } = validationResult(req);
-    // TODO: check whether this is at all necessary
-    // if our orderId from params is bad, handle before we try to fetch the order
-    const paramErrors = errors.filter((error) => error.location === "params");
-    if (paramErrors.length > 0) {
-      return res.render("categoryForm", {
-        title: "Update Category",
-        errors,
-      });
-    }
-
     const category = new Category({
       name: req.body.name,
       description: req.body.description,
-      image:
-        req.file && {
-          data: fs.readFileSync(req.file.path),
-          contentType: req.file.mimetype,
-        },
+      image: req.file && {
+        data: fs.readFileSync(req.file.path),
+        contentType: req.file.mimetype,
+      },
       _id: req.params.id,
     });
 
+    const { errors } = validationResult(req);
+
     if (errors.length > 0) {
-      return res.render("categoryForm", {
+      return res.render('categoryForm', {
         title: `Update Category: ${req.body.name}`,
         category,
         errors,
@@ -148,9 +138,7 @@ exports.category_update_post = [
       (err, newCategory) => {
         if (err) return next(err);
         if (newCategory === null) {
-          const notFoundError = new Error("Category not found");
-          notFoundError.status = 404;
-          return next(notFoundError);
+          return next(NotFoundError('Category not found'));
         }
         return res.redirect(newCategory.url);
       }
@@ -159,29 +147,27 @@ exports.category_update_post = [
 ];
 
 exports.category_delete_get = [
-  validate.id({ message: "Invalid category id" }),
+  validate.id({ message: 'Invalid category id' }),
 
   async function categoryDeleteGet(req, res, next) {
     try {
       const { errors } = validationResult(req);
       if (errors.length > 0) {
-        return res.render("categoryDelete", {
-          title: "Remove Category",
+        return res.render('categoryDelete', {
+          title: 'Remove Category',
           errors,
         });
       }
       // Get category
       const category = await Category.findById(req.params.id)
-        .populate("items", "name quantityInStock sku price")
+        .populate('items', 'name quantityInStock sku price')
         .exec();
 
       // If no category is found, redirect
-      if (category === null) {
-        return res.redirect("/inventory/categories");
-      }
+      if (category === null) return res.redirect('/inventory/categories');
 
       // Render page
-      return res.render("categoryDelete", {
+      return res.render('categoryDelete', {
         title: `Remove Category: ${category.name}`,
         category,
       });
@@ -193,7 +179,7 @@ exports.category_delete_get = [
 
 exports.category_delete_post = [
   validate.password(),
-  validate.id({ message: "Invalid category id" }),
+  validate.id({ message: 'Invalid category id' }),
 
   async function categoryDeletePost(req, res, next) {
     // handle validation error
@@ -202,15 +188,13 @@ exports.category_delete_post = [
     if (errors.length > 0) {
       // Get category
       const category = await Category.findById(req.params.id)
-        .populate("items", "name quantityInStock sku price")
+        .populate('items', 'name quantityInStock sku price')
         .exec();
 
       // If no category is found, redirect
-      if (category === null) {
-        return res.redirect("/inventory/categories");
-      }
+      if (category === null) return res.redirect('/inventory/categories');
 
-      return res.render("categoryDelete", {
+      return res.render('categoryDelete', {
         title: `Remove Category: ${category.name}`,
         category,
         errors,
@@ -218,17 +202,18 @@ exports.category_delete_post = [
     }
 
     // get category, populating items
-    const category = await Category.findByIdAndRemove(req.params.id)
-      .populate("items", "category")
+    const deletedCategory = await Category.findByIdAndRemove(req.params.id)
+      .populate('items', 'category')
       .exec();
 
     // get each item in category and change item's category to undefined
-    const newlyCategorylessItems = category.items.map(item => {
-      item.category = undefined;
-      return item.save();
-    })
-    await Promise.all(newlyCategorylessItems).catch((err) => next(err));
+    await Promise.all(
+      deletedCategory.items.map((item) => {
+        item.category = undefined;
+        return item.save();
+      })
+    ).catch((err) => next(err));
 
-    return res.redirect("/inventory/categories");
+    return res.redirect('/inventory/categories');
   },
 ];
