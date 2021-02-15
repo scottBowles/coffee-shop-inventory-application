@@ -1,0 +1,7 @@
+{
+  "extends": [
+    "wesbos"
+  ], "rules": {
+    "no-nested-ternary": 0
+  }
+}

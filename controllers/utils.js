@@ -29,7 +29,7 @@ async function getQuantitiesOnOrder() {
   return itemQtyHash;
 }
 
-function sortCountedQuantitiesByCategoryThenName(item1, item2) {
+function sortItemsByCategoryThenName(item1, item2) {
   const cat1 = item1.category ? item1.category.name : '(None)';
   const cat2 = item2.category ? item2.category.name : '(None)';
   if (cat1 !== cat2) {
@@ -47,9 +47,42 @@ function sortCountedQuantitiesBySkuThenName(a, b) {
   return a.item.nameNormalized > b.item.nameNormalized ? 1 : -1;
 }
 
+function arrayToObject(array, keyGetter, valueGetter) {
+  return array.reduce((obj, item) => {
+    const [key, value] = [keyGetter(item), valueGetter(item)];
+    obj[key] = value;
+    return obj;
+  }, {});
+}
+
+function updateItemsWithCountedQuantities(items, countedQuantities) {
+  /* Get an object of counted items mapping ids to quantities */
+  const countedQtyIdsToQuantities = arrayToObject(
+    countedQuantities,
+    (countItem) => countItem.item._id.toString(),
+    (countItem) => countItem.quantity
+  );
+  /* Update item quantities */
+  const updatedItems = items.map((item) => {
+    const updatedItem = item;
+    updatedItem.quantityInStock =
+      countedQtyIdsToQuantities[item._id.toString()] || item.quantityInStock;
+    return updatedItem;
+  });
+  return updatedItems;
+}
+
+function filterItemsForCount(filter, items) {
+  if (filter === 'Full' || filter === 'AdHoc') return items;
+  return items.filter(({ category }) => category && category.name === filter);
+}
+
 module.exports = {
   uploadImage,
   getQuantitiesOnOrder,
-  sortCountedQuantitiesByCategoryThenName,
+  sortItemsByCategoryThenName,
   sortCountedQuantitiesBySkuThenName,
+  arrayToObject,
+  updateItemsWithCountedQuantities,
+  filterItemsForCount,
 };

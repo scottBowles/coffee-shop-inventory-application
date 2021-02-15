@@ -7,8 +7,11 @@ const Category = require('../models/category');
 const validate = require('./validate');
 const { NotFoundError } = require('./errors');
 const {
-  sortCountedQuantitiesByCategoryThenName,
+  sortItemsByCategoryThenName,
   sortCountedQuantitiesBySkuThenName,
+  arrayToObject,
+  updateItemsWithCountedQuantities,
+  filterItemsForCount,
 } = require('./utils');
 
 const COUNT_HOME_FILTERS = ['all', 'unsubmitted', 'recent'];
@@ -121,12 +124,9 @@ exports.count_create_get = async function countCreateGet(req, res, next) {
     Category.find({}, 'name').exec(),
   ]).catch((err) => next(err));
 
-  const filteredItems =
-    filter === 'Full' || filter === 'AdHoc'
-      ? items
-      : items.filter((item) => item.category && item.category.name === filter);
-
-  filteredItems.sort(sortCountedQuantitiesByCategoryThenName);
+  const filteredItems = filterItemsForCount(filter, items).sort(
+    sortItemsByCategoryThenName
+  );
 
   res.render('countForm', {
     title: 'Create New Count',
@@ -137,24 +137,23 @@ exports.count_create_get = async function countCreateGet(req, res, next) {
 };
 
 exports.count_create_post = [
-  // remove empty items
+  /* remove empty items */
   function removeEmptyItems(req, res, next) {
     req.body.items = req.body.items.filter((item) => item.quantity !== '');
     next();
   },
 
-  // validate and sanitize input
+  /* validate and sanitize input */
   validate.countInput(),
   validate.submitType('submitButton', ['submit', 'save']),
   validate.password(),
 
   async function createPost(req, res, next) {
-    // grab errors
+    /* grab errors and filter */
     const { errors } = validationResult(req);
+    const { filter } = req.body;
 
-    // create new Count
-    const filter = req.body.filter || undefined;
-
+    /* create new Count */
     const count = new InventoryCount({
       dateInitiated: Date.now(),
       dateSubmitted:
@@ -171,32 +170,14 @@ exports.count_create_post = [
           : 'By Category',
     });
 
-    // errors? rerender with items modified by count
+    /* errors? rerender with items modified by count */
     if (errors.length > 0) {
       const items = await Item.find({}).populate('category', 'name').exec();
-
-      const filteredItems =
-        filter === 'Full' || filter === 'AdHoc'
-          ? items
-          : items.filter((item) => item.category.name === filter);
-
-      const countedQuantitiesHash = count.countedQuantities.reduce(
-        (hash, countItem) => {
-          const itemId = countItem.item.toString();
-          hash[itemId] = countItem.quantity;
-          return hash;
-        },
-        {}
-      );
-
-      const itemsModifiedByCount = filteredItems
-        .reduce((acc, cur) => {
-          const item = cur;
-          item.quantityInStock =
-            countedQuantitiesHash[item._id.toString()] || cur.quantityInStock;
-          return [...acc, item];
-        }, [])
-        .sort(sortCountedQuantitiesByCategoryThenName);
+      const filteredItems = filterItemsForCount(filter, items);
+      const itemsModifiedByCount = updateItemsWithCountedQuantities(
+        filteredItems,
+        count.countedQuantities
+      ).sort(sortItemsByCategoryThenName);
 
       return res.render('countForm', {
         title: 'Create New Count',
@@ -206,10 +187,10 @@ exports.count_create_post = [
         errors,
       });
     }
-    // no errors: save count. if submitting, update all of the items in count. if saving, save count alone.
 
+    /* no errors: save count. if submitting, update all of the items in count. if saving, save count alone. */
     if (req.body.submitButton === 'submit') {
-      // save count, update each item whose quantity was changed
+      /* save count, update each item whose quantity was changed */
       await Promise.all([
         count.save(),
         ...count.countedQuantities.map(async (qty) => {
@@ -223,13 +204,13 @@ exports.count_create_post = [
         }),
       ])
         .then((savedDocs) => {
-          // once db updates succeed, redirect to newly created count
+          /* once db updates succeed, redirect to newly created count */
           const savedCount = savedDocs[0];
           res.redirect(savedCount.url);
         })
         .catch((err) => next(err));
     } else {
-      // req.body.submit === "save" -- save count only
+      /* req.body.submit === "save" -- save count only */
       count
         .save()
         .catch((err) => next(err))
@@ -242,11 +223,13 @@ exports.count_update_get = [
   validate.id({ message: 'Invalid count id' }),
 
   async function countUpdateGet(req, res, next) {
+    /* Handle validation errors */
     const { errors } = validationResult(req);
     if (errors.length > 0) {
       return res.render('countForm', { title: 'Update Count', errors });
     }
 
+    /* Get count, handle errors, and sort counted quantities */
     const count = await InventoryCount.findById(req.params.id)
       .populate({
         path: 'countedQuantities.item',
@@ -255,13 +238,10 @@ exports.count_update_get = [
       })
       .exec();
 
-    if (count === null) {
-      return next(NotFoundError('Inventory Count not found'));
-    }
-
+    if (count === null) return next(NotFoundError('Inventory Count not found'));
     count.countedQuantities.sort(sortCountedQuantitiesBySkuThenName);
 
-    // Only matters here whether "By Category" or not, but this gives consistency to the front end & for POST
+    /* Get appropriate filter string for the count type */
     const filter =
       count.type === 'Full'
         ? 'Full'
@@ -269,6 +249,7 @@ exports.count_update_get = [
         ? 'AdHoc'
         : 'By Category';
 
+    /* If count has been submitted, render detail page with error -- cannot update */
     if (count.submitted) {
       return res.render('countDetail', {
         title: 'Count Detail',
@@ -278,58 +259,46 @@ exports.count_update_get = [
       });
     }
 
-    const items = await Item.find({}, 'name sku category quantityInStock')
+    /* Get an object of counted items mapping ids to quantities */
+    const countedQtyIdsToQuantities = arrayToObject(
+      count.countedQuantities,
+      (item) => item.item._id.toString(),
+      (item) => item.quantity
+    );
+
+    /* Construct query filter for category counts */
+    const countCategory = ['Full', 'Ad Hoc'].includes(count.type)
+      ? undefined
+      : count.countedQuantities[0].item.category._id;
+
+    const queryFilter = countCategory ? { category: countCategory } : {};
+
+    /* Get items */
+    const items = await Item.find(
+      queryFilter,
+      'name sku category quantityInStock'
+    )
       .populate('category', 'name')
       .exec()
       .catch((err) => next(err));
 
-    const countedQuantitiesHash = count.countedQuantities.reduce(
-      (hash, countItem) => {
-        const itemId = countItem.item.toString();
-        hash[itemId] = countItem.quantity;
-        return hash;
-      },
-      {}
+    /**
+     * Get all items that are active and/or were updated in the count.
+     * If the count updated an inactive item, we still want to be able to update that.
+     */
+    const activeOrCountItemsMatchingCountType = items.filter(
+      (item) => item.active || countedQtyIdsToQuantities[item._id] !== undefined
     );
 
-    // If category count, grab the category from the first item in the count and filter accordingly
-    // If that item has no category, filter for items with no category
-    const itemsMatchingCountType =
-      filter === 'Full' || filter === 'AdHoc'
-        ? items
-        : items.filter((item) => {
-            if (!count.countedQuantities[0].item.category) {
-              return !item.category;
-            }
-            return (
-              item.category &&
-              item.category.name ===
-                count.countedQuantities[0].item.category.name
-            );
-          });
-
-    const activeOrCountItemsMatchingCountType = itemsMatchingCountType.filter(
-      (item) => item.active || countedQuantitiesHash[item._id] !== undefined
-    );
-
-    const itemsModifiedByCount = [];
-
-    activeOrCountItemsMatchingCountType.forEach((item) => {
-      const newItem = item;
-      newItem.quantityInStock =
-        countedQuantitiesHash[newItem._id.toString()] || item.quantityInStock;
-      itemsModifiedByCount.push(newItem);
-    });
-
-    itemsModifiedByCount.sort(sortCountedQuantitiesByCategoryThenName);
-
-    itemsModifiedByCount.forEach((item) => {
-      console.dir(!!item.category);
-    });
+    /* Take the filtered items and update quantities to match the saved count */
+    const itemsWithQuantitiesUpdatedBySavedCount = updateItemsWithCountedQuantities(
+      activeOrCountItemsMatchingCountType,
+      count.countedQuantities
+    ).sort(sortItemsByCategoryThenName);
 
     return res.render('countForm', {
       title: 'Update Count',
-      items: itemsModifiedByCount,
+      items: itemsWithQuantitiesUpdatedBySavedCount,
       count,
       filter,
     });
@@ -337,33 +306,31 @@ exports.count_update_get = [
 ];
 
 exports.count_update_post = [
-  // remove empty items
+  /* remove empty items */
   function removeEmptyItems(req, res, next) {
     req.body.items = req.body.items.filter((item) => item.quantity !== '');
     next();
   },
 
-  // validate and sanitize input
+  /* validate and sanitize input */
   validate.countInput(),
   validate.submitType('submitButton', ['submit', 'save']),
   validate.id({ message: 'Invalid count id' }),
   validate.password(),
 
   async function updatePost(req, res, next) {
-    // grab errors & filter
+    /* grab errors & filter */
     const { errors } = validationResult(req);
     const { filter } = req.body;
+    console.log({ filter });
 
-    // if the countId from params is bad, handle before we try to fetch the count
+    /* if the countId from params is bad, handle before we try to fetch the count */
     const paramErrors = errors.filter((error) => error.location === 'params');
     if (paramErrors.length > 0) {
-      return res.render('countForm', {
-        title: 'Update Count',
-        errors,
-      });
+      return res.render('countForm', { title: 'Update Count', errors });
     }
 
-    // fetch count
+    /* fetch count && handle errors */
     const count = await InventoryCount.findById(req.params.id)
       .populate({
         path: 'countedQuantities.item',
@@ -372,64 +339,45 @@ exports.count_update_post = [
       })
       .exec();
 
-    if (count === null) {
-      return next(NotFoundError('Inventory Count not found'));
-    }
+    if (count === null) return next(NotFoundError('Inventory Count not found'));
 
-    // if count has already been submitted, render with error message
-    if (count.submitted) {
-      if (count.submitted) {
-        return res.render('countDetail', {
-          title: 'Count Detail',
-          count,
-          error: 'Cannot update a submitted count',
-        });
-      }
-    }
-
-    // define category if a category count
-    const category =
+    /* define category if a category count */
+    const categoryId =
       filter === 'By Category' && count.countedQuantities[0].item.category
         ? count.countedQuantities[0].item.category._id
         : undefined;
 
-    // update count with input data
-    const newCountedQuantities = req.body.items.map((item) => ({
+    /* update count with input data */
+    count.countedQuantities = req.body.items.map((item) => ({
       item: mongoose.Types.ObjectId(item.id),
       quantity: item.quantity,
     }));
 
-    count.countedQuantities = newCountedQuantities;
+    /* if count has already been submitted, render with error message */
+    if (count.submitted) {
+      return res.render('countDetail', {
+        title: 'Count Detail',
+        count,
+        error: 'Cannot update a submitted count',
+      });
+    }
 
-    // errors? rerender with items modified by count
+    /* validation errors? rerender with items modified by count */
     if (errors.length > 0) {
-      const items = await Item.find({}, 'name sku category quantityInStock')
+      const queryFilter = categoryId ? { category: categoryId } : {};
+
+      const items = await Item.find(
+        queryFilter,
+        'name sku category quantityInStock'
+      )
         .populate('category', 'name')
         .exec();
 
-      // console.log({ items });
-
-      const filteredItems = category
-        ? items.filter((item) => item.category._id === category)
-        : items;
-
-      const countHash = {};
-      count.countedQuantities.forEach((countItem) => {
-        const id = countItem.item.toString();
-        countHash[id] = countItem.quantity;
-      });
-
-      const itemsModifiedByCount = [];
-      filteredItems.forEach((item) => {
-        const newItem = item;
-        newItem.quantityInStock =
-          countHash[newItem._id.toString()] || item.quantityInStock;
-        itemsModifiedByCount.push(newItem);
-      });
-
-      itemsModifiedByCount.sort((item1, item2) =>
-        item1.name.toLowerCase() > item2.name.toLowerCase() ? 1 : -1
-      );
+      /* Update items with input quantities and sort */
+      const itemsModifiedByCount = updateItemsWithCountedQuantities(
+        items,
+        count.countedQuantities
+      ).sort(sortItemsByCategoryThenName);
 
       return res.render('countForm', {
         title: 'Update Count',
