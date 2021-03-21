@@ -1,4 +1,4 @@
-const currencyField = document.querySelectorAll(".two-decimal");
+const currencyField = document.querySelectorAll('.two-decimal');
 
 currencyField.forEach((field) => {
   field.onchange = (event) => {

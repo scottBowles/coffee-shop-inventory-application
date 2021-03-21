@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const moment = require("moment");
+const mongoose = require('mongoose');
+const moment = require('moment');
 
 const { Schema } = mongoose;
 
@@ -9,53 +9,53 @@ const OrderSchema = new Schema({
   status: {
     type: String,
     required: true,
-    enum: ["Saved", "Ordered", "Received"],
-    default: "Saved",
+    enum: ['Saved', 'Ordered', 'Received'],
+    default: 'Saved',
   },
   orderedItems: [
     {
-      item: { type: Schema.Types.ObjectId, ref: "Item" },
+      item: { type: Schema.Types.ObjectId, ref: 'Item' },
       quantity: { type: Number, max: 9999999 },
     },
   ],
   lastUpdated: { type: Date, required: true, default: Date.now() },
 });
 
-OrderSchema.virtual("receipt", {
-  ref: "Receipt",
-  localField: "_id",
-  foreignField: "orderReceived",
-  justOne: "true",
+OrderSchema.virtual('receipt', {
+  ref: 'Receipt',
+  localField: '_id',
+  foreignField: 'orderReceived',
+  justOne: 'true',
 });
 
-OrderSchema.virtual("orderDateFormatted").get(function () {
-  return moment(this.orderDate).format("MMMM Do YYYY, h:mm a");
+OrderSchema.virtual('orderDateFormatted').get(function () {
+  return moment(this.orderDate).format('MMMM Do YYYY, h:mm a');
 });
 
-OrderSchema.virtual("orderDateBrief").get(function () {
-  return moment(this.orderDate).format("MMMM Do");
+OrderSchema.virtual('orderDateBrief').get(function () {
+  return moment(this.orderDate).format('MMMM Do');
 });
 
-OrderSchema.virtual("deliveryDateFormatted").get(function () {
-  return moment(this.deliveryDate).format("MMMM Do YYYY");
+OrderSchema.virtual('deliveryDateFormatted').get(function () {
+  return moment(this.deliveryDate).format('MMMM Do YYYY');
 });
 
-OrderSchema.virtual("deliveryDateBrief").get(function () {
-  return moment(this.orderDate).format("MMMM Do");
+OrderSchema.virtual('deliveryDateBrief').get(function () {
+  return moment(this.orderDate).format('MMMM Do');
 });
 
-OrderSchema.virtual("lastUpdatedFormatted").get(function () {
-  return moment(this.lastUpdated).format("MMMM Do YYYY, h:mm a");
+OrderSchema.virtual('lastUpdatedFormatted').get(function () {
+  return moment(this.lastUpdated).format('MMMM Do YYYY, h:mm a');
 });
 
-OrderSchema.virtual("lastUpdatedBrief").get(function () {
-  return moment(this.orderDate).format("MMMM Do");
+OrderSchema.virtual('lastUpdatedBrief').get(function () {
+  return moment(this.orderDate).format('MMMM Do');
 });
 
-OrderSchema.virtual("url").get(function () {
+OrderSchema.virtual('url').get(function () {
   return `/inventory/order/${this._id}`;
 });
 
-OrderSchema.set("toObject", { virtuals: true });
+OrderSchema.set('toObject', { virtuals: true });
 
-module.exports = mongoose.model("Order", OrderSchema);
+module.exports = mongoose.model('Order', OrderSchema);

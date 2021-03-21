@@ -1,37 +1,37 @@
-const mongoose = require("mongoose");
-const async = require("async");
-const { validationResult } = require("express-validator");
-const Receipt = require("../models/receipt");
-const Order = require("../models/order");
-const Item = require("../models/item");
-const validate = require("./validate")
+const mongoose = require('mongoose');
+const async = require('async');
+const { validationResult } = require('express-validator');
+const Receipt = require('../models/receipt');
+const Order = require('../models/order');
+const Item = require('../models/item');
+const validate = require('./validate');
 
 exports.receiving_home = function receivingHome(req, res, next) {
-  if (!["all", "recent", undefined].includes(req.query.filter)) {
-    res.redirect("/inventory/receiving");
+  if (!['all', 'recent', undefined].includes(req.query.filter)) {
+    res.redirect('/inventory/receiving');
   } else {
     async.parallel(
       {
         orders(callback) {
-          Order.find({ status: "Ordered" })
-            .populate("receipt")
-            .sort({ deliveryDate: "descending" })
+          Order.find({ status: 'Ordered' })
+            .populate('receipt')
+            .sort({ deliveryDate: 'descending' })
             .exec(callback);
         },
         receipts(callback) {
-          if (req.query.filter === "all") {
+          if (req.query.filter === 'all') {
             Receipt.find({})
-              .sort({ dateInitiated: "descending" })
+              .sort({ dateInitiated: 'descending' })
               .exec(callback);
           } else {
             Receipt.find({})
-              .sort({ dateInitiated: "descending" })
+              .sort({ dateInitiated: 'descending' })
               .limit(5)
               .exec(callback);
           }
         },
         filter(callback) {
-          const filter = req.query.filter || "recent";
+          const filter = req.query.filter || 'recent';
           callback(null, filter);
         },
       },
@@ -39,8 +39,8 @@ exports.receiving_home = function receivingHome(req, res, next) {
         if (err) {
           return next(err);
         }
-        return res.render("receivingHome", {
-          title: "Receiving",
+        return res.render('receivingHome', {
+          title: 'Receiving',
           orders: results.orders,
           filter: results.filter,
           receipts: results.receipts,
@@ -52,23 +52,24 @@ exports.receiving_home = function receivingHome(req, res, next) {
 
 exports.receipt_detail = [
   // validate/sanitize
-  validate.id(
-    { message: "Receipt not found. Was something changed in the string after '/receiving/' in the url?" }
-  ),
+  validate.id({
+    message:
+      "Receipt not found. Was something changed in the string after '/receiving/' in the url?",
+  }),
 
   function receiptDetail(req, res, next) {
     const { errors } = validationResult(req);
     if (errors.length > 0) {
-      return res.render("receiptDetail", { title: "Receipt", errors });
+      return res.render('receiptDetail', { title: 'Receipt', errors });
     }
 
     Receipt.findById(req.params.id)
       .populate({
-        path: "receivedItems.item",
-        select: "category name",
+        path: 'receivedItems.item',
+        select: 'category name',
         populate: {
-          path: "category",
-          select: "name",
+          path: 'category',
+          select: 'name',
         },
       })
       .exec((err, receipt) => {
@@ -76,43 +77,47 @@ exports.receipt_detail = [
           return next(err);
         }
         if (receipt === null) {
-          const notFoundError = new Error("Receipt not found");
+          const notFoundError = new Error('Receipt not found');
           notFoundError.status = 404;
           return next(notFoundError);
         }
         receipt.receivedItems.sort((a, b) =>
           b.item.name.toLowerCase() < a.item.name.toLowerCase() ? 1 : -1
         );
-        return res.render("receiptDetail", { title: "Receipt", receipt });
+        return res.render('receiptDetail', { title: 'Receipt', receipt });
       });
   },
 ];
 
 exports.receipt_create_get = [
   // validate/sanitize
-  validate.id({ message: "Order not found. Was something added or changed after '/receiving/create-new/' in the url?", name: "order" }),
+  validate.id({
+    message:
+      "Order not found. Was something added or changed after '/receiving/create-new/' in the url?",
+    name: 'order',
+  }),
 
   async function receiptCreateGet(req, res, next) {
     // handle validation errors
     const { errors } = validationResult(req);
     if (errors.length > 0) {
-      return res.render("receiptForm", {
-        title: "Create New Receipt",
+      return res.render('receiptForm', {
+        title: 'Create New Receipt',
         errors,
       });
     }
 
     const orderId = req.params.order || undefined;
-    console.log({ orderId })
+    console.log({ orderId });
 
     // get items and, if receiving an order, order
-    const fetchItems = Item.find({}, "name sku quantityInStock active")
-      .populate("category")
+    const fetchItems = Item.find({}, 'name sku quantityInStock active')
+      .populate('category')
       .exec()
       .catch((err) => next(err));
 
     const fetchOrder = orderId
-      ? Order.findById(orderId).populate("receipt").exec()
+      ? Order.findById(orderId).populate('receipt').exec()
       : undefined;
 
     const [items, order] = await Promise.all([
@@ -161,8 +166,8 @@ exports.receipt_create_get = [
     });
 
     // render receipt form
-    return res.render("receiptForm", {
-      title: "Create New Receipt",
+    return res.render('receiptForm', {
+      title: 'Create New Receipt',
       items: itemsFiltered,
       thisReceiptItems,
     });
@@ -171,9 +176,9 @@ exports.receipt_create_get = [
 
 exports.receipt_create_post = [
   // validate/sanitize
-  validate.id({ message: "Invalid order id", name: "order" }),
+  validate.id({ message: 'Invalid order id', name: 'order' }),
   validate.receivedItems(),
-  validate.submitType("submitType", ["submit", "save"]),
+  validate.submitType('submitType', ['submit', 'save']),
   validate.password(),
 
   async function receiptCreatePost(req, res, next) {
@@ -182,10 +187,10 @@ exports.receipt_create_post = [
     const orderId = req.params.order || undefined;
 
     // if our orderId from params is bad, handle before we try to fetch the order
-    const paramErrors = errors.filter((error) => error.location === "params");
+    const paramErrors = errors.filter((error) => error.location === 'params');
     if (paramErrors.length > 0) {
-      return res.render("receiptForm", {
-        title: "Create New Receipt",
+      return res.render('receiptForm', {
+        title: 'Create New Receipt',
         errors,
       });
     }
@@ -196,9 +201,9 @@ exports.receipt_create_post = [
      *  If order already has a receipt, redirect to the receipt's update page
      */
 
-    const fetchItems = Item.find({}).populate("category").exec();
+    const fetchItems = Item.find({}).populate('category').exec();
     const fetchOrder = orderId
-      ? Order.findById(orderId).populate("receipt").exec()
+      ? Order.findById(orderId).populate('receipt').exec()
       : undefined;
     const [items, order] = await Promise.all([
       fetchItems,
@@ -239,7 +244,7 @@ exports.receipt_create_post = [
     if (order) {
       order.orderedItems.forEach((orderedItem) => {
         receivedItemHash[orderedItem.item] =
-          receivedItemHash[orderedItem.item] || "0";
+          receivedItemHash[orderedItem.item] || '0';
       });
     }
 
@@ -248,13 +253,11 @@ exports.receipt_create_post = [
      */
 
     const newReceipt = new Receipt({
-      dateSubmitted: submitType === "submit" ? Date.now() : undefined,
-      receivedItems: Object.keys(receivedItemHash).map((key) => {
-        return {
-          item: mongoose.Types.ObjectId(key),
-          quantity: receivedItemHash[key],
-        };
-      }),
+      dateSubmitted: submitType === 'submit' ? Date.now() : undefined,
+      receivedItems: Object.keys(receivedItemHash).map((key) => ({
+        item: mongoose.Types.ObjectId(key),
+        quantity: receivedItemHash[key],
+      })),
       orderReceived: order ? order._id : undefined,
     });
 
@@ -263,13 +266,13 @@ exports.receipt_create_post = [
      */
 
     if (errors.length > 0) {
-      items.sort((a, b) => {
-        return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
-      });
+      items.sort((a, b) =>
+        a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1
+      );
 
       // render receipt form
-      return res.render("receiptForm", {
-        title: "Create New Receipt",
+      return res.render('receiptForm', {
+        title: 'Create New Receipt',
         thisReceiptItems: receivedItemHash,
         items,
         errors,
@@ -280,12 +283,12 @@ exports.receipt_create_post = [
      *  No errors -- amend and save to db and redirect
      */
 
-    if (submitType === "submit") {
+    if (submitType === 'submit') {
       // amend order
       if (order) {
         order.deliveryDate = Date.now();
         order.lastUpdated = Date.now();
-        order.status = "Received";
+        order.status = 'Received';
       }
 
       // amend items in receipt
@@ -297,7 +300,7 @@ exports.receipt_create_post = [
           item.qtyLastUpdated = Date.now();
           item.itemLastUpdated = Date.now();
           amendedItems.push(item);
-        } else if (receivedItemHash[item._id] === "0") {
+        } else if (receivedItemHash[item._id] === '0') {
           item.qtyLastUpdated = Date.now();
           item.itemLastUpdated = Date.now();
           amendedItems.push(item);
@@ -326,13 +329,16 @@ exports.receipt_create_post = [
 ];
 
 exports.receipt_update_get = [
-  validate.id({ message: "Receipt not found. Was something added or changed in the string after '/receiving/' and before '/update' in the url?" }),
+  validate.id({
+    message:
+      "Receipt not found. Was something added or changed in the string after '/receiving/' and before '/update' in the url?",
+  }),
 
   async function receiptUpdateGet(req, res, next) {
     const { errors } = validationResult(req);
     if (errors.length > 0) {
-      return res.render("receiptForm", {
-        title: "Update Receipt",
+      return res.render('receiptForm', {
+        title: 'Update Receipt',
         errors,
       });
     }
@@ -340,18 +346,18 @@ exports.receipt_update_get = [
     // promise receipt
     const fetchReceipt = Receipt.findById(req.params.id)
       .populate({
-        path: "receivedItems.item",
-        select: "category name",
+        path: 'receivedItems.item',
+        select: 'category name',
         populate: {
-          path: "category",
-          select: "name",
+          path: 'category',
+          select: 'name',
         },
       })
       .exec();
 
     // promise items
-    const fetchItems = Item.find({}, "name sku quantityInStock active")
-      .populate("category")
+    const fetchItems = Item.find({}, 'name sku quantityInStock active')
+      .populate('category')
       .exec();
 
     // fetch in parallel
@@ -364,17 +370,17 @@ exports.receipt_update_get = [
     if (receipt.submitted) {
       // sort, with category-less items assigned "None"
       receipt.receivedItems.forEach((receivedItem) => {
-        receivedItem.category = receivedItem.category || { name: "None" };
+        receivedItem.category = receivedItem.category || { name: 'None' };
       });
 
       receipt.receivedItems.sort((a, b) =>
         b.item.name.toLowerCase() < a.item.name.toLowerCase() ? 1 : -1
       );
-      return res.render("receiptDetail", {
-        title: "Receipt",
+      return res.render('receiptDetail', {
+        title: 'Receipt',
         receipt,
         errors: [
-          { msg: "Cannot update a receipt once it has been submitted." },
+          { msg: 'Cannot update a receipt once it has been submitted.' },
         ],
       });
     }
@@ -390,12 +396,12 @@ exports.receipt_update_get = [
       (item) => item.active || !!thisReceiptItems[item._id]
     );
 
-    itemsFiltered.sort((a, b) => {
-      return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
-    });
+    itemsFiltered.sort((a, b) =>
+      a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1
+    );
 
-    return res.render("receiptForm", {
-      title: "Update Receipt",
+    return res.render('receiptForm', {
+      title: 'Update Receipt',
       receipt,
       items: itemsFiltered,
       thisReceiptItems,
@@ -405,9 +411,9 @@ exports.receipt_update_get = [
 
 exports.receipt_update_post = [
   // validate/sanitize
-  validate.id({ message: "Invalid receipt" }),
+  validate.id({ message: 'Invalid receipt' }),
   validate.receivedItems(),
-  validate.submitType("submitType", ["submit", "save"]),
+  validate.submitType('submitType', ['submit', 'save']),
   validate.password(),
 
   async function receiptUpdatePost(req, res, next) {
@@ -416,17 +422,17 @@ exports.receipt_update_post = [
     const { receivedItems, submitType } = req.body;
 
     // if our orderId from params is bad, handle before we try to fetch the order
-    const paramErrors = errors.filter((error) => error.location === "params");
+    const paramErrors = errors.filter((error) => error.location === 'params');
     if (paramErrors.length > 0) {
-      return res.render("receiptForm", {
-        title: "Update Receipt",
+      return res.render('receiptForm', {
+        title: 'Update Receipt',
         errors,
       });
     }
 
-    const fetchItems = Item.find({}).populate("category").exec();
+    const fetchItems = Item.find({}).populate('category').exec();
     const fetchReceipt = Receipt.findById(receiptId)
-      .populate("orderReceived")
+      .populate('orderReceived')
       .exec();
 
     const [items, receipt] = await Promise.all([
@@ -453,7 +459,7 @@ exports.receipt_update_post = [
     if (order) {
       order.orderedItems.forEach((orderedItem) => {
         receivedItemHash[orderedItem.item] =
-          receivedItemHash[orderedItem.item] || "0";
+          receivedItemHash[orderedItem.item] || '0';
       });
     }
 
@@ -474,8 +480,8 @@ exports.receipt_update_post = [
         });
 
         // render receipt form
-        return res.render("receiptForm", {
-          title: "Update Receipt",
+        return res.render('receiptForm', {
+          title: 'Update Receipt',
           thisReceiptItems: receivedItemHash,
           items,
           errors,
@@ -487,21 +493,19 @@ exports.receipt_update_post = [
      *  No errors -- amend, save to db and redirect, as appropriate to submitType
      */
 
-    if (submitType === "submit") {
+    if (submitType === 'submit') {
       // amend receipt
       receipt.dateSubmitted = Date.now();
-      receipt.receivedItems = Object.keys(receivedItemHash).map((key) => {
-        return {
-          item: mongoose.Types.ObjectId(key),
-          quantity: receivedItemHash[key],
-        };
-      });
+      receipt.receivedItems = Object.keys(receivedItemHash).map((key) => ({
+        item: mongoose.Types.ObjectId(key),
+        quantity: receivedItemHash[key],
+      }));
 
       // amend order
       if (order) {
         order.deliveryDate = Date.now();
         order.lastUpdated = Date.now();
-        order.status = "Received";
+        order.status = 'Received';
       }
 
       // amend each item in receipt
@@ -513,7 +517,7 @@ exports.receipt_update_post = [
           item.qtyLastUpdated = Date.now();
           item.itemLastUpdated = Date.now();
           amendedItems.push(item);
-        } else if (receivedItemHash[item._id] === "0") {
+        } else if (receivedItemHash[item._id] === '0') {
           item.qtyLastUpdated = Date.now();
           item.itemLastUpdated = Date.now();
           amendedItems.push(item);
@@ -533,14 +537,12 @@ exports.receipt_update_post = [
       return res.redirect(savedReceipt.url);
     }
 
-    if (submitType === "save") {
+    if (submitType === 'save') {
       // update receivedItems
-      receipt.receivedItems = Object.keys(receivedItemHash).map((key) => {
-        return {
-          item: mongoose.Types.ObjectId(key),
-          quantity: receivedItemHash[key],
-        };
-      });
+      receipt.receivedItems = Object.keys(receivedItemHash).map((key) => ({
+        item: mongoose.Types.ObjectId(key),
+        quantity: receivedItemHash[key],
+      }));
       await receipt.save();
       // redirect to receipt detail page
       return res.redirect(receipt.url);
@@ -550,7 +552,7 @@ exports.receipt_update_post = [
      *  A different submitType somehow got through validation
      */
 
-    errors.push({ msg: "Invalid submit type" });
+    errors.push({ msg: 'Invalid submit type' });
 
     // sort items
     items.sort((a, b) => {
@@ -563,8 +565,8 @@ exports.receipt_update_post = [
     });
 
     // render receipt form
-    return res.render("receiptForm", {
-      title: "Update Receipt",
+    return res.render('receiptForm', {
+      title: 'Update Receipt',
       thisReceiptItems: receivedItemHash,
       items,
       errors,
@@ -573,39 +575,39 @@ exports.receipt_update_post = [
 ];
 
 exports.receipt_delete_get = [
-  validate.id({ message: "Invalid receipt id" }),
+  validate.id({ message: 'Invalid receipt id' }),
   async function receiptDeleteGet(req, res, next) {
     const { errors } = validationResult(req);
     if (errors.length > 0) {
-      return res.render("receiptDelete", { title: "Remove Receipt", errors });
+      return res.render('receiptDelete', { title: 'Remove Receipt', errors });
     }
     const receipt = await Receipt.findById(req.params.id)
       .populate({
-        path: "receivedItems.item",
-        select: "category name",
+        path: 'receivedItems.item',
+        select: 'category name',
         populate: {
-          path: "category",
-          select: "name",
+          path: 'category',
+          select: 'name',
         },
       })
-      .populate("orderReceived")
+      .populate('orderReceived')
       .exec();
 
     if (receipt === null) {
-      const notFoundError = new Error("Receipt not found");
+      const notFoundError = new Error('Receipt not found');
       notFoundError.status = 404;
       return next(notFoundError);
     }
     receipt.receivedItems.sort((a, b) =>
       b.item.name.toLowerCase() < a.item.name.toLowerCase() ? 1 : -1
     );
-    return res.render("receiptDelete", { title: "Remove Receipt", receipt });
+    return res.render('receiptDelete', { title: 'Remove Receipt', receipt });
   },
 ];
 
 exports.receipt_delete_post = [
   validate.password(),
-  validate.id({ message: "Invalid receipt id" }),
+  validate.id({ message: 'Invalid receipt id' }),
   async function receiptDeletePost(req, res, next) {
     try {
       // validate param
@@ -613,26 +615,26 @@ exports.receipt_delete_post = [
       if (errors.length > 0) {
         const receipt = await Receipt.findById(req.params.id)
           .populate({
-            path: "receivedItems.item",
-            select: "category name",
+            path: 'receivedItems.item',
+            select: 'category name',
             populate: {
-              path: "category",
-              select: "name",
+              path: 'category',
+              select: 'name',
             },
           })
-          .populate("orderReceived")
+          .populate('orderReceived')
           .exec();
 
         if (receipt === null) {
-          const notFoundError = new Error("Receipt not found");
+          const notFoundError = new Error('Receipt not found');
           notFoundError.status = 404;
           return next(notFoundError);
         }
         receipt.receivedItems.sort((a, b) =>
           b.item.name.toLowerCase() < a.item.name.toLowerCase() ? 1 : -1
         );
-        return res.render("receiptDelete", {
-          title: "Remove Receipt",
+        return res.render('receiptDelete', {
+          title: 'Remove Receipt',
           receipt,
           errors,
         });
@@ -640,12 +642,12 @@ exports.receipt_delete_post = [
 
       // delete receipt
       const receipt = await Receipt.findByIdAndDelete(req.params.id)
-        .populate("orderReceived")
+        .populate('orderReceived')
         .exec();
 
       // handle receipt not found
       if (receipt === null) {
-        const notFoundError = new Error("Order not found");
+        const notFoundError = new Error('Order not found');
         notFoundError.status = 404;
         return next(notFoundError);
       }
@@ -653,13 +655,13 @@ exports.receipt_delete_post = [
       // if receipt is an order receipt, unreceive order
       if (receipt.orderReceived) {
         const order = receipt.orderReceived;
-        order.status = "Ordered";
+        order.status = 'Ordered';
         order.deliveryDate = undefined;
         order.lastUpdated = Date.now();
         await order.save();
       }
 
-      return res.redirect("/inventory/receiving");
+      return res.redirect('/inventory/receiving');
     } catch (error) {
       return next(error);
     }

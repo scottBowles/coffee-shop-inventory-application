@@ -1,14 +1,14 @@
-const path = require("path");
+const path = require('path');
 
 module.exports = {
-  mode: "development",
+  mode: 'development',
   entry: {
-    main: "./src/index.js",
-    form: "./src/form.js",
+    main: './src/index.js',
+    form: './src/form.js',
   },
   output: {
-    filename: "[name].js",
-    path: path.resolve(__dirname, "public", "javascripts"),
+    filename: '[name].js',
+    path: path.resolve(__dirname, 'public', 'javascripts'),
   },
   watch: true,
   watchOptions: {

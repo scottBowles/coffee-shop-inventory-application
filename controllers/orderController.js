@@ -1,40 +1,43 @@
-const mongoose = require("mongoose");
-const async = require("async");
-const moment = require("moment");
-const { validationResult } = require("express-validator");
-const Order = require("../models/order");
-const InventoryCount = require("../models/inventoryCount");
-const Item = require("../models/item");
-const Receipt = require("../models/receipt");
-const { getQuantitiesOnOrder } = require("./utils")
-const validate = require("./validate")
+const mongoose = require('mongoose');
+const async = require('async');
+const moment = require('moment');
+const { validationResult } = require('express-validator');
+const Order = require('../models/order');
+const InventoryCount = require('../models/inventoryCount');
+const Item = require('../models/item');
+const Receipt = require('../models/receipt');
+const { getQuantitiesOnOrder } = require('./utils');
+const validate = require('./validate');
 
 exports.index = function inventoryHome(req, res, next) {
   async.parallel(
     {
       orders(callback) {
         Order.find(
-          { status: { $in: ["Saved", "Ordered"] } },
-          "orderDate deliveryDate status lastUpdated"
+          { status: { $in: ['Saved', 'Ordered'] } },
+          'orderDate deliveryDate status lastUpdated'
         )
           .limit(5)
-          .sort([["lastUpdated", "descending"]])
+          .sort([['lastUpdated', 'descending']])
           .exec(callback);
       },
       counts(callback) {
         InventoryCount.find(
           { dateSubmitted: undefined },
-          "dateInitiated dateSubmitted type"
+          'dateInitiated dateSubmitted type'
         )
           .limit(5)
-          .sort([["dateInitiated", "descending"]])
+          .sort([['dateInitiated', 'descending']])
           .exec(callback);
       },
       items(callback) {
-        Item.find({ active: true }, "name quantityInStock category itemLastUpdated")
+        Item.find(
+          { active: true },
+          'name quantityInStock category itemLastUpdated'
+        )
           .limit(5)
-          .populate("category", "name")
-          .sort([["itemLastUpdated", "descending"]])
+          .populate('category', 'name')
+          .sort([['itemLastUpdated', 'descending']])
           .exec(callback);
       },
     },
@@ -42,8 +45,8 @@ exports.index = function inventoryHome(req, res, next) {
       if (err) {
         return next(err);
       }
-      res.render("index", {
-        title: "Corcovado Caf\xE9 Inventory",
+      res.render('index', {
+        title: 'Corcovado Caf\xE9 Inventory',
         orders: results.orders,
         counts: results.counts,
         items: results.items,
@@ -53,7 +56,7 @@ exports.index = function inventoryHome(req, res, next) {
 };
 
 exports.order_home = [
-  validate.escapeParam("filter"),
+  validate.escapeParam('filter'),
 
   function orderHome(req, res, next) {
     async.waterfall(
@@ -63,25 +66,25 @@ exports.order_home = [
           let { filter } = req.query;
           filter = filter
             ? filter.charAt(0).toUpperCase() + filter.slice(1)
-            : "Open";
+            : 'Open';
           let queryFilter;
-          if (filter === "All") {
-            queryFilter = ["Saved", "Ordered", "Received"];
-          } else if (["Saved", "Ordered", "Received"].includes(filter)) {
+          if (filter === 'All') {
+            queryFilter = ['Saved', 'Ordered', 'Received'];
+          } else if (['Saved', 'Ordered', 'Received'].includes(filter)) {
             queryFilter = Array(filter);
           } else {
-            filter = "Open";
-            queryFilter = ["Saved", "Ordered"];
+            filter = 'Open';
+            queryFilter = ['Saved', 'Ordered'];
           }
           callback(null, queryFilter, filter);
         },
         function getOrders(queryFilter, filter, callback) {
           Order.find(
             { status: { $in: queryFilter } },
-            "orderDate deliveryDate status lastUpdated"
+            'orderDate deliveryDate status lastUpdated'
           )
-            .populate("receipt")
-            .sort([["lastUpdated", "descending"]])
+            .populate('receipt')
+            .sort([['lastUpdated', 'descending']])
             .exec((err, filteredOrders) => {
               if (err) {
                 return next(err);
@@ -94,10 +97,10 @@ exports.order_home = [
         if (err) {
           return next(err);
         }
-        res.render("ordersHome", {
+        res.render('ordersHome', {
           filter: results.filter,
           orders: results.filteredOrders,
-          title: "Orders",
+          title: 'Orders',
         });
       }
     );
@@ -105,25 +108,25 @@ exports.order_home = [
 ];
 
 exports.order_detail_get = [
-  validate.id({ message: "Order not found" }),
+  validate.id({ message: 'Order not found' }),
 
   function orderDetail(req, res, next) {
     const { errors } = validationResult(req);
     if (errors.length > 0) {
-      return res.render("orderDetail", {
-        title: "Order Details",
+      return res.render('orderDetail', {
+        title: 'Order Details',
         errors,
       });
     }
 
     Order.findById(req.params.id)
-      .populate("receipt")
+      .populate('receipt')
       .populate({
-        path: "orderedItems.item",
-        select: "name sku category active",
+        path: 'orderedItems.item',
+        select: 'name sku category active',
         populate: {
-          path: "category",
-          select: "name"
+          path: 'category',
+          select: 'name',
         },
       })
       .exec((err, order) => {
@@ -131,26 +134,26 @@ exports.order_detail_get = [
           return next(err);
         }
         if (order == null) {
-          const notFoundError = new Error("Order not found");
+          const notFoundError = new Error('Order not found');
           notFoundError.status = 404;
           return next(notFoundError);
         }
-        return res.render("orderDetail", {
+        return res.render('orderDetail', {
           order,
-          title: "Order Details",
+          title: 'Order Details',
         });
       });
   },
 ];
 
 exports.order_detail_post = [
-  validate.id({ message: "Order not found" }),
+  validate.id({ message: 'Order not found' }),
 
   async function orderDetailPost(req, res, next) {
     const { errors } = validationResult(req);
     if (errors.length > 0) {
-      return res.render("orderDetail", {
-        title: "Order Details",
+      return res.render('orderDetail', {
+        title: 'Order Details',
         errors,
       });
     }
@@ -158,35 +161,35 @@ exports.order_detail_post = [
     const order = await Order.findById(req.params.id).exec();
 
     if (order === null) {
-      const notFoundError = new Error("Order not found");
+      const notFoundError = new Error('Order not found');
       notFoundError.status = 404;
       return next(notFoundError);
     }
 
-    if (order.status !== "Saved") {
+    if (order.status !== 'Saved') {
       const populatedOrder = await order
         .populate({
-          path: "orderedItems.item",
-          select: "name sku category active",
+          path: 'orderedItems.item',
+          select: 'name sku category active',
           populate: {
-            path: "category",
-            select: "name"
+            path: 'category',
+            select: 'name',
           },
         })
         .execPopulate();
 
-      return res.render("orderDetail", {
-        title: "Order Details",
+      return res.render('orderDetail', {
+        title: 'Order Details',
         order: populatedOrder,
         receipt: order.receipt,
-        errors: [{ msg: "Order was already placed." }],
+        errors: [{ msg: 'Order was already placed.' }],
       });
     }
 
     order.orderDate = Date.now();
-    order.deliveryDate = moment().add(7, "days");
+    order.deliveryDate = moment().add(7, 'days');
     order.lastUpdated = Date.now();
-    order.status = "Ordered";
+    order.status = 'Ordered';
 
     await order.save();
     return res.redirect(order.url);
@@ -196,10 +199,10 @@ exports.order_detail_post = [
 exports.order_create_get = async function orderCreateGet(req, res, next) {
   const fetchItems = Item.find(
     { active: true },
-    "name sku quantityInStock"
+    'name sku quantityInStock'
   ).exec();
 
-  const fetchOrders = Order.find({ status: "Ordered" }, "orderedItems").exec();
+  const fetchOrders = Order.find({ status: 'Ordered' }, 'orderedItems').exec();
 
   const [items, orders] = await Promise.all([
     fetchItems,
@@ -223,19 +226,19 @@ exports.order_create_get = async function orderCreateGet(req, res, next) {
     });
   });
 
-  return res.render("orderForm", { title: "Create New Order", items, onOrder });
+  return res.render('orderForm', { title: 'Create New Order', items, onOrder });
 };
 
 exports.order_create_post = [
   function removeItemsNotOrdered(req, res, next) {
     req.body.orderedItems = req.body.orderedItems.filter(
-      (item) => item.quantity !== ""
+      (item) => item.quantity !== ''
     );
     next();
   },
 
   validate.orderedItems(),
-  validate.submitType("submitType", ["placeOrder", "save"]),
+  validate.submitType('submitType', ['placeOrder', 'save']),
   validate.password(),
 
   async function orderCreatePost(req, res, next) {
@@ -243,16 +246,14 @@ exports.order_create_post = [
     const { submitType, orderedItems } = req.body;
 
     const newOrder = new Order({
-      orderDate: submitType === "placeOrder" ? Date.now() : undefined,
+      orderDate: submitType === 'placeOrder' ? Date.now() : undefined,
       deliveryDate:
-        submitType === "placeOrder" ? moment().add(7, "days") : undefined,
-      status: submitType === "placeOrder" ? "Ordered" : "Saved",
-      orderedItems: orderedItems.map((orderedItem) => {
-        return {
-          item: mongoose.Types.ObjectId(orderedItem.id),
-          quantity: orderedItem.quantity,
-        };
-      }),
+        submitType === 'placeOrder' ? moment().add(7, 'days') : undefined,
+      status: submitType === 'placeOrder' ? 'Ordered' : 'Saved',
+      orderedItems: orderedItems.map((orderedItem) => ({
+        item: mongoose.Types.ObjectId(orderedItem.id),
+        quantity: orderedItem.quantity,
+      })),
       lastUpdated: Date.now(),
     });
 
@@ -266,10 +267,10 @@ exports.order_create_post = [
      *  VALIDATION ERRORS -- RE-RENDER ORDER FORM
      */
 
-    const fetchItems = Item.find({}, "name sku quantityInStock").exec();
+    const fetchItems = Item.find({}, 'name sku quantityInStock').exec();
     const fetchOrders = Order.find(
-      { status: "Ordered" },
-      "orderedItems"
+      { status: 'Ordered' },
+      'orderedItems'
     ).exec();
 
     const [items, orders] = await Promise.all([
@@ -301,8 +302,8 @@ exports.order_create_post = [
     });
 
     // render order form
-    return res.render("orderForm", {
-      title: "Create New Order",
+    return res.render('orderForm', {
+      title: 'Create New Order',
       items,
       thisOrderItems,
       onOrder,
@@ -312,13 +313,13 @@ exports.order_create_post = [
 ];
 
 exports.order_update_get = [
-  validate.id({ message: "Order not found" }),
+  validate.id({ message: 'Order not found' }),
 
   async function orderUpdateGet(req, res, next) {
     const { errors } = validationResult(req);
     if (errors.length > 0) {
-      return res.render("orderDetail", {
-        title: "Order Details",
+      return res.render('orderDetail', {
+        title: 'Order Details',
         errors,
       });
     }
@@ -330,13 +331,13 @@ exports.order_update_get = [
     const fetchOrder = Order.findById(orderId).exec();
 
     // fetch items -- name, sku, quantityInStock
-    const fetchItems = Item.find({}, "name sku quantityInStock").exec();
+    const fetchItems = Item.find({}, 'name sku quantityInStock').exec();
 
     // create a hash of items -- { id: totalQuantityOnOrder }
     async function getItemsOnOrder() {
       const orders = await Order.find(
-        { status: "Ordered" },
-        "orderedItems"
+        { status: 'Ordered' },
+        'orderedItems'
       ).exec();
 
       const itemQtyHash = {};
@@ -358,29 +359,29 @@ exports.order_update_get = [
     ]).catch((err) => next(err));
 
     if (order == null) {
-      const notFoundError = new Error("Order not found");
+      const notFoundError = new Error('Order not found');
       notFoundError.status = 404;
       return next(notFoundError);
     }
 
     // if order has already been placed, re-render detail page with error message
-    if (order.status !== "Saved") {
+    if (order.status !== 'Saved') {
       const populatedOrder = await order
         .populate({
-          path: "orderedItems.item",
-          select: "name sku category active",
+          path: 'orderedItems.item',
+          select: 'name sku category active',
           populate: {
-            path: "category",
-            select: "name"
-        },
+            path: 'category',
+            select: 'name',
+          },
         })
         .execPopulate();
 
-      return res.render("orderDetail", {
-        title: "Order Details",
+      return res.render('orderDetail', {
+        title: 'Order Details',
         order: populatedOrder,
         receipt: order.receipt,
-        errors: [{ msg: "Cannot update an order once it has been placed." }],
+        errors: [{ msg: 'Cannot update an order once it has been placed.' }],
       });
     }
 
@@ -397,8 +398,8 @@ exports.order_update_get = [
       thisOrderItems[id] = orderedItem.quantity;
     });
 
-    return res.render("orderForm", {
-      title: "Update Order",
+    return res.render('orderForm', {
+      title: 'Update Order',
       order,
       items,
       onOrder,
@@ -411,15 +412,15 @@ exports.order_update_post = [
   // remove empty items
   function removeEmptyItems(req, res, next) {
     req.body.orderedItems = req.body.orderedItems.filter(
-      (item) => item.quantity !== ""
+      (item) => item.quantity !== ''
     );
     next();
   },
 
   // validate & sanitize
-  validate.id({ message: "Order not found" }),
+  validate.id({ message: 'Order not found' }),
   validate.orderedItems(),
-  validate.submitType("submitType", ["placeOrder", "save"]),
+  validate.submitType('submitType', ['placeOrder', 'save']),
   validate.password(),
 
   async function orderUpdatePost(req, res, next) {
@@ -428,10 +429,10 @@ exports.order_update_post = [
     const { submitType } = req.body;
 
     // if our orderId from params is bad, handle before we try to fetch the order
-    const paramErrors = errors.filter((error) => error.location === "params");
+    const paramErrors = errors.filter((error) => error.location === 'params');
     if (paramErrors.length > 0) {
-      return res.render("orderForm", {
-        title: "Update Order",
+      return res.render('orderForm', {
+        title: 'Update Order',
         errors,
       });
     }
@@ -440,29 +441,29 @@ exports.order_update_post = [
     const order = await Order.findById(req.params.id);
 
     if (order === null) {
-      const notFoundError = new Error("Order not found");
+      const notFoundError = new Error('Order not found');
       notFoundError.status = 404;
       return next(notFoundError);
     }
 
     // if order.status !== "Saved", render detail page with errors
-    if (order.status !== "Saved") {
+    if (order.status !== 'Saved') {
       const populatedOrder = await order
         .populate({
-          path: "orderedItems.item",
-          select: "name sku category active",
+          path: 'orderedItems.item',
+          select: 'name sku category active',
           populate: {
-            path: "category",
-            select: "name"
+            path: 'category',
+            select: 'name',
           },
         })
         .execPopulate();
 
-      return res.render("orderDetail", {
-        title: "Order Details",
+      return res.render('orderDetail', {
+        title: 'Order Details',
         order: populatedOrder,
         receipt: order.receipt,
-        errors: [{ msg: "Cannot update an order once it has been placed." }],
+        errors: [{ msg: 'Cannot update an order once it has been placed.' }],
       });
     }
 
@@ -475,7 +476,7 @@ exports.order_update_post = [
     // if errors, re-render "orderForm"
     if (errors.length > 0) {
       // fetch items
-      const fetchItems = Item.find({}, "name sku quantityInStock").exec();
+      const fetchItems = Item.find({}, 'name sku quantityInStock').exec();
 
       const [items, onOrder] = await Promise.all([
         fetchItems,
@@ -496,8 +497,8 @@ exports.order_update_post = [
         thisOrderItems[id] = orderedItem.quantity;
       });
 
-      return res.render("orderForm", {
-        title: "Update Order",
+      return res.render('orderForm', {
+        title: 'Update Order',
         order,
         items,
         onOrder,
@@ -507,10 +508,10 @@ exports.order_update_post = [
     }
 
     // no errors: update order
-    order.orderDate = submitType === "placeOrder" ? Date.now() : undefined;
+    order.orderDate = submitType === 'placeOrder' ? Date.now() : undefined;
     order.deliveryDate =
-      submitType === "placeOrder" ? moment().add(7, "days") : undefined;
-    order.status = submitType === "placeOrder" ? "Ordered" : "Saved";
+      submitType === 'placeOrder' ? moment().add(7, 'days') : undefined;
+    order.status = submitType === 'placeOrder' ? 'Ordered' : 'Saved';
     order.lastUpdated = Date.now();
 
     // save order.
@@ -522,13 +523,13 @@ exports.order_update_post = [
 ];
 
 exports.order_delete_get = [
-  validate.id({ message: "Order not found" }),
+  validate.id({ message: 'Order not found' }),
   async function orderDeleteGet(req, res, next) {
     try {
       const { errors } = validationResult(req);
       if (errors.length > 0) {
-        return res.render("orderDelete", {
-          title: "Delete Order",
+        return res.render('orderDelete', {
+          title: 'Delete Order',
           errors,
         });
       }
@@ -536,19 +537,19 @@ exports.order_delete_get = [
       const { id } = req.params;
 
       const order = await Order.findById(id)
-        .populate("receipt")
+        .populate('receipt')
         .populate({
-          path: "orderedItems.item",
-          select: "name sku category active",
+          path: 'orderedItems.item',
+          select: 'name sku category active',
           populate: {
-            path: "category",
-            select: "name"
+            path: 'category',
+            select: 'name',
           },
         })
         .exec();
 
       if (order === null) {
-        const notFoundError = new Error("Order not found");
+        const notFoundError = new Error('Order not found');
         notFoundError.status = 404;
         return next(notFoundError);
       }
@@ -560,7 +561,7 @@ exports.order_delete_get = [
         return a.item.name.toLowerCase() > b.item.name.toLowerCase() ? 1 : -1;
       });
 
-      return res.render("orderDelete", { title: "Delete Order", order });
+      return res.render('orderDelete', { title: 'Delete Order', order });
     } catch (error) {
       return next(error);
     }
@@ -569,7 +570,7 @@ exports.order_delete_get = [
 
 exports.order_delete_post = [
   validate.password(),
-  validate.id({ message: "Order not found" }),
+  validate.id({ message: 'Order not found' }),
 
   async function orderDeletePost(req, res, next) {
     try {
@@ -578,19 +579,19 @@ exports.order_delete_post = [
         const { id } = req.params;
 
         const order = await Order.findById(id)
-          .populate("receipt")
+          .populate('receipt')
           .populate({
-            path: "orderedItems.item",
-            select: "name sku category active",
+            path: 'orderedItems.item',
+            select: 'name sku category active',
             populate: {
-              path: "category",
-              select: "name"
+              path: 'category',
+              select: 'name',
             },
           })
           .exec();
 
         if (order === null) {
-          const notFoundError = new Error("Order not found");
+          const notFoundError = new Error('Order not found');
           notFoundError.status = 404;
           return next(notFoundError);
         }
@@ -602,8 +603,8 @@ exports.order_delete_post = [
           return a.item.name.toLowerCase() > b.item.name.toLowerCase() ? 1 : -1;
         });
 
-        return res.render("orderDelete", {
-          title: "Delete Order",
+        return res.render('orderDelete', {
+          title: 'Delete Order',
           order,
           errors,
         });
@@ -611,11 +612,11 @@ exports.order_delete_post = [
 
       // delete order and, if receipt, receipt
       const order = await Order.findByIdAndDelete(req.params.id)
-        .populate("receipt")
+        .populate('receipt')
         .exec();
 
       if (order === null) {
-        const notFoundError = new Error("Order not found");
+        const notFoundError = new Error('Order not found');
         notFoundError.status = 404;
         return next(notFoundError);
       }
@@ -625,7 +626,7 @@ exports.order_delete_post = [
         await Receipt.findByIdAndDelete(receiptId);
       }
 
-      return res.redirect("/inventory/orders");
+      return res.redirect('/inventory/orders');
     } catch (error) {
       return next(error);
     }
