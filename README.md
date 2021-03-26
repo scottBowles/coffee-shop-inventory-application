@@ -29,9 +29,9 @@ Visit this site live at https://corcovadocafe.herokuapp.com/
 
 ## Project Scope: Exceeding Expectations
 
-This server-side website was made as a project to learn Express & MongoDB with Mongoose. The idea for this project came from [The Odin Project](https://www.theodinproject.com/courses/nodejs/lessons/inventory-application).
+This server-side website was made as a project to learn Express & MongoDB with Mongoose.
 
-The project as suggested tracks only item categories and items, with quantities in stock. Drawing on my experience working for a major coffee chain, I sought to implement many facets of a real-world inventory management system. In addition to item categories and items, the app allows users to place orders, receive orders, receive product ad hoc, and complete inventory counts. This introduced significantly greater complexity.
+The idea for this project came from [The Odin Project](https://www.theodinproject.com/courses/nodejs/lessons/inventory-application). The project as suggested tracks only item categories and items, with quantities in stock. Drawing on my experience working for a major coffee chain, I sought to implement many facets of a real-world inventory management system. In addition to item categories and items, the app allows users to place orders, receive orders, receive product ad hoc, and complete inventory counts. This introduced significantly greater complexity.
 
 For instance, receiving an order involves:
 
